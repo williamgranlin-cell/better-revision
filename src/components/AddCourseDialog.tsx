@@ -13,6 +13,7 @@ import { BookOpen, Palette } from "lucide-react";
 interface AddCourseDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onAddCourse: (course: { name: string; color: string; intervals: number[]; firstRevisionDate: string }) => void;
 }
 
 const colors = [
@@ -22,15 +23,23 @@ const colors = [
   { name: "Rose", value: "bg-warning" },
 ];
 
-export const AddCourseDialog = ({ open, onOpenChange }: AddCourseDialogProps) => {
+export const AddCourseDialog = ({ open, onOpenChange, onAddCourse }: AddCourseDialogProps) => {
   const [courseName, setCourseName] = useState("");
   const [selectedColor, setSelectedColor] = useState(colors[0].value);
   const [intervals, setIntervals] = useState("1,3,7,15");
+  const [firstRevisionDate, setFirstRevisionDate] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement course creation logic
-    console.log({ courseName, selectedColor, intervals });
+    onAddCourse({
+      name: courseName,
+      color: selectedColor,
+      intervals: intervals.split(",").map(Number),
+      firstRevisionDate,
+    });
+    setCourseName("");
+    setIntervals("1,3,7,15");
+    setFirstRevisionDate("");
     onOpenChange(false);
   };
 
@@ -76,6 +85,17 @@ export const AddCourseDialog = ({ open, onOpenChange }: AddCourseDialogProps) =>
                 />
               ))}
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="first-revision">Première révision</Label>
+            <Input
+              id="first-revision"
+              type="date"
+              value={firstRevisionDate}
+              onChange={(e) => setFirstRevisionDate(e.target.value)}
+              required
+            />
           </div>
 
           <div className="space-y-2">

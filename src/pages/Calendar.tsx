@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { BottomNav } from "@/components/BottomNav";
 import { AddCourseDialog } from "@/components/AddCourseDialog";
 import CalendarView from "@/components/CalendarView";
+import { useCourses } from "@/hooks/useCourses";
 
 const Calendar = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const { courses, addCourse, deleteCourse, getRevisionEvents } = useCourses();
 
   return (
     <div className="min-h-screen pb-24 bg-background">
@@ -32,10 +34,18 @@ const Calendar = () => {
       </header>
 
       <main className="max-w-screen-xl mx-auto px-4 py-6">
-        <CalendarView />
+        <CalendarView 
+          courses={courses} 
+          revisionEvents={getRevisionEvents()} 
+          onDeleteCourse={deleteCourse}
+        />
       </main>
 
-      <AddCourseDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} />
+      <AddCourseDialog 
+        open={isAddDialogOpen} 
+        onOpenChange={setIsAddDialogOpen}
+        onAddCourse={addCourse}
+      />
       <BottomNav />
     </div>
   );

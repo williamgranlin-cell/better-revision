@@ -20,19 +20,36 @@ import {
 interface AddControlDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onAddControl: (control: {
+    name: string;
+    subject: string;
+    date: string;
+    importance: "low" | "medium" | "high";
+    targetGrade: string;
+  }) => void;
 }
 
-export const AddControlDialog = ({ open, onOpenChange }: AddControlDialogProps) => {
+export const AddControlDialog = ({ open, onOpenChange, onAddControl }: AddControlDialogProps) => {
   const [controlName, setControlName] = useState("");
   const [subject, setSubject] = useState("");
   const [date, setDate] = useState("");
-  const [importance, setImportance] = useState("medium");
+  const [importance, setImportance] = useState<"low" | "medium" | "high">("medium");
   const [targetGrade, setTargetGrade] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement control creation logic
-    console.log({ controlName, subject, date, importance, targetGrade });
+    onAddControl({
+      name: controlName,
+      subject,
+      date,
+      importance,
+      targetGrade,
+    });
+    setControlName("");
+    setSubject("");
+    setDate("");
+    setImportance("medium");
+    setTargetGrade("");
     onOpenChange(false);
   };
 
@@ -82,7 +99,7 @@ export const AddControlDialog = ({ open, onOpenChange }: AddControlDialogProps) 
 
           <div className="space-y-2">
             <Label htmlFor="importance">Importance</Label>
-            <Select value={importance} onValueChange={setImportance}>
+            <Select value={importance} onValueChange={(value) => setImportance(value as "low" | "medium" | "high")}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>

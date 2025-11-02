@@ -1,40 +1,15 @@
 import { useState } from "react";
-import { Plus, Calendar, AlertCircle } from "lucide-react";
+import { Plus, Calendar, AlertCircle, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BottomNav } from "@/components/BottomNav";
 import { Card } from "@/components/ui/card";
 import { AddControlDialog } from "@/components/AddControlDialog";
 import { Badge } from "@/components/ui/badge";
-
-interface Control {
-  id: string;
-  name: string;
-  subject: string;
-  date: string;
-  importance: "low" | "medium" | "high";
-  targetGrade: string;
-}
+import { useControls } from "@/hooks/useControls";
 
 const Controls = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [controls, setControls] = useState<Control[]>([
-    {
-      id: "1",
-      name: "Contrôle de Mathématiques",
-      subject: "Maths",
-      date: "2025-11-15",
-      importance: "high",
-      targetGrade: "16/20",
-    },
-    {
-      id: "2",
-      name: "Examen de Physique",
-      subject: "Physique",
-      date: "2025-11-20",
-      importance: "medium",
-      targetGrade: "14/20",
-    },
-  ]);
+  const { controls, addControl, deleteControl } = useControls();
 
   const importanceConfig = {
     low: { color: "bg-success", label: "Faible" },
@@ -86,7 +61,7 @@ const Controls = () => {
             return (
               <Card
                 key={control.id}
-                className="p-5 gradient-card border-0 shadow-sm hover:shadow-md transition-smooth"
+                className="p-5 gradient-card border-0 shadow-sm hover:shadow-md transition-smooth group"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
@@ -114,9 +89,19 @@ const Controls = () => {
                     </div>
                   </div>
 
-                  <div className="text-right">
-                    <p className="text-xs text-muted-foreground mb-1">Objectif</p>
-                    <p className="text-xl font-bold text-primary">{control.targetGrade}</p>
+                  <div className="flex items-start gap-2">
+                    <div className="text-right">
+                      <p className="text-xs text-muted-foreground mb-1">Objectif</p>
+                      <p className="text-xl font-bold text-primary">{control.targetGrade}</p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => deleteControl(control.id)}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </div>
                 </div>
               </Card>
@@ -138,7 +123,11 @@ const Controls = () => {
         </div>
       </main>
 
-      <AddControlDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} />
+      <AddControlDialog 
+        open={isAddDialogOpen} 
+        onOpenChange={setIsAddDialogOpen}
+        onAddControl={addControl}
+      />
       <BottomNav />
     </div>
   );
