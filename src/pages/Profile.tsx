@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Settings, Trophy, LogOut, Edit } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface Profile {
   id: string;
@@ -263,6 +264,19 @@ const Profile = () => {
                 <div className="text-3xl mb-2">⭐</div>
                 <p className="text-sm font-medium">10 contrôles</p>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Theme Toggle */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold">Thème</h3>
+                <p className="text-sm text-muted-foreground">Changer l'apparence</p>
+              </div>
+              <ThemeToggle />
             </div>
           </CardContent>
         </Card>
