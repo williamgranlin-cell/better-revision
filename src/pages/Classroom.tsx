@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { useObjectives } from "@/hooks/useObjectives";
+import { useStudySessions } from "@/hooks/useStudySessions";
 import {
   Dialog,
   DialogContent,
@@ -21,7 +22,9 @@ const Classroom = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [newObjective, setNewObjective] = useState("");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
   const { objectives, addObjective, toggleObjective, deleteObjective } = useObjectives();
+  const { addSession } = useStudySessions();
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -33,11 +36,29 @@ const Classroom = () => {
     return () => clearInterval(interval);
   }, [isRunning, time]);
 
-  const toggleTimer = () => setIsRunning(!isRunning);
+  const toggleTimer = () => {
+    if (!isRunning) {
+      setSessionStartTime(Date.now());
+    } else if (sessionStartTime) {
+      const durationMinutes = Math.floor((Date.now() - sessionStartTime) / 60000);
+      if (durationMinutes > 0) {
+        addSession(durationMinutes);
+      }
+      setSessionStartTime(null);
+    }
+    setIsRunning(!isRunning);
+  };
 
   const resetTimer = () => {
+    if (isRunning && sessionStartTime) {
+      const durationMinutes = Math.floor((Date.now() - sessionStartTime) / 60000);
+      if (durationMinutes > 0) {
+        addSession(durationMinutes);
+      }
+    }
     setIsRunning(false);
     setTime(timerDuration * 60);
+    setSessionStartTime(null);
   };
 
   const handleAddObjective = (e: React.FormEvent) => {

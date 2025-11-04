@@ -83,6 +83,45 @@ export type Database = {
         }
         Relationships: []
       }
+      flashcards: {
+        Row: {
+          answer: string
+          created_at: string | null
+          creation_method: string
+          id: string
+          question: string
+          subject: string | null
+          times_correct: number | null
+          times_reviewed: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          answer: string
+          created_at?: string | null
+          creation_method: string
+          id?: string
+          question: string
+          subject?: string | null
+          times_correct?: number | null
+          times_reviewed?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          answer?: string
+          created_at?: string | null
+          creation_method?: string
+          id?: string
+          question?: string
+          subject?: string | null
+          times_correct?: number | null
+          times_reviewed?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       objectives: {
         Row: {
           completed: boolean
@@ -137,6 +176,33 @@ export type Database = {
           id?: string
           last_name?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      study_sessions: {
+        Row: {
+          created_at: string | null
+          date: string
+          duration_minutes: number
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date?: string
+          duration_minutes: number
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          duration_minutes?: number
+          id?: string
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }

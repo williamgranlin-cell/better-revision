@@ -9,7 +9,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Auth from "./pages/Auth";
 import Calendar from "./pages/Calendar";
 import Classroom from "./pages/Classroom";
-import Statistics from "./pages/Statistics";
+import Flashcards from "./pages/Flashcards";
 import Controls from "./pages/Controls";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
@@ -28,7 +28,7 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
               <Route path="/classroom" element={<ProtectedRoute><Classroom /></ProtectedRoute>} />
-              <Route path="/statistics" element={<ProtectedRoute><Statistics /></ProtectedRoute>} />
+              <Route path="/flashcards" element={<ProtectedRoute><Flashcards /></ProtectedRoute>} />
               <Route path="/controls" element={<ProtectedRoute><Controls /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

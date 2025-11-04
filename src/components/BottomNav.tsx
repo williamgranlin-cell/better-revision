@@ -1,11 +1,11 @@
-import { Calendar, Target, BarChart3, FileCheck, User } from "lucide-react";
+import { Calendar, Target, BookOpen, FileCheck, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { icon: Calendar, label: "Calendrier", path: "/" },
   { icon: Target, label: "Classroom", path: "/classroom" },
-  { icon: BarChart3, label: "Stats", path: "/statistics" },
+  { icon: BookOpen, label: "Flashcards", path: "/flashcards" },
   { icon: FileCheck, label: "Contrôles", path: "/controls" },
   { icon: User, label: "Profil", path: "/profile" },
 ];

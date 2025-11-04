@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useToast } from "@/hooks/use-toast";
 import { Settings, Trophy, LogOut, Edit } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { StatisticsSection } from "@/components/StatisticsSection";
 
 interface Profile {
   id: string;
@@ -228,45 +229,8 @@ const Profile = () => {
           </CardContent>
         </Card>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 gap-4">
-          <Card>
-            <CardContent className="p-6 text-center">
-              <div className="text-3xl font-bold text-primary mb-2">48h</div>
-              <p className="text-sm text-muted-foreground">Temps de révision</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6 text-center">
-              <div className="text-3xl font-bold text-secondary mb-2">12</div>
-              <p className="text-sm text-muted-foreground">Objectifs complétés</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Achievements */}
-        <Card>
-          <CardContent className="p-6 space-y-4">
-            <h2 className="text-xl font-semibold flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-primary" />
-              Succès Récents
-            </h2>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="text-center p-4 rounded-lg bg-primary/5">
-                <div className="text-3xl mb-2">🎯</div>
-                <p className="text-sm font-medium">7 jours d'affilée</p>
-              </div>
-              <div className="text-center p-4 rounded-lg bg-secondary/5">
-                <div className="text-3xl mb-2">📚</div>
-                <p className="text-sm font-medium">50 révisions</p>
-              </div>
-              <div className="text-center p-4 rounded-lg bg-accent/5">
-                <div className="text-3xl mb-2">⭐</div>
-                <p className="text-sm font-medium">10 contrôles</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Real Statistics */}
+        <StatisticsSection />
 
         {/* Theme Toggle */}
         <Card>
