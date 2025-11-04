@@ -9,36 +9,24 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useFlashcards } from "@/hooks/useFlashcards";
-
 const Flashcards = () => {
-  const { addFlashcard } = useFlashcards();
+  const {
+    addFlashcard
+  } = useFlashcards();
   const [isManualDialogOpen, setIsManualDialogOpen] = useState(false);
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [subject, setSubject] = useState("");
-
   const handleManualCreate = async () => {
     if (!question || !answer) return;
-    
     await addFlashcard(question, answer, subject || undefined, "manual");
     setQuestion("");
     setAnswer("");
     setSubject("");
     setIsManualDialogOpen(false);
   };
-
-  return (
-    <div className="min-h-screen pb-24 bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-      <header className="sticky top-0 z-40 bg-card border-b border-border shadow-sm">
-        <div className="max-w-screen-xl mx-auto px-4 py-4">
-          <h1 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-            Flashcards
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Crée tes fiches de révision de 4 façons différentes
-          </p>
-        </div>
-      </header>
+  return <div className="min-h-screen pb-24 bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+      
 
       <main className="max-w-screen-xl mx-auto px-4 py-6">
         <Tabs defaultValue="create" className="space-y-6">
@@ -50,10 +38,7 @@ const Flashcards = () => {
           <TabsContent value="create" className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
               {/* Manual Creation */}
-              <Card 
-                className="p-6 gradient-card border-0 shadow-sm hover:shadow-colored cursor-pointer transition-smooth group"
-                onClick={() => setIsManualDialogOpen(true)}
-              >
+              <Card className="p-6 gradient-card border-0 shadow-sm hover:shadow-colored cursor-pointer transition-smooth group" onClick={() => setIsManualDialogOpen(true)}>
                 <div className="flex flex-col items-center text-center gap-4">
                   <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-smooth">
                     <Plus className="w-8 h-8 text-primary" />
@@ -141,49 +126,24 @@ const Flashcards = () => {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="subject">Matière (optionnel)</Label>
-              <Input
-                id="subject"
-                placeholder="Ex: Mathématiques, Physique..."
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-              />
+              <Input id="subject" placeholder="Ex: Mathématiques, Physique..." value={subject} onChange={e => setSubject(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="question">Question</Label>
-              <Textarea
-                id="question"
-                placeholder="Ex: Quelle est la formule de l'aire d'un cercle ?"
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                rows={3}
-              />
+              <Textarea id="question" placeholder="Ex: Quelle est la formule de l'aire d'un cercle ?" value={question} onChange={e => setQuestion(e.target.value)} rows={3} />
               <p className="text-xs text-muted-foreground">
                 Support KaTeX : utilisez \frac{"{a}"}{"{b}"} pour les fractions, x^2 pour les exposants
               </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="answer">Réponse</Label>
-              <Textarea
-                id="answer"
-                placeholder="Ex: A = π × r²"
-                value={answer}
-                onChange={(e) => setAnswer(e.target.value)}
-                rows={3}
-              />
+              <Textarea id="answer" placeholder="Ex: A = π × r²" value={answer} onChange={e => setAnswer(e.target.value)} rows={3} />
             </div>
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setIsManualDialogOpen(false)}
-                className="flex-1"
-              >
+              <Button variant="outline" onClick={() => setIsManualDialogOpen(false)} className="flex-1">
                 Annuler
               </Button>
-              <Button
-                onClick={handleManualCreate}
-                disabled={!question || !answer}
-                className="flex-1 gradient-primary"
-              >
+              <Button onClick={handleManualCreate} disabled={!question || !answer} className="flex-1 gradient-primary">
                 Créer
               </Button>
             </div>
@@ -192,8 +152,6 @@ const Flashcards = () => {
       </Dialog>
 
       <BottomNav />
-    </div>
-  );
+    </div>;
 };
-
 export default Flashcards;
