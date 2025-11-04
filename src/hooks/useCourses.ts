@@ -1,4 +1,7 @@
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 export interface Course {
   id: string;
@@ -17,24 +20,91 @@ export interface RevisionEvent {
 }
 
 export const useCourses = () => {
-  const [courses, setCourses] = useState<Course[]>(() => {
-    const saved = localStorage.getItem("courses");
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [courses, setCourses] = useState<Course[]>([]);
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
-    localStorage.setItem("courses", JSON.stringify(courses));
-  }, [courses]);
+    if (!user) return;
 
-  const addCourse = (course: Omit<Course, "id">) => {
-    const newCourse: Course = {
-      ...course,
-      id: Date.now().toString(),
+    const fetchCourses = async () => {
+      const { data, error } = await supabase
+        .from("courses")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les cours",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setCourses(
+        data.map((c) => ({
+          id: c.id,
+          name: c.name,
+          color: c.color,
+          intervals: c.intervals,
+          firstRevisionDate: c.first_revision_date,
+        }))
+      );
     };
-    setCourses([...courses, newCourse]);
+
+    fetchCourses();
+  }, [user, toast]);
+
+  const addCourse = async (course: Omit<Course, "id">) => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("courses")
+      .insert({
+        user_id: user.id,
+        name: course.name,
+        color: course.color,
+        intervals: course.intervals,
+        first_revision_date: course.firstRevisionDate,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible d'ajouter le cours",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setCourses([
+      ...courses,
+      {
+        id: data.id,
+        name: data.name,
+        color: data.color,
+        intervals: data.intervals,
+        firstRevisionDate: data.first_revision_date,
+      },
+    ]);
   };
 
-  const deleteCourse = (id: string) => {
+  const deleteCourse = async (id: string) => {
+    const { error } = await supabase.from("courses").delete().eq("id", id);
+
+    if (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer le cours",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setCourses(courses.filter((c) => c.id !== id));
   };
 

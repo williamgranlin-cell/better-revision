@@ -14,6 +14,102 @@ export type Database = {
   }
   public: {
     Tables: {
+      controls: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          importance: string
+          name: string
+          subject: string
+          target_grade: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          importance: string
+          name: string
+          subject: string
+          target_grade: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          importance?: string
+          name?: string
+          subject?: string
+          target_grade?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      courses: {
+        Row: {
+          color: string
+          created_at: string
+          first_revision_date: string
+          id: string
+          intervals: number[]
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color: string
+          created_at?: string
+          first_revision_date: string
+          id?: string
+          intervals: number[]
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          first_revision_date?: string
+          id?: string
+          intervals?: number[]
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      objectives: {
+        Row: {
+          completed: boolean
+          created_at: string
+          id: string
+          text: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          text: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          text?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
