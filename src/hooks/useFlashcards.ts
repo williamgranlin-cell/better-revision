@@ -52,7 +52,8 @@ export const useFlashcards = () => {
     question: string,
     answer: string,
     subject: string | undefined,
-    creationMethod: "manual" | "import" | "ai" | "revision_sheet"
+    creationMethod: "manual" | "import" | "ai" | "revision_sheet",
+    setId?: string
   ) => {
     if (!user) return;
 
@@ -62,6 +63,7 @@ export const useFlashcards = () => {
       answer,
       subject,
       creation_method: creationMethod,
+      set_id: setId,
     });
 
     if (error) {
@@ -79,6 +81,64 @@ export const useFlashcards = () => {
     });
     
     fetchFlashcards();
+  };
+
+  const addFlashcardBatch = async (
+    flashcards: Array<{ question: string; answer: string }>,
+    subject: string | undefined,
+    creationMethod: "manual" | "import" | "ai" | "revision_sheet",
+    setId?: string
+  ) => {
+    if (!user) return;
+
+    const flashcardsToInsert = flashcards.map(fc => ({
+      user_id: user.id,
+      question: fc.question,
+      answer: fc.answer,
+      subject,
+      creation_method: creationMethod,
+      set_id: setId,
+    }));
+
+    const { error } = await supabase.from("flashcards").insert(flashcardsToInsert);
+
+    if (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de créer les flashcards",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Succès",
+      description: `${flashcards.length} flashcards créées !`,
+    });
+    
+    fetchFlashcards();
+  };
+
+  const getFlashcardsBySet = async (setId: string) => {
+    if (!user) return [];
+
+    const { data, error } = await supabase
+      .from("flashcards")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("set_id", setId)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les flashcards",
+        variant: "destructive",
+      });
+      return [];
+    }
+
+    return data as Flashcard[] || [];
   };
 
   const updateFlashcard = async (id: string, updates: Partial<Flashcard>) => {
@@ -128,8 +188,10 @@ export const useFlashcards = () => {
     flashcards,
     loading,
     addFlashcard,
+    addFlashcardBatch,
     updateFlashcard,
     deleteFlashcard,
     recordReview,
+    getFlashcardsBySet,
   };
 };

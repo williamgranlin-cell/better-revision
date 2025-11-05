@@ -83,6 +83,33 @@ export type Database = {
         }
         Relationships: []
       }
+      flashcard_sets: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       flashcards: {
         Row: {
           answer: string
@@ -90,6 +117,7 @@ export type Database = {
           creation_method: string
           id: string
           question: string
+          set_id: string | null
           subject: string | null
           times_correct: number | null
           times_reviewed: number | null
@@ -102,6 +130,7 @@ export type Database = {
           creation_method: string
           id?: string
           question: string
+          set_id?: string | null
           subject?: string | null
           times_correct?: number | null
           times_reviewed?: number | null
@@ -114,13 +143,22 @@ export type Database = {
           creation_method?: string
           id?: string
           question?: string
+          set_id?: string | null
           subject?: string | null
           times_correct?: number | null
           times_reviewed?: number | null
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "flashcards_set_id_fkey"
+            columns: ["set_id"]
+            isOneToOne: false
+            referencedRelation: "flashcard_sets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       objectives: {
         Row: {
