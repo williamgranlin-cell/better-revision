@@ -1,19 +1,14 @@
 import { useState } from "react";
 import { BottomNav } from "@/components/BottomNav";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileUp, Brain, FileText, BookOpen, Plus, Trash2 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { useFlashcards } from "@/hooks/useFlashcards";
+import { FileUp, Brain, FileText, Plus, Trash2, BookOpen } from "lucide-react";
 import { useFlashcardSets } from "@/hooks/useFlashcardSets";
 import { CreateFlashcardSetDialog } from "@/components/CreateFlashcardSetDialog";
 import { FlashcardReviewDialog } from "@/components/FlashcardReviewDialog";
+import { CreateManualFlashcardSetDialog } from "@/components/CreateManualFlashcardSetDialog";
+import { Button } from "@/components/ui/button";
 const Flashcards = () => {
-  const { addFlashcard, addFlashcardBatch } = useFlashcards();
   const { sets, deleteSet } = useFlashcardSets();
   
   const [isManualDialogOpen, setIsManualDialogOpen] = useState(false);
@@ -21,21 +16,6 @@ const Flashcards = () => {
   const [isRevisionDialogOpen, setIsRevisionDialogOpen] = useState(false);
   const [reviewSetId, setReviewSetId] = useState<string | null>(null);
   const [reviewSetName, setReviewSetName] = useState("");
-  
-  const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState("");
-  const [subject, setSubject] = useState("");
-  const [setName, setSetName] = useState("");
-  const [setDescription, setSetDescription] = useState("");
-  
-  const handleManualCreate = async () => {
-    if (!question || !answer) return;
-    await addFlashcard(question, answer, subject || undefined, "manual");
-    setQuestion("");
-    setAnswer("");
-    setSubject("");
-    setIsManualDialogOpen(false);
-  };
 
   const handleReviewSet = (setId: string, name: string) => {
     setReviewSetId(setId);
@@ -54,7 +34,10 @@ const Flashcards = () => {
           <TabsContent value="create" className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
               {/* Manual Creation */}
-              <Card className="p-6 gradient-card border-0 shadow-sm hover:shadow-colored cursor-pointer transition-smooth group" onClick={() => setIsManualDialogOpen(true)}>
+              <Card 
+                className="p-6 gradient-card border-0 shadow-sm hover:shadow-colored cursor-pointer transition-smooth group" 
+                onClick={() => setIsManualDialogOpen(true)}
+              >
                 <div className="flex flex-col items-center text-center gap-4">
                   <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-smooth">
                     <Plus className="w-8 h-8 text-primary" />
@@ -62,7 +45,7 @@ const Flashcards = () => {
                   <div>
                     <h3 className="font-semibold text-lg mb-2">Création manuelle</h3>
                     <p className="text-sm text-muted-foreground">
-                      Crée tes flashcards avec support des formules mathématiques (KaTeX)
+                      Crée un lot de flashcards manuellement avec support KaTeX (max 50 cartes)
                     </p>
                   </div>
                 </div>
@@ -170,38 +153,10 @@ const Flashcards = () => {
       </main>
 
       {/* Manual Creation Dialog */}
-      <Dialog open={isManualDialogOpen} onOpenChange={setIsManualDialogOpen}>
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Créer une flashcard manuellement</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="subject">Matière (optionnel)</Label>
-              <Input id="subject" placeholder="Ex: Mathématiques, Physique..." value={subject} onChange={e => setSubject(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="question">Question</Label>
-              <Textarea id="question" placeholder="Ex: Quelle est la formule de l'aire d'un cercle ?" value={question} onChange={e => setQuestion(e.target.value)} rows={3} />
-              <p className="text-xs text-muted-foreground">
-                Support KaTeX : utilisez \frac{"{a}"}{"{b}"} pour les fractions, x^2 pour les exposants
-              </p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="answer">Réponse</Label>
-              <Textarea id="answer" placeholder="Ex: A = π × r²" value={answer} onChange={e => setAnswer(e.target.value)} rows={3} />
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setIsManualDialogOpen(false)} className="flex-1">
-                Annuler
-              </Button>
-              <Button onClick={handleManualCreate} disabled={!question || !answer} className="flex-1 gradient-primary">
-                Créer
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <CreateManualFlashcardSetDialog
+        open={isManualDialogOpen}
+        onOpenChange={setIsManualDialogOpen}
+      />
 
       <CreateFlashcardSetDialog
         open={isAIDialogOpen}
