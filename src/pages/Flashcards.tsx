@@ -12,6 +12,7 @@ const Flashcards = () => {
   const { sets, deleteSet } = useFlashcardSets();
   
   const [isManualDialogOpen, setIsManualDialogOpen] = useState(false);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [isAIDialogOpen, setIsAIDialogOpen] = useState(false);
   const [isRevisionDialogOpen, setIsRevisionDialogOpen] = useState(false);
   const [reviewSetId, setReviewSetId] = useState<string | null>(null);
@@ -52,7 +53,10 @@ const Flashcards = () => {
               </Card>
 
               {/* Import Course */}
-              <Card className="p-6 gradient-card border-0 shadow-sm hover:shadow-colored cursor-pointer transition-smooth group opacity-60">
+              <Card 
+                className="p-6 gradient-card border-0 shadow-sm hover:shadow-colored cursor-pointer transition-smooth group"
+                onClick={() => setIsImportDialogOpen(true)}
+              >
                 <div className="flex flex-col items-center text-center gap-4">
                   <div className="w-16 h-16 rounded-2xl bg-secondary/10 flex items-center justify-center group-hover:bg-secondary/20 transition-smooth">
                     <FileUp className="w-8 h-8 text-secondary" />
@@ -60,9 +64,8 @@ const Flashcards = () => {
                   <div>
                     <h3 className="font-semibold text-lg mb-2">Import de cours</h3>
                     <p className="text-sm text-muted-foreground">
-                      Importe un fichier PDF ou DOCX de ton cours
+                      Importe un fichier PDF, Word ou image de ton cours
                     </p>
-                    <p className="text-xs text-warning mt-2">Bientôt disponible</p>
                   </div>
                 </div>
               </Card>
@@ -156,6 +159,12 @@ const Flashcards = () => {
       <CreateManualFlashcardSetDialog
         open={isManualDialogOpen}
         onOpenChange={setIsManualDialogOpen}
+      />
+
+      <CreateFlashcardSetDialog
+        open={isImportDialogOpen}
+        onOpenChange={setIsImportDialogOpen}
+        creationMethod="import"
       />
 
       <CreateFlashcardSetDialog

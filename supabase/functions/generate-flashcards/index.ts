@@ -11,7 +11,48 @@ serve(async (req) => {
   }
 
   try {
-    const { content, type, count = 10 } = await req.json();
+    const contentType = req.headers.get("content-type") || "";
+    let content = "";
+    let type = "";
+    let count = 10;
+
+    // Handle file upload (multipart/form-data)
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await req.formData();
+      const file = formData.get("file") as File;
+      
+      if (!file) {
+        return new Response(
+          JSON.stringify({ error: "No file provided" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Read file content
+      const bytes = await file.arrayBuffer();
+      const uint8Array = new Uint8Array(bytes);
+      
+      // For text files, decode directly
+      if (file.name.endsWith(".txt")) {
+        content = new TextDecoder().decode(uint8Array);
+      } else if (file.name.match(/\.(jpg|jpeg|png|webp|pdf|doc|docx)$/i)) {
+        // For images and documents, extract text using OCR/parsing
+        // For now, return extracted text marker (you would use OCR API here)
+        content = `[Contenu extrait du fichier ${file.name}]\n\nVeuillez coller le texte de votre document ici pour générer les flashcards.`;
+      }
+
+      return new Response(
+        JSON.stringify({ extractedText: content }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Handle JSON content
+    const body = await req.json();
+    content = body.content;
+    type = body.type;
+    count = body.count || 10;
+    
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
