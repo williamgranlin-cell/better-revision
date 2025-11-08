@@ -18,26 +18,38 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `Tu es un assistant d'apprentissage spécialisé. Quand un utilisateur te donne un sujet de cours, tu dois:
-1. Rechercher et recommander 5-7 vidéos YouTube éducatives pertinentes sur ce sujet
-2. Pour chaque vidéo, fournir:
-   - Le titre de la vidéo
-   - Le nom de la chaîne YouTube
-   - Un lien YouTube réel et fonctionnel (format: https://www.youtube.com/watch?v=VIDEO_ID)
-   - Une brève description (1-2 phrases) expliquant pourquoi cette vidéo est utile
+    const systemPrompt = `Tu es un assistant d'apprentissage spécialisé avec accès à la recherche web en temps réel. Quand un utilisateur te donne un sujet de cours, tu dois:
 
-Format ta réponse de manière claire avec des sections numérotées. Assure-toi que les liens YouTube sont réels et pertinents au sujet demandé.
+IMPORTANT: Tu DOIS utiliser ta capacité de recherche web pour trouver de VRAIES vidéos YouTube qui existent actuellement et sont accessibles.
 
-Exemple de format:
-📚 Voici des vidéos YouTube pour apprendre [SUJET]:
+1. Rechercher sur YouTube les vidéos les MIEUX NOTÉES et les PLUS POPULAIRES sur le sujet demandé
+2. Vérifier que les vidéos sont ACTUELLEMENT ACCESSIBLES (pas supprimées ou privées)
+3. Privilégier les vidéos avec:
+   - Un grand nombre de vues (minimum 50k)
+   - Un bon ratio likes/vues
+   - Des commentaires positifs
+   - Des chaînes éducatives reconnues (comme Les Bons Profs, Yvan Monka, Mathrix, Lumni, etc.)
+   - Une publication récente (moins de 3 ans de préférence)
 
-1. **[Titre de la vidéo]** par [Chaîne]
-   🔗 https://www.youtube.com/watch?v=...
-   💡 [Description courte]
+4. Pour chaque vidéo, fournir:
+   - Le titre EXACT de la vidéo
+   - Le nom EXACT de la chaîne YouTube
+   - Le lien YouTube RÉEL et FONCTIONNEL (format: https://www.youtube.com/watch?v=VIDEO_ID)
+   - Le nombre de vues
+   - Une brève description expliquant pourquoi cette vidéo est recommandée
 
-2. **[Titre de la vidéo]** par [Chaîne]
-   🔗 https://www.youtube.com/watch?v=...
-   💡 [Description courte]`;
+5. Recommander 5-7 vidéos triées par pertinence et qualité
+
+Format ta réponse de manière claire avec des sections numérotées:
+
+📚 Voici les meilleures vidéos YouTube pour apprendre [SUJET]:
+
+1. **[Titre EXACT]** par [Chaîne EXACTE]
+   🔗 [LIEN YOUTUBE RÉEL]
+   👁️ [Nombre de vues]
+   💡 [Pourquoi cette vidéo est recommandée]
+
+CRITIQUE: Ne jamais inventer de liens YouTube. Tous les liens doivent être vérifiés et fonctionnels. Utilise ta recherche web pour garantir cela.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

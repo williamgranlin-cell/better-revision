@@ -106,7 +106,19 @@ const StudyChat = () => {
                       </div>
                     )}
                     <div className="flex-1 whitespace-pre-wrap text-sm">
-                      {message.content}
+                      {message.role === "assistant" ? (
+                        <div 
+                          dangerouslySetInnerHTML={{
+                            __html: message.content
+                              .replace(/🔗 (https:\/\/www\.youtube\.com\/watch\?v=[\w-]+)/g, 
+                                '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline font-medium">🔗 Regarder la vidéo</a>')
+                              .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                              .replace(/\n/g, '<br/>')
+                          }}
+                        />
+                      ) : (
+                        message.content
+                      )}
                     </div>
                   </div>
                 </Card>
