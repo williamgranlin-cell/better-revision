@@ -12,6 +12,7 @@ import Classroom from "./pages/Classroom";
 import Flashcards from "./pages/Flashcards";
 import Controls from "./pages/Controls";
 import Profile from "./pages/Profile";
+import StudyChat from "./pages/StudyChat";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
               <Route path="/classroom" element={<ProtectedRoute><Classroom /></ProtectedRoute>} />
               <Route path="/flashcards" element={<ProtectedRoute><Flashcards /></ProtectedRoute>} />
               <Route path="/controls" element={<ProtectedRoute><Controls /></ProtectedRoute>} />
+              <Route path="/study-chat" element={<ProtectedRoute><StudyChat /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

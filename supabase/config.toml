@@ -1,1 +1,7 @@
 project_id = "bohgeqxpjqiitpewmzvz"
+
+[functions.generate-flashcards]
+verify_jwt = false
+
+[functions.ai-study-chat]
+verify_jwt = true
