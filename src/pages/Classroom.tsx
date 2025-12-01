@@ -162,87 +162,92 @@ const Classroom = () => {
           <p className="text-sm text-muted-foreground capitalize">{currentDate}</p>
         </div>
 
-        <Card className="max-w-2xl mx-auto p-8 gradient-card shadow-colored border-0 mb-6">
-          <div className="text-center mb-12">
-            <div className="text-8xl font-bold text-foreground mb-6 tabular-nums">
-              {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
-            </div>
+        {/* Mobile: Stack vertically, Desktop: Side by side with objectives on left, timer on right */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* Objectives - Left on desktop, top on mobile */}
+          <Card className="p-6 gradient-card border-0 shadow-sm order-2 lg:order-1">
+            <h2 className="text-lg font-semibold text-foreground mb-4">
+              Objectifs du jour
+            </h2>
             
-            <div className="flex gap-4 justify-center">
-              <Button
-                onClick={toggleTimer}
-                size="lg"
-                className="gradient-primary shadow-colored hover:shadow-lg transition-smooth px-8"
-              >
-                {isRunning ? (
-                  <>
-                    <Pause className="w-5 h-5 mr-2" />
-                    Pause
-                  </>
-                ) : (
-                  <>
-                    <Play className="w-5 h-5 mr-2" />
-                    Démarrer
-                  </>
-                )}
+            <form onSubmit={handleAddObjective} className="flex gap-2 mb-4">
+              <Input
+                value={newObjective}
+                onChange={(e) => setNewObjective(e.target.value)}
+                placeholder="Ajouter un objectif..."
+              />
+              <Button type="submit" size="icon" className="gradient-primary shrink-0">
+                <Plus className="w-4 h-4" />
               </Button>
-              <Button
-                onClick={resetTimer}
-                size="lg"
-                variant="outline"
-                className="border-2 hover:bg-muted transition-smooth"
-              >
-                <RotateCcw className="w-5 h-5 mr-2" />
-                Réinitialiser
-              </Button>
+            </form>
+
+            <div className="space-y-3">
+              {objectives.map((objective) => (
+                <div key={objective.id} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg group">
+                  <Checkbox
+                    id={objective.id}
+                    checked={objective.completed}
+                    onCheckedChange={() => toggleObjective(objective.id)}
+                  />
+                  <label
+                    htmlFor={objective.id}
+                    className={`text-sm cursor-pointer flex-1 ${
+                      objective.completed ? "line-through text-muted-foreground" : "text-foreground"
+                    }`}
+                  >
+                    {objective.text}
+                  </label>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => deleteObjective(objective.id)}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
             </div>
-          </div>
-        </Card>
+          </Card>
 
-        <Card className="max-w-2xl mx-auto p-6 gradient-card border-0 shadow-sm">
-          <h2 className="text-lg font-semibold text-foreground mb-4">
-            Objectifs du jour
-          </h2>
-          
-          <form onSubmit={handleAddObjective} className="flex gap-2 mb-4">
-            <Input
-              value={newObjective}
-              onChange={(e) => setNewObjective(e.target.value)}
-              placeholder="Ajouter un objectif..."
-            />
-            <Button type="submit" size="icon" className="gradient-primary shrink-0">
-              <Plus className="w-4 h-4" />
-            </Button>
-          </form>
-
-          <div className="space-y-3">
-            {objectives.map((objective) => (
-              <div key={objective.id} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg group">
-                <Checkbox
-                  id={objective.id}
-                  checked={objective.completed}
-                  onCheckedChange={() => toggleObjective(objective.id)}
-                />
-                <label
-                  htmlFor={objective.id}
-                  className={`text-sm cursor-pointer flex-1 ${
-                    objective.completed ? "line-through text-muted-foreground" : "text-foreground"
-                  }`}
-                >
-                  {objective.text}
-                </label>
+          {/* Timer - Right on desktop, top on mobile */}
+          <Card className="p-8 gradient-card shadow-colored border-0 order-1 lg:order-2">
+            <div className="text-center">
+              <div className="text-6xl md:text-8xl font-bold text-foreground mb-6 tabular-nums">
+                {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => deleteObjective(objective.id)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                  onClick={toggleTimer}
+                  size="lg"
+                  className="gradient-primary shadow-colored hover:shadow-lg transition-smooth px-8"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  {isRunning ? (
+                    <>
+                      <Pause className="w-5 h-5 mr-2" />
+                      Pause
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-5 h-5 mr-2" />
+                      Démarrer
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={resetTimer}
+                  size="lg"
+                  variant="outline"
+                  className="border-2 hover:bg-muted transition-smooth"
+                >
+                  <RotateCcw className="w-5 h-5 mr-2" />
+                  Réinitialiser
                 </Button>
               </div>
-            ))}
-          </div>
-        </Card>
+            </div>
+          </Card>
+        </div>
       </main>
 
       <BottomNav />

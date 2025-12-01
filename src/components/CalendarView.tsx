@@ -80,7 +80,7 @@ const CalendarView = ({ courses, revisionEvents, onDeleteCourse }: CalendarViewP
             return (
               <div
                 key={index}
-                className={`min-h-20 p-2 rounded-lg border transition-smooth ${
+                className={`min-h-20 md:min-h-24 p-2 rounded-lg border transition-smooth ${
                   day
                     ? isToday
                       ? "bg-primary/10 border-primary shadow-sm"
@@ -98,7 +98,8 @@ const CalendarView = ({ courses, revisionEvents, onDeleteCourse }: CalendarViewP
                         {dayEvents.map((event) => (
                           <div
                             key={`${event.courseId}-${event.revisionNumber}`}
-                            className={`text-xs px-2 py-1 rounded ${event.color} text-white truncate`}
+                            className={`text-xs px-2 py-1 rounded ${event.color} text-white truncate shadow-sm`}
+                            title={`${event.courseName} - Révision ${event.revisionNumber}`}
                           >
                             {event.courseName}
                           </div>

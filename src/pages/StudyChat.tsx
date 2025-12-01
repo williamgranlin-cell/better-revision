@@ -7,6 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Sparkles, Video } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import DOMPurify from "dompurify";
 
 interface Message {
   role: "user" | "assistant";
@@ -59,6 +60,23 @@ const StudyChat = () => {
     }
   };
 
+  // Sanitize and format message content
+  const formatMessage = (content: string) => {
+    // First apply our formatting (keeping URLs safe)
+    let formatted = content
+      .replace(/🔗 (https:\/\/www\.youtube\.com\/watch\?v=[\w-]+)/g, 
+        '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline font-medium">🔗 Regarder la vidéo</a>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n/g, '<br/>');
+    
+    // Then sanitize with DOMPurify to remove any malicious content
+    return DOMPurify.sanitize(formatted, {
+      ALLOWED_TAGS: ['a', 'strong', 'br', 'p', 'div', 'span'],
+      ALLOWED_ATTR: ['href', 'target', 'rel', 'class'],
+      ALLOWED_URI_REGEXP: /^https:\/\/www\.youtube\.com\/watch\?v=[\w-]+$/
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background pb-20">
       <div className="container max-w-4xl mx-auto p-4">
@@ -109,11 +127,7 @@ const StudyChat = () => {
                       {message.role === "assistant" ? (
                         <div 
                           dangerouslySetInnerHTML={{
-                            __html: message.content
-                              .replace(/🔗 (https:\/\/www\.youtube\.com\/watch\?v=[\w-]+)/g, 
-                                '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline font-medium">🔗 Regarder la vidéo</a>')
-                              .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                              .replace(/\n/g, '<br/>')
+                            __html: formatMessage(message.content)
                           }}
                         />
                       ) : (
@@ -149,6 +163,7 @@ const StudyChat = () => {
               placeholder="Ex: trigonométrie, photosynthèse..."
               className="flex-1"
               disabled={isLoading}
+              maxLength={500}
             />
             <Button
               onClick={handleSend}

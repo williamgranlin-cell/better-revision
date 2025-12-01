@@ -5,13 +5,88 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Input validation schema
+interface RequestBody {
+  message: string;
+}
+
+const validateInput = (body: any): { valid: boolean; error?: string; data?: RequestBody } => {
+  if (!body.message || typeof body.message !== 'string') {
+    return { valid: false, error: "Le message est requis et doit être une chaîne de caractères" };
+  }
+  
+  const trimmedMessage = body.message.trim();
+  
+  if (trimmedMessage.length === 0) {
+    return { valid: false, error: "Le message ne peut pas être vide" };
+  }
+  
+  if (trimmedMessage.length > 500) {
+    return { valid: false, error: "Le message ne peut pas dépasser 500 caractères" };
+  }
+  
+  // Sanitize input - remove potential injection characters
+  const sanitizedMessage = trimmedMessage
+    .replace(/[<>]/g, '') // Remove HTML tags
+    .substring(0, 500); // Hard limit
+  
+  return { valid: true, data: { message: sanitizedMessage } };
+};
+
+// Rate limiting map (in-memory, resets on function cold start)
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW = 60000; // 1 minute
+const MAX_REQUESTS_PER_WINDOW = 10;
+
+const checkRateLimit = (userId: string): { allowed: boolean; error?: string } => {
+  const now = Date.now();
+  const userLimit = rateLimitMap.get(userId);
+  
+  if (!userLimit || now > userLimit.resetTime) {
+    rateLimitMap.set(userId, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+    return { allowed: true };
+  }
+  
+  if (userLimit.count >= MAX_REQUESTS_PER_WINDOW) {
+    return { allowed: false, error: "Trop de requêtes. Veuillez attendre une minute." };
+  }
+  
+  userLimit.count++;
+  return { allowed: true };
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { message } = await req.json();
+    // Extract user ID from JWT for rate limiting
+    const authHeader = req.headers.get('authorization');
+    const userId = authHeader ? authHeader.split(' ')[1] : 'anonymous';
+    
+    // Check rate limit
+    const rateLimitCheck = checkRateLimit(userId);
+    if (!rateLimitCheck.allowed) {
+      return new Response(
+        JSON.stringify({ error: rateLimitCheck.error }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const body = await req.json();
+    
+    // Validate input
+    const validation = validateInput(body);
+    if (!validation.valid) {
+      return new Response(
+        JSON.stringify({ error: validation.error }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    const { message } = validation.data!;
+    
     const YOUTUBE_API_KEY = Deno.env.get("YOUTUBE_API_KEY");
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
@@ -22,6 +97,8 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
+
+    console.log(`[ai-study-chat] User ${userId} searching for: ${message}`);
 
     // Recherche YouTube réelle avec l'API officielle
     const youtubeSearchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(message + ' cours français éducatif')}&type=video&videoDuration=medium&videoEmbeddable=true&maxResults=10&order=relevance&relevanceLanguage=fr&key=${YOUTUBE_API_KEY}`;
@@ -133,6 +210,8 @@ Les vidéos sont déjà triées par popularité et toutes ont plus de 50 000 vue
 
     const data = await response.json();
     const aiResponse = data.choices[0].message.content;
+
+    console.log(`[ai-study-chat] Successfully returned ${popularVideos.length} videos for user ${userId}`);
 
     return new Response(
       JSON.stringify({ response: aiResponse }), 
