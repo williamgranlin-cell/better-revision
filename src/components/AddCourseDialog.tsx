@@ -16,11 +16,23 @@ interface AddCourseDialogProps {
   onAddCourse: (course: { name: string; color: string; intervals: number[]; firstRevisionDate: string }) => void;
 }
 
+// Expanded color palette for more visual variety
 const colors = [
-  { name: "Bleu", value: "bg-primary" },
-  { name: "Violet", value: "bg-secondary" },
-  { name: "Vert", value: "bg-success" },
-  { name: "Rose", value: "bg-warning" },
+  { name: "Rouge", value: "bg-red-500" },
+  { name: "Rose", value: "bg-pink-500" },
+  { name: "Violet", value: "bg-purple-500" },
+  { name: "Indigo", value: "bg-indigo-500" },
+  { name: "Bleu", value: "bg-blue-500" },
+  { name: "Cyan", value: "bg-cyan-500" },
+  { name: "Turquoise", value: "bg-teal-500" },
+  { name: "Vert", value: "bg-green-500" },
+  { name: "Lime", value: "bg-lime-500" },
+  { name: "Jaune", value: "bg-yellow-500" },
+  { name: "Ambre", value: "bg-amber-500" },
+  { name: "Orange", value: "bg-orange-500" },
+  { name: "Corail", value: "bg-red-400" },
+  { name: "Fuchsia", value: "bg-fuchsia-500" },
+  { name: "Emeraude", value: "bg-emerald-500" },
 ];
 
 export const AddCourseDialog = ({ open, onOpenChange, onAddCourse }: AddCourseDialogProps) => {
@@ -70,15 +82,15 @@ export const AddCourseDialog = ({ open, onOpenChange, onAddCourse }: AddCourseDi
               <Palette className="w-4 h-4" />
               Couleur
             </Label>
-            <div className="flex gap-2">
+            <div className="grid grid-cols-5 gap-2">
               {colors.map((color) => (
                 <button
                   key={color.value}
                   type="button"
                   onClick={() => setSelectedColor(color.value)}
-                  className={`w-12 h-12 rounded-lg ${color.value} transition-smooth hover:scale-110 ${
+                  className={`w-full h-10 rounded-lg ${color.value} transition-smooth hover:scale-110 ${
                     selectedColor === color.value
-                      ? "ring-4 ring-offset-2 ring-primary"
+                      ? "ring-2 ring-foreground ring-offset-2"
                       : ""
                   }`}
                   title={color.name}
