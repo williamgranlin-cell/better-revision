@@ -10,9 +10,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, Trophy, LogOut, Edit } from "lucide-react";
+import { Settings, LogOut, Edit } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { StatisticsSection } from "@/components/StatisticsSection";
+import { SubscriptionCard } from "@/components/SubscriptionCard";
 
 interface Profile {
   id: string;
@@ -228,6 +229,9 @@ const Profile = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Subscription */}
+        <SubscriptionCard />
 
         {/* Real Statistics */}
         <StatisticsSection />
