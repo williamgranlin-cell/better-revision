@@ -10,10 +10,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, LogOut, Edit } from "lucide-react";
+import { Settings, LogOut, Edit, Sparkles, Palette } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { StyleToggle } from "@/components/StyleToggle";
 import { StatisticsSection } from "@/components/StatisticsSection";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
+import { useStylePreference } from "@/hooks/useStylePreference";
 
 interface Profile {
   id: string;
@@ -26,6 +28,7 @@ interface Profile {
 const Profile = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const { style } = useStylePreference();
   const { toast } = useToast();
   
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -236,13 +239,39 @@ const Profile = () => {
         {/* Real Statistics */}
         <StatisticsSection />
 
+        {/* Style Toggle */}
+        <Card className="card-hover">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {style === "vibrant" ? (
+                  <div className="p-2 rounded-full gradient-primary">
+                    <Sparkles className="h-5 w-5 text-primary-foreground" />
+                  </div>
+                ) : (
+                  <div className="p-2 rounded-full bg-muted">
+                    <Palette className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                )}
+                <div>
+                  <h3 className="font-semibold">Style visuel</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {style === "vibrant" ? "Style coloré et moderne" : "Style classique et sobre"}
+                  </p>
+                </div>
+              </div>
+              <StyleToggle />
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Theme Toggle */}
-        <Card>
+        <Card className="card-hover">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-semibold">Thème</h3>
-                <p className="text-sm text-muted-foreground">Changer l'apparence</p>
+                <p className="text-sm text-muted-foreground">Mode clair / sombre</p>
               </div>
               <ThemeToggle />
             </div>

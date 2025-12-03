@@ -7,7 +7,8 @@ All colors MUST be HSL.
 */
 
 @layer base {
-  :root {
+  /* Classic Style (Original) */
+  :root, .classic-style {
     --background: 220 25% 97%;
     --foreground: 230 20% 15%;
 
@@ -59,9 +60,69 @@ All colors MUST be HSL.
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    /* Font */
+    --font-sans: 'Inter', system-ui, sans-serif;
+    --font-mono: 'Space Mono', monospace;
   }
 
-  .dark {
+  /* Vibrant Style (New colorful design) */
+  .vibrant-style {
+    --background: 270 30% 98%;
+    --foreground: 260 30% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 260 30% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 260 30% 12%;
+
+    --primary: 280 85% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 190 95% 45%;
+    --secondary-foreground: 0 0% 100%;
+
+    --success: 145 85% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 35 95% 55%;
+    --warning-foreground: 0 0% 100%;
+
+    --muted: 270 25% 94%;
+    --muted-foreground: 260 20% 40%;
+
+    --accent: 330 85% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 85% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 270 25% 88%;
+    --input: 270 25% 92%;
+    --ring: 280 85% 60%;
+
+    --radius: 1rem;
+
+    /* Vibrant Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(280 85% 60%) 0%, hsl(330 85% 60%) 50%, hsl(35 95% 55%) 100%);
+    --gradient-success: linear-gradient(135deg, hsl(145 85% 45%) 0%, hsl(170 90% 40%) 100%);
+    --gradient-warning: linear-gradient(135deg, hsl(35 95% 55%) 0%, hsl(15 90% 55%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(270 30% 98%) 100%);
+    --gradient-rainbow: linear-gradient(135deg, hsl(280 85% 60%) 0%, hsl(190 95% 45%) 25%, hsl(145 85% 45%) 50%, hsl(35 95% 55%) 75%, hsl(330 85% 60%) 100%);
+
+    /* Vibrant Shadows */
+    --shadow-sm: 0 2px 10px -2px hsl(280 85% 60% / 0.15);
+    --shadow-md: 0 6px 20px -4px hsl(280 85% 60% / 0.2);
+    --shadow-lg: 0 12px 32px -8px hsl(280 85% 60% / 0.25);
+    --shadow-colored: 0 12px 40px -10px hsl(280 85% 60% / 0.35);
+
+    /* Font */
+    --font-sans: 'Outfit', system-ui, sans-serif;
+    --font-mono: 'Space Mono', monospace;
+  }
+
+  .dark.classic-style, .dark:not(.vibrant-style) {
     --background: 230 25% 10%;
     --foreground: 220 20% 95%;
 
@@ -108,6 +169,55 @@ All colors MUST be HSL.
     --shadow-lg: 0 8px 24px -6px hsl(0 0% 0% / 0.5);
     --shadow-colored: 0 8px 32px -8px hsl(235 65% 40% / 0.4);
   }
+
+  .dark.vibrant-style {
+    --background: 270 25% 8%;
+    --foreground: 270 20% 95%;
+
+    --card: 270 20% 12%;
+    --card-foreground: 270 20% 95%;
+
+    --popover: 270 20% 12%;
+    --popover-foreground: 270 20% 95%;
+
+    --primary: 280 85% 65%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 190 90% 50%;
+    --secondary-foreground: 0 0% 100%;
+
+    --success: 145 80% 50%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 35 90% 55%;
+    --warning-foreground: 0 0% 100%;
+
+    --muted: 270 20% 18%;
+    --muted-foreground: 270 15% 60%;
+
+    --accent: 330 80% 65%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 80% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 270 20% 20%;
+    --input: 270 20% 20%;
+    --ring: 280 85% 65%;
+
+    /* Vibrant Dark Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(280 85% 55%) 0%, hsl(330 80% 55%) 50%, hsl(35 90% 50%) 100%);
+    --gradient-success: linear-gradient(135deg, hsl(145 80% 40%) 0%, hsl(170 85% 35%) 100%);
+    --gradient-warning: linear-gradient(135deg, hsl(35 90% 50%) 0%, hsl(15 85% 50%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(270 20% 12%) 0%, hsl(270 22% 15%) 100%);
+    --gradient-rainbow: linear-gradient(135deg, hsl(280 85% 55%) 0%, hsl(190 90% 40%) 25%, hsl(145 80% 40%) 50%, hsl(35 90% 50%) 75%, hsl(330 80% 55%) 100%);
+
+    /* Vibrant Dark Shadows */
+    --shadow-sm: 0 2px 10px -2px hsl(0 0% 0% / 0.4);
+    --shadow-md: 0 6px 20px -4px hsl(0 0% 0% / 0.5);
+    --shadow-lg: 0 12px 32px -8px hsl(0 0% 0% / 0.6);
+    --shadow-colored: 0 12px 40px -10px hsl(280 85% 40% / 0.5);
+  }
 }
 
 @layer base {
@@ -117,6 +227,7 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
@@ -158,6 +269,10 @@ All colors MUST be HSL.
     background: var(--gradient-card);
   }
 
+  .gradient-rainbow {
+    background: var(--gradient-rainbow);
+  }
+
   .shadow-colored {
     box-shadow: var(--shadow-colored);
   }
@@ -169,4 +284,25 @@ All colors MUST be HSL.
   .transition-bounce {
     transition: var(--transition-bounce);
   }
+
+  .font-mono {
+    font-family: var(--font-mono);
+  }
+
+  /* Vibrant style specific utilities */
+  .vibrant-style .card-hover {
+    @apply hover:shadow-lg hover:-translate-y-1 transition-all duration-300;
+  }
+
+  .vibrant-style .text-gradient {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .vibrant-style .glow {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.4);
+  }
 }
+
