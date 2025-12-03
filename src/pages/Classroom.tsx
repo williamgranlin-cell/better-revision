@@ -90,7 +90,7 @@ const Classroom = () => {
       <header className="sticky top-0 z-40 bg-card border-b border-border shadow-sm">
         <div className="max-w-screen-xl mx-auto px-4 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+            <h1 className="text-2xl font-display font-bold bg-gradient-primary bg-clip-text text-transparent">
               Session de Travail
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
@@ -105,7 +105,7 @@ const Classroom = () => {
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle>Réglages du minuteur</DialogTitle>
+                <DialogTitle className="font-display">Réglages du minuteur</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="space-y-2">

@@ -34,7 +34,7 @@ const Controls = () => {
       <header className="sticky top-0 z-40 bg-card border-b border-border shadow-sm">
         <div className="max-w-screen-xl mx-auto px-4 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+            <h1 className="text-2xl font-display font-bold bg-gradient-primary bg-clip-text text-transparent">
               Mes Contrôles
             </h1>
             <p className="text-sm text-muted-foreground mt-1">

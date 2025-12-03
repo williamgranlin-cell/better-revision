@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,15 +8,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { BookOpen, Palette } from "lucide-react";
+import { Edit, Palette } from "lucide-react";
+import { Course } from "@/hooks/useCourses";
 
-interface AddCourseDialogProps {
+interface EditCourseDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddCourse: (course: { name: string; color: string; intervals: number[]; firstRevisionDate: string }) => void;
+  course: Course | null;
+  onUpdateCourse: (id: string, updates: Partial<Omit<Course, "id">>) => void;
 }
 
-// Expanded color palette for more visual variety
 const colors = [
   { name: "Rouge", value: "bg-red-500" },
   { name: "Rose", value: "bg-pink-500" },
@@ -35,23 +36,31 @@ const colors = [
   { name: "Emeraude", value: "bg-emerald-500" },
 ];
 
-export const AddCourseDialog = ({ open, onOpenChange, onAddCourse }: AddCourseDialogProps) => {
+export const EditCourseDialog = ({ open, onOpenChange, course, onUpdateCourse }: EditCourseDialogProps) => {
   const [courseName, setCourseName] = useState("");
   const [selectedColor, setSelectedColor] = useState(colors[0].value);
   const [intervals, setIntervals] = useState("1,3,7,15");
   const [firstRevisionDate, setFirstRevisionDate] = useState("");
 
+  useEffect(() => {
+    if (course) {
+      setCourseName(course.name);
+      setSelectedColor(course.color);
+      setIntervals(course.intervals.join(","));
+      setFirstRevisionDate(course.firstRevisionDate);
+    }
+  }, [course]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onAddCourse({
+    if (!course) return;
+    
+    onUpdateCourse(course.id, {
       name: courseName,
       color: selectedColor,
       intervals: intervals.split(",").map(Number),
       firstRevisionDate,
     });
-    setCourseName("");
-    setIntervals("1,3,7,15");
-    setFirstRevisionDate("");
     onOpenChange(false);
   };
 
@@ -60,16 +69,16 @@ export const AddCourseDialog = ({ open, onOpenChange, onAddCourse }: AddCourseDi
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 font-display text-xl">
-            <BookOpen className="w-5 h-5 text-primary" />
-            Ajouter un nouveau cours
+            <Edit className="w-5 h-5 text-primary" />
+            Modifier le cours
           </DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="course-name">Nom du cours</Label>
+            <Label htmlFor="edit-course-name">Nom du cours</Label>
             <Input
-              id="course-name"
+              id="edit-course-name"
               value={courseName}
               onChange={(e) => setCourseName(e.target.value)}
               placeholder="Ex: Mathématiques"
@@ -100,9 +109,9 @@ export const AddCourseDialog = ({ open, onOpenChange, onAddCourse }: AddCourseDi
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="first-revision">Première révision</Label>
+            <Label htmlFor="edit-first-revision">Première révision</Label>
             <Input
-              id="first-revision"
+              id="edit-first-revision"
               type="date"
               value={firstRevisionDate}
               onChange={(e) => setFirstRevisionDate(e.target.value)}
@@ -111,9 +120,9 @@ export const AddCourseDialog = ({ open, onOpenChange, onAddCourse }: AddCourseDi
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="intervals">Intervalles de révision (en jours)</Label>
+            <Label htmlFor="edit-intervals">Intervalles de révision (en jours)</Label>
             <Input
-              id="intervals"
+              id="edit-intervals"
               value={intervals}
               onChange={(e) => setIntervals(e.target.value)}
               placeholder="Ex: 1,3,7,15,30"
@@ -125,7 +134,7 @@ export const AddCourseDialog = ({ open, onOpenChange, onAddCourse }: AddCourseDi
           </div>
 
           <Button type="submit" className="w-full gradient-primary shadow-colored">
-            Créer le cours
+            Enregistrer les modifications
           </Button>
         </form>
       </DialogContent>

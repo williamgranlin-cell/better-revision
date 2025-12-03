@@ -188,7 +188,7 @@ const Profile = () => {
                 </label>
               </div>
               <div className="flex-1">
-                <h1 className="text-2xl font-bold">
+                <h1 className="text-2xl font-display font-bold">
                   {profile?.first_name} {profile?.last_name}
                 </h1>
                 <p className="text-white/90">{profile?.email}</p>

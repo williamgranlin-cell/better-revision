@@ -44,7 +44,7 @@ const Flashcards = () => {
                     <Plus className="w-8 h-8 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg mb-2">Création manuelle</h3>
+                    <h3 className="font-display font-semibold text-lg mb-2">Création manuelle</h3>
                     <p className="text-sm text-muted-foreground">
                       Crée un lot de flashcards manuellement avec support KaTeX (max 50 cartes)
                     </p>
@@ -62,7 +62,7 @@ const Flashcards = () => {
                     <FileUp className="w-8 h-8 text-secondary" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg mb-2">Import de cours</h3>
+                    <h3 className="font-display font-semibold text-lg mb-2">Import de cours</h3>
                     <p className="text-sm text-muted-foreground">
                       Importe un fichier PDF, Word ou image de ton cours
                     </p>
@@ -80,7 +80,7 @@ const Flashcards = () => {
                     <Brain className="w-8 h-8 text-accent" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg mb-2">Génération IA</h3>
+                    <h3 className="font-display font-semibold text-lg mb-2">Génération IA</h3>
                     <p className="text-sm text-muted-foreground">
                       L'IA crée automatiquement des flashcards depuis ton texte de cours
                     </p>
@@ -98,7 +98,7 @@ const Flashcards = () => {
                     <FileText className="w-8 h-8 text-success" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg mb-2">Depuis fiche de révision</h3>
+                    <h3 className="font-display font-semibold text-lg mb-2">Depuis fiche de révision</h3>
                     <p className="text-sm text-muted-foreground">
                       Utilise une fiche de révision existante pour créer tes flashcards
                     </p>
@@ -112,7 +112,7 @@ const Flashcards = () => {
             {sets.length === 0 ? (
               <Card className="p-12 text-center gradient-card border-0">
                 <BookOpen className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-xl font-semibold mb-2">Aucun lot à réviser</h3>
+                <h3 className="text-xl font-display font-semibold mb-2">Aucun lot à réviser</h3>
                 <p className="text-muted-foreground mb-6">
                   Commence par créer ton premier lot de flashcards !
                 </p>
@@ -126,7 +126,7 @@ const Flashcards = () => {
                   <Card key={set.id} className="p-6 gradient-card border-0 shadow-sm hover:shadow-colored transition-smooth group">
                     <div className="flex flex-col gap-4">
                       <div>
-                        <h3 className="font-semibold text-lg mb-1">{set.name}</h3>
+                        <h3 className="font-display font-semibold text-lg mb-1">{set.name}</h3>
                         {set.description && (
                           <p className="text-sm text-muted-foreground">{set.description}</p>
                         )}

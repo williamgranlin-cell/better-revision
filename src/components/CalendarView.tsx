@@ -2,17 +2,20 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Trash2, Edit } from "lucide-react";
 import { Course, RevisionEvent } from "@/hooks/useCourses";
+import { EditCourseDialog } from "./EditCourseDialog";
 
 interface CalendarViewProps {
   courses: Course[];
   revisionEvents: RevisionEvent[];
   onDeleteCourse: (id: string) => void;
+  onUpdateCourse: (id: string, updates: Partial<Omit<Course, "id">>) => void;
 }
 
-const CalendarView = ({ courses, revisionEvents, onDeleteCourse }: CalendarViewProps) => {
+const CalendarView = ({ courses, revisionEvents, onDeleteCourse, onUpdateCourse }: CalendarViewProps) => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   
   const currentMonth = currentDate.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
   
@@ -53,7 +56,7 @@ const CalendarView = ({ courses, revisionEvents, onDeleteCourse }: CalendarViewP
           <Button variant="outline" size="icon" onClick={previousMonth}>
             <ChevronLeft className="w-4 h-4" />
           </Button>
-          <h2 className="text-xl font-semibold capitalize text-foreground min-w-[200px] text-center">
+          <h2 className="text-xl font-display font-semibold capitalize text-foreground min-w-[200px] text-center">
             {currentMonth}
           </h2>
           <Button variant="outline" size="icon" onClick={nextMonth}>
@@ -116,30 +119,47 @@ const CalendarView = ({ courses, revisionEvents, onDeleteCourse }: CalendarViewP
 
       {courses.length > 0 && (
         <Card className="p-4 gradient-card border-0 shadow-sm">
-          <h3 className="text-lg font-semibold text-foreground mb-3">Mes cours</h3>
+          <h3 className="text-lg font-display font-semibold text-foreground mb-3">Mes cours</h3>
           <div className="space-y-2">
             {courses.map((course) => (
               <div
                 key={course.id}
-                className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
+                className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-smooth"
               >
                 <div className="flex items-center gap-3">
                   <div className={`w-4 h-4 rounded ${course.color}`} />
                   <span className="font-medium text-foreground">{course.name}</span>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onDeleteCourse(course.id)}
-                  className="text-destructive hover:text-destructive"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setEditingCourse(course)}
+                    className="text-primary hover:text-primary"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onDeleteCourse(course.id)}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
         </Card>
       )}
+
+      <EditCourseDialog
+        open={!!editingCourse}
+        onOpenChange={(open) => !open && setEditingCourse(null)}
+        course={editingCourse}
+        onUpdateCourse={onUpdateCourse}
+      />
     </div>
   );
 };

@@ -8,14 +8,14 @@ import { useCourses } from "@/hooks/useCourses";
 
 const Calendar = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const { courses, addCourse, deleteCourse, getRevisionEvents } = useCourses();
+  const { courses, addCourse, updateCourse, deleteCourse, getRevisionEvents } = useCourses();
 
   return (
     <div className="min-h-screen pb-24 bg-background">
       <header className="sticky top-0 z-40 bg-card border-b border-border shadow-sm">
         <div className="max-w-screen-xl mx-auto px-4 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+          <h1 className="text-2xl font-display font-bold bg-gradient-primary bg-clip-text text-transparent">
               Mon Calendrier
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
@@ -38,6 +38,7 @@ const Calendar = () => {
           courses={courses} 
           revisionEvents={getRevisionEvents()} 
           onDeleteCourse={deleteCourse}
+          onUpdateCourse={updateCourse}
         />
       </main>
 
