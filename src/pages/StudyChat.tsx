@@ -86,7 +86,7 @@ const StudyChat = () => {
             <Video className="w-6 h-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Assistant d'étude</h1>
+            <h1 className="text-2xl font-display font-bold text-foreground">Assistant d'étude</h1>
             <p className="text-sm text-muted-foreground">
               Demandez des vidéos YouTube sur n'importe quel sujet
             </p>
@@ -98,7 +98,7 @@ const StudyChat = () => {
           {messages.length === 0 ? (
             <Card className="p-8 text-center border-dashed">
               <Sparkles className="w-12 h-12 mx-auto mb-4 text-primary opacity-50" />
-              <h3 className="text-lg font-semibold mb-2">Commencez votre recherche</h3>
+              <h3 className="text-lg font-display font-semibold mb-2">Commencez votre recherche</h3>
               <p className="text-muted-foreground">
                 Dites-moi quel sujet vous souhaitez apprendre et je vous proposerai des vidéos YouTube pertinentes.
               </p>

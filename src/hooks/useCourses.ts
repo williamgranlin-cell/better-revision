@@ -93,6 +93,39 @@ export const useCourses = () => {
     ]);
   };
 
+  const updateCourse = async (id: string, updates: Partial<Omit<Course, "id">>) => {
+    if (!user) return;
+
+    const dbUpdates: Record<string, unknown> = {};
+    if (updates.name !== undefined) dbUpdates.name = updates.name;
+    if (updates.color !== undefined) dbUpdates.color = updates.color;
+    if (updates.intervals !== undefined) dbUpdates.intervals = updates.intervals;
+    if (updates.firstRevisionDate !== undefined) dbUpdates.first_revision_date = updates.firstRevisionDate;
+
+    const { error } = await supabase
+      .from("courses")
+      .update(dbUpdates)
+      .eq("id", id);
+
+    if (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de modifier le cours",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setCourses(courses.map((c) => 
+      c.id === id ? { ...c, ...updates } : c
+    ));
+    
+    toast({
+      title: "Cours modifié",
+      description: "Les modifications ont été enregistrées",
+    });
+  };
+
   const deleteCourse = async (id: string) => {
     const { error } = await supabase.from("courses").delete().eq("id", id);
 
@@ -131,5 +164,5 @@ export const useCourses = () => {
     return events;
   };
 
-  return { courses, addCourse, deleteCourse, getRevisionEvents };
+  return { courses, addCourse, updateCourse, deleteCourse, getRevisionEvents };
 };

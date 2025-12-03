@@ -63,6 +63,7 @@ All colors MUST be HSL.
 
     /* Font */
     --font-sans: 'Inter', system-ui, sans-serif;
+    --font-display: 'Playfair Display', Georgia, serif;
     --font-mono: 'Space Mono', monospace;
   }
 
@@ -119,6 +120,7 @@ All colors MUST be HSL.
 
     /* Font */
     --font-sans: 'Outfit', system-ui, sans-serif;
+    --font-display: 'Playfair Display', Georgia, serif;
     --font-mono: 'Space Mono', monospace;
   }
 
