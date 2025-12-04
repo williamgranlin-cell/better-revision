@@ -1,10 +1,17 @@
 import { useState } from "react";
-import { Plus, Calendar, RefreshCw } from "lucide-react";
+import { Plus, Calendar, RefreshCw, Settings, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BottomNav } from "@/components/BottomNav";
 import { useSchedule, ScheduleItem } from "@/hooks/useSchedule";
 import { AddScheduleItemDialog } from "@/components/AddScheduleItemDialog";
 import { EditScheduleItemDialog } from "@/components/EditScheduleItemDialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 const days = [
@@ -17,14 +24,33 @@ const days = [
   { value: 6, label: "Dimanche", short: "Dim" },
 ];
 
-const hours = Array.from({ length: 15 }, (_, i) => i + 7); // 7h to 21h
-
 const Schedule = () => {
   const { items, loading, addItem, updateItem, deleteItem, getItemsByDay } = useSchedule();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ScheduleItem | null>(null);
   const [selectedDay, setSelectedDay] = useState(0);
+  
+  // Customizable time grid
+  const [startHour, setStartHour] = useState(() => {
+    const saved = localStorage.getItem("schedule-start-hour");
+    return saved ? parseInt(saved) : 7;
+  });
+  const [endHour, setEndHour] = useState(() => {
+    const saved = localStorage.getItem("schedule-end-hour");
+    return saved ? parseInt(saved) : 21;
+  });
+
+  const hours = Array.from({ length: endHour - startHour + 1 }, (_, i) => i + startHour);
+
+  const handleTimeGridChange = (start: number, end: number) => {
+    if (start >= 0 && start < end && end <= 24) {
+      setStartHour(start);
+      setEndHour(end);
+      localStorage.setItem("schedule-start-hour", start.toString());
+      localStorage.setItem("schedule-end-hour", end.toString());
+    }
+  };
 
   const handleItemClick = (item: ScheduleItem) => {
     setSelectedItem(item);
@@ -37,13 +63,13 @@ const Schedule = () => {
   };
 
   const getItemStyle = (item: ScheduleItem) => {
-    const startHour = parseInt(item.start_time.split(":")[0]);
-    const startMin = parseInt(item.start_time.split(":")[1]);
-    const endHour = parseInt(item.end_time.split(":")[0]);
-    const endMin = parseInt(item.end_time.split(":")[1]);
+    const itemStartHour = parseInt(item.start_time.split(":")[0]);
+    const itemStartMin = parseInt(item.start_time.split(":")[1]);
+    const itemEndHour = parseInt(item.end_time.split(":")[0]);
+    const itemEndMin = parseInt(item.end_time.split(":")[1]);
 
-    const startOffset = (startHour - 7) * 60 + startMin;
-    const duration = (endHour - startHour) * 60 + (endMin - startMin);
+    const startOffset = (itemStartHour - startHour) * 60 + itemStartMin;
+    const duration = (itemEndHour - itemStartHour) * 60 + (itemEndMin - itemStartMin);
 
     return {
       top: `${(startOffset / 60) * 4}rem`,
@@ -54,6 +80,12 @@ const Schedule = () => {
 
   const formatTime = (time: string) => {
     return time.slice(0, 5);
+  };
+
+  const isItemVisible = (item: ScheduleItem) => {
+    const itemStartHour = parseInt(item.start_time.split(":")[0]);
+    const itemEndHour = parseInt(item.end_time.split(":")[0]);
+    return itemStartHour >= startHour && itemEndHour <= endHour;
   };
 
   return (
@@ -74,14 +106,88 @@ const Schedule = () => {
               Organise ta semaine efficacement
             </p>
           </div>
-          <Button
-            onClick={() => handleAddClick()}
-            size="sm"
-            className="bg-gradient-to-r from-violet-500 to-cyan-500 hover:from-violet-600 hover:to-cyan-600 text-white shadow-lg"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Ajouter
-          </Button>
+          <div className="flex items-center gap-2">
+            {/* Time Grid Settings */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="glass-card border-white/20"
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  {startHour}h - {endHour}h
+                  <ChevronDown className="w-4 h-4 ml-1" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 glass-card border-white/20" align="end">
+                <div className="space-y-4">
+                  <h4 className="font-medium text-sm">Personnaliser la grille</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="start-hour" className="text-xs">Début</Label>
+                      <Input
+                        id="start-hour"
+                        type="number"
+                        min={0}
+                        max={23}
+                        value={startHour}
+                        onChange={(e) => handleTimeGridChange(parseInt(e.target.value) || 0, endHour)}
+                        className="glass-input h-9"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="end-hour" className="text-xs">Fin</Label>
+                      <Input
+                        id="end-hour"
+                        type="number"
+                        min={1}
+                        max={24}
+                        value={endHour}
+                        onChange={(e) => handleTimeGridChange(startHour, parseInt(e.target.value) || 24)}
+                        className="glass-input h-9"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 text-xs"
+                      onClick={() => handleTimeGridChange(7, 18)}
+                    >
+                      Journée
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 text-xs"
+                      onClick={() => handleTimeGridChange(8, 17)}
+                    >
+                      École
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 text-xs"
+                      onClick={() => handleTimeGridChange(6, 22)}
+                    >
+                      Étendu
+                    </Button>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            <Button
+              onClick={() => handleAddClick()}
+              size="sm"
+              className="bg-gradient-to-r from-violet-500 to-cyan-500 hover:from-violet-600 hover:to-cyan-600 text-white shadow-lg"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Ajouter
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -125,7 +231,7 @@ const Schedule = () => {
 
                 {/* Days columns */}
                 {days.map((day) => {
-                  const dayItems = getItemsByDay(day.value);
+                  const dayItems = getItemsByDay(day.value).filter(isItemVisible);
                   return (
                     <div
                       key={day.value}
@@ -138,7 +244,7 @@ const Schedule = () => {
                         <div
                           key={hour}
                           className="absolute w-full border-t border-border/30"
-                          style={{ top: `${(hour - 7) * 4}rem` }}
+                          style={{ top: `${(hour - startHour) * 4}rem` }}
                         />
                       ))}
 
