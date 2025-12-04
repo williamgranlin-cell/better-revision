@@ -13,6 +13,7 @@ import Flashcards from "./pages/Flashcards";
 import Controls from "./pages/Controls";
 import Profile from "./pages/Profile";
 import StudyChat from "./pages/StudyChat";
+import Schedule from "./pages/Schedule";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
               <Route path="/flashcards" element={<ProtectedRoute><Flashcards /></ProtectedRoute>} />
               <Route path="/controls" element={<ProtectedRoute><Controls /></ProtectedRoute>} />
               <Route path="/study-chat" element={<ProtectedRoute><StudyChat /></ProtectedRoute>} />
+              <Route path="/schedule" element={<ProtectedRoute><Schedule /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
