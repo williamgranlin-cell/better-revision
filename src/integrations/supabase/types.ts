@@ -217,6 +217,48 @@ export type Database = {
         }
         Relationships: []
       }
+      schedule_items: {
+        Row: {
+          color: string
+          created_at: string
+          day_of_week: number
+          description: string | null
+          end_time: string
+          id: string
+          is_recurring: boolean
+          start_time: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          day_of_week: number
+          description?: string | null
+          end_time: string
+          id?: string
+          is_recurring?: boolean
+          start_time: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          day_of_week?: number
+          description?: string | null
+          end_time?: string
+          id?: string
+          is_recurring?: boolean
+          start_time?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       study_sessions: {
         Row: {
           created_at: string | null

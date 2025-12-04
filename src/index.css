@@ -291,6 +291,15 @@ All colors MUST be HSL.
     font-family: var(--font-mono);
   }
 
+  /* Glass morphism effects */
+  .glass-card {
+    @apply bg-card/80 backdrop-blur-xl border border-white/20 shadow-lg;
+  }
+
+  .glass-input {
+    @apply bg-background/50 backdrop-blur-sm border-white/20 focus:border-primary/50 focus:ring-primary/20;
+  }
+
   /* Vibrant style specific utilities */
   .vibrant-style .card-hover {
     @apply hover:shadow-lg hover:-translate-y-1 transition-all duration-300;
@@ -305,6 +314,10 @@ All colors MUST be HSL.
 
   .vibrant-style .glow {
     box-shadow: 0 0 20px hsl(var(--primary) / 0.4);
+  }
+
+  .vibrant-style .glass-card {
+    @apply bg-card/70 backdrop-blur-2xl border border-white/30 shadow-xl;
   }
 }
 
