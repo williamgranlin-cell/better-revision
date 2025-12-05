@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -17,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Edit, Palette, Clock, RefreshCw, Trash2 } from "lucide-react";
 import { ScheduleItem } from "@/hooks/useSchedule";
 
@@ -51,6 +51,13 @@ const colors = [
   { name: "Teal", value: "bg-teal-500" },
 ];
 
+const recurrenceOptions = [
+  { value: "none", label: "Une seule fois" },
+  { value: "weekly", label: "Chaque semaine" },
+  { value: "biweekly", label: "Toutes les 2 semaines" },
+  { value: "monthly", label: "Chaque mois" },
+];
+
 export const EditScheduleItemDialog = ({
   open,
   onOpenChange,
@@ -64,7 +71,7 @@ export const EditScheduleItemDialog = ({
   const [startTime, setStartTime] = useState("08:00");
   const [endTime, setEndTime] = useState("09:00");
   const [color, setColor] = useState(colors[0].value);
-  const [isRecurring, setIsRecurring] = useState(true);
+  const [recurrence, setRecurrence] = useState("weekly");
 
   useEffect(() => {
     if (item) {
@@ -74,7 +81,7 @@ export const EditScheduleItemDialog = ({
       setStartTime(item.start_time.slice(0, 5));
       setEndTime(item.end_time.slice(0, 5));
       setColor(item.color);
-      setIsRecurring(item.is_recurring);
+      setRecurrence(item.recurrence_type || (item.is_recurring ? "weekly" : "none"));
     }
   }, [item]);
 
@@ -89,7 +96,8 @@ export const EditScheduleItemDialog = ({
       start_time: startTime,
       end_time: endTime,
       color,
-      is_recurring: isRecurring,
+      is_recurring: recurrence !== "none",
+      recurrence_type: recurrence,
     });
     onOpenChange(false);
   };
@@ -102,8 +110,8 @@ export const EditScheduleItemDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md glass-card border-white/20">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-md glass-card border-white/20 max-h-[90vh] p-0">
+        <DialogHeader className="p-6 pb-0">
           <DialogTitle className="flex items-center gap-2 font-display text-xl">
             <div className="p-2 rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-500">
               <Edit className="w-5 h-5 text-white" />
@@ -112,134 +120,143 @@ export const EditScheduleItemDialog = ({
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="edit-title">Titre</Label>
-            <Input
-              id="edit-title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Ex: Cours de Maths"
-              className="glass-input"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="edit-description">Description (optionnel)</Label>
-            <Textarea
-              id="edit-description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Notes supplémentaires..."
-              className="glass-input resize-none"
-              rows={2}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Jour</Label>
-            <Select
-              value={dayOfWeek.toString()}
-              onValueChange={(v) => setDayOfWeek(parseInt(v))}
-            >
-              <SelectTrigger className="glass-input">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {days.map((day) => (
-                  <SelectItem key={day.value} value={day.value.toString()}>
-                    {day.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
+        <ScrollArea className="max-h-[calc(90vh-100px)] px-6 pb-6">
+          <form onSubmit={handleSubmit} className="space-y-4 pt-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-startTime" className="flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                Début
-              </Label>
+              <Label htmlFor="edit-title">Titre</Label>
               <Input
-                id="edit-startTime"
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
+                id="edit-title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Ex: Cours de Maths"
                 className="glass-input"
                 required
               />
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="edit-endTime" className="flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                Fin
-              </Label>
-              <Input
-                id="edit-endTime"
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className="glass-input"
-                required
+              <Label htmlFor="edit-description">Description (optionnel)</Label>
+              <Textarea
+                id="edit-description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Notes supplémentaires..."
+                className="glass-input resize-none"
+                rows={2}
               />
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2">
-              <Palette className="w-4 h-4" />
-              Couleur
-            </Label>
-            <div className="grid grid-cols-5 gap-2">
-              {colors.map((c) => (
-                <button
-                  key={c.value}
-                  type="button"
-                  onClick={() => setColor(c.value)}
-                  className={`w-full h-10 rounded-xl ${c.value} transition-all duration-300 hover:scale-110 ${
-                    color === c.value
-                      ? "ring-2 ring-foreground ring-offset-2 ring-offset-background scale-110"
-                      : ""
-                  }`}
-                  title={c.name}
+            <div className="space-y-2">
+              <Label>Jour</Label>
+              <Select
+                value={dayOfWeek.toString()}
+                onValueChange={(v) => setDayOfWeek(parseInt(v))}
+              >
+                <SelectTrigger className="glass-input">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {days.map((day) => (
+                    <SelectItem key={day.value} value={day.value.toString()}>
+                      {day.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-startTime" className="flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  Début
+                </Label>
+                <Input
+                  id="edit-startTime"
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="glass-input"
+                  required
                 />
-              ))}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-endTime" className="flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  Fin
+                </Label>
+                <Input
+                  id="edit-endTime"
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="glass-input"
+                  required
+                />
+              </div>
             </div>
-          </div>
 
-          <div className="flex items-center justify-between p-3 rounded-xl bg-muted/50">
-            <Label htmlFor="edit-recurring" className="flex items-center gap-2 cursor-pointer">
-              <RefreshCw className="w-4 h-4 text-primary" />
-              Répéter chaque semaine
-            </Label>
-            <Switch
-              id="edit-recurring"
-              checked={isRecurring}
-              onCheckedChange={setIsRecurring}
-            />
-          </div>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Palette className="w-4 h-4" />
+                Couleur
+              </Label>
+              <div className="grid grid-cols-5 gap-2">
+                {colors.map((c) => (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() => setColor(c.value)}
+                    className={`w-full h-10 rounded-xl ${c.value} transition-all duration-300 hover:scale-110 ${
+                      color === c.value
+                        ? "ring-2 ring-foreground ring-offset-2 ring-offset-background scale-110"
+                        : ""
+                    }`}
+                    title={c.name}
+                  />
+                ))}
+              </div>
+            </div>
 
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={handleDelete}
-              className="flex-1"
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Supprimer
-            </Button>
-            <Button
-              type="submit"
-              className="flex-1 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white"
-            >
-              <Edit className="w-4 h-4 mr-2" />
-              Enregistrer
-            </Button>
-          </div>
-        </form>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <RefreshCw className="w-4 h-4" />
+                Récurrence
+              </Label>
+              <Select value={recurrence} onValueChange={setRecurrence}>
+                <SelectTrigger className="glass-input">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {recurrenceOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={handleDelete}
+                className="flex-1"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Supprimer
+              </Button>
+              <Button
+                type="submit"
+                className="flex-1 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white"
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                Enregistrer
+              </Button>
+            </div>
+          </form>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
