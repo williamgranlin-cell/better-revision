@@ -226,6 +226,7 @@ export type Database = {
           end_time: string
           id: string
           is_recurring: boolean
+          recurrence_type: string
           start_time: string
           title: string
           updated_at: string
@@ -239,6 +240,7 @@ export type Database = {
           end_time: string
           id?: string
           is_recurring?: boolean
+          recurrence_type?: string
           start_time: string
           title: string
           updated_at?: string
@@ -252,6 +254,7 @@ export type Database = {
           end_time?: string
           id?: string
           is_recurring?: boolean
+          recurrence_type?: string
           start_time?: string
           title?: string
           updated_at?: string

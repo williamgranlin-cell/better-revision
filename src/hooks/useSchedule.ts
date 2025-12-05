@@ -12,6 +12,7 @@ export interface ScheduleItem {
   end_time: string;
   color: string;
   is_recurring: boolean;
+  recurrence_type: string;
 }
 
 export const useSchedule = () => {
@@ -61,6 +62,7 @@ export const useSchedule = () => {
         end_time: item.end_time,
         color: item.color,
         is_recurring: item.is_recurring,
+        recurrence_type: item.recurrence_type || "weekly",
       })
       .select()
       .single();
