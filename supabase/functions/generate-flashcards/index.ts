@@ -7,32 +7,44 @@ const corsHeaders = {
 
 // Input validation
 interface FlashcardRequest {
-  content: string;
+  content?: string;
+  subject?: string;
   type: string;
   count: number;
 }
 
 const validateFlashcardRequest = (body: any): { valid: boolean; error?: string; data?: FlashcardRequest } => {
-  if (!body.content || typeof body.content !== 'string') {
-    return { valid: false, error: "Le contenu est requis et doit être une chaîne de caractères" };
-  }
-  
   if (!body.type || typeof body.type !== 'string') {
     return { valid: false, error: "Le type est requis" };
   }
   
-  const validTypes = ['text', 'revision_sheet'];
+  const validTypes = ['text', 'revision_sheet', 'ai_subject'];
   if (!validTypes.includes(body.type)) {
-    return { valid: false, error: "Type invalide. Doit être 'text' ou 'revision_sheet'" };
+    return { valid: false, error: "Type invalide. Doit être 'text', 'revision_sheet' ou 'ai_subject'" };
   }
   
-  const content = body.content.trim();
-  if (content.length === 0) {
-    return { valid: false, error: "Le contenu ne peut pas être vide" };
-  }
-  
-  if (content.length > 50000) {
-    return { valid: false, error: "Le contenu ne peut pas dépasser 50 000 caractères" };
+  // For ai_subject type, we need a subject
+  if (body.type === 'ai_subject') {
+    if (!body.subject || typeof body.subject !== 'string' || body.subject.trim().length === 0) {
+      return { valid: false, error: "Le sujet est requis pour la génération IA" };
+    }
+    if (body.subject.length > 500) {
+      return { valid: false, error: "Le sujet ne peut pas dépasser 500 caractères" };
+    }
+  } else {
+    // For text and revision_sheet, we need content
+    if (!body.content || typeof body.content !== 'string') {
+      return { valid: false, error: "Le contenu est requis et doit être une chaîne de caractères" };
+    }
+    
+    const content = body.content.trim();
+    if (content.length === 0) {
+      return { valid: false, error: "Le contenu ne peut pas être vide" };
+    }
+    
+    if (content.length > 50000) {
+      return { valid: false, error: "Le contenu ne peut pas dépasser 50 000 caractères" };
+    }
   }
   
   let count = parseInt(body.count) || 10;
@@ -42,7 +54,8 @@ const validateFlashcardRequest = (body: any): { valid: boolean; error?: string; 
   return {
     valid: true,
     data: {
-      content: content,
+      content: body.content?.trim(),
+      subject: body.subject?.trim(),
       type: body.type,
       count: count
     }
@@ -143,7 +156,7 @@ serve(async (req) => {
       );
     }
     
-    const { content, type, count } = validation.data!;
+    const { content, subject, type, count } = validation.data!;
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
@@ -151,12 +164,26 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log(`[generate-flashcards] User ${userId} generating ${count} flashcards of type ${type}`);
+    console.log(`[generate-flashcards] User ${userId} generating ${count} flashcards of type ${type}${subject ? ` on subject: ${subject}` : ''}`);
 
     let systemPrompt = "";
     let userPrompt = "";
 
-    if (type === "text") {
+    if (type === "ai_subject") {
+      systemPrompt = `Tu es un expert pédagogique spécialisé dans la création de flashcards éducatives. Tu dois générer des flashcards de haute qualité sur le sujet demandé, couvrant les concepts clés, définitions, formules, dates importantes, et toute information essentielle à maîtriser.`;
+      userPrompt = `Génère exactement ${count} flashcards éducatives sur le sujet suivant: "${subject}".
+
+Les flashcards doivent être:
+- Variées (définitions, concepts, applications, exemples)
+- Progressives en difficulté
+- Claires et concises
+- Adaptées à un étudiant
+
+Retourne UNIQUEMENT un tableau JSON avec des objets contenant 'question' et 'answer'. Pas de texte avant ou après.
+
+Exemple de format:
+[{"question": "...", "answer": "..."}, ...]`;
+    } else if (type === "text") {
       systemPrompt = "Tu es un assistant qui génère des flashcards éducatives à partir de texte de cours. Génère des questions pertinentes et leurs réponses détaillées.";
       userPrompt = `Génère ${count} flashcards à partir du texte de cours suivant. Retourne uniquement un tableau JSON avec des objets contenant 'question' et 'answer'.\n\nTexte:\n${content}`;
     } else if (type === "revision_sheet") {
