@@ -222,7 +222,7 @@ Format: {"question": "...", "answer": "..."}`
 
     // Check if this is a quiz wrong answers generation request
     if (body.generateQuizOptions) {
-      const { question, correctAnswer, subject } = body;
+      const { question, correctAnswer, subject, difficulty = "medium" } = body;
       
       if (!question || !correctAnswer || !subject) {
         return new Response(
@@ -236,7 +236,35 @@ Format: {"question": "...", "answer": "..."}`
         throw new Error("LOVABLE_API_KEY is not configured");
       }
 
-      console.log(`[generate-flashcards] Generating quiz options for subject: ${subject}`);
+      console.log(`[generate-flashcards] Generating quiz options for subject: ${subject}, difficulty: ${difficulty}`);
+
+      // Different prompts based on difficulty
+      let difficultyInstructions = "";
+      let wrongAnswersCount = 3;
+      
+      switch (difficulty) {
+        case "easy":
+          difficultyInstructions = `Les réponses doivent être CLAIREMENT incorrectes et faciles à distinguer de la bonne réponse.
+- Utilise des réponses évidemment fausses
+- Les réponses doivent être sur le même sujet mais clairement différentes
+- Évite les pièges et les nuances subtiles`;
+          wrongAnswersCount = 2;
+          break;
+        case "hard":
+          difficultyInstructions = `Les réponses doivent être TRÈS PROCHES de la bonne réponse et difficiles à distinguer.
+- Utilise des réponses plausibles avec des nuances subtiles
+- Inclus des pièges courants et des confusions fréquentes
+- Les réponses doivent sembler presque correctes
+- Utilise des termes similaires ou des concepts proches`;
+          wrongAnswersCount = 3;
+          break;
+        default: // medium
+          difficultyInstructions = `Les réponses doivent être plausibles mais clairement incorrectes.
+- Équilibre entre réponses évidentes et pièges subtils
+- Les réponses doivent être du même domaine
+- Inclus une ou deux réponses qui pourraient prêter à confusion`;
+          wrongAnswersCount = 3;
+      }
 
       const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
@@ -249,25 +277,26 @@ Format: {"question": "...", "answer": "..."}`
           messages: [
             { 
               role: "system", 
-              content: `Tu es un expert en création de QCM. Tu dois générer 3 mauvaises réponses plausibles pour une question de quiz. Les réponses doivent être cohérentes avec le sujet et sembler crédibles, mais être clairement incorrectes.` 
+              content: `Tu es un expert en création de QCM avec différents niveaux de difficulté. Tu dois générer ${wrongAnswersCount} mauvaises réponses pour une question de quiz.` 
             },
             { 
               role: "user", 
               content: `Sujet: "${subject}"
 Question: "${question}"
 Bonne réponse: "${correctAnswer}"
+Niveau de difficulté: ${difficulty === "easy" ? "FACILE" : difficulty === "hard" ? "DIFFICILE" : "MOYEN"}
 
-Génère exactement 3 mauvaises réponses qui:
+${difficultyInstructions}
+
+Génère exactement ${wrongAnswersCount} mauvaises réponses qui:
 1. Sont liées au même sujet "${subject}"
-2. Semblent plausibles mais sont incorrectes
-3. Sont de longueur similaire à la bonne réponse
-4. Ne sont pas ridicules ou hors sujet
+2. Sont de longueur similaire à la bonne réponse
 
-Retourne UNIQUEMENT un tableau JSON avec les 3 mauvaises réponses.
-Format: ["mauvaise réponse 1", "mauvaise réponse 2", "mauvaise réponse 3"]`
+Retourne UNIQUEMENT un tableau JSON avec les ${wrongAnswersCount} mauvaises réponses.
+Format: ["mauvaise réponse 1", "mauvaise réponse 2"${wrongAnswersCount === 3 ? ', "mauvaise réponse 3"' : ''}]`
             }
           ],
-          temperature: 0.7,
+          temperature: difficulty === "hard" ? 0.5 : difficulty === "easy" ? 0.9 : 0.7,
         }),
       });
 
