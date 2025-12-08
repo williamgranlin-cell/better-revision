@@ -147,6 +147,156 @@ serve(async (req) => {
     // Handle JSON content
     const body = await req.json();
     
+    // Check if this is a regenerate single flashcard request
+    if (body.regenerateSingle) {
+      const { question, subject } = body;
+      
+      if (!question || !subject) {
+        return new Response(
+          JSON.stringify({ error: "Question et sujet requis pour régénérer" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+      if (!LOVABLE_API_KEY) {
+        throw new Error("LOVABLE_API_KEY is not configured");
+      }
+
+      console.log(`[generate-flashcards] Regenerating single flashcard for subject: ${subject}`);
+
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            { 
+              role: "system", 
+              content: `Tu es un expert pédagogique. Tu dois générer UNE nouvelle flashcard sur le sujet "${subject}" qui soit différente de la question originale mais toujours pertinente pour le sujet.` 
+            },
+            { 
+              role: "user", 
+              content: `La flashcard actuelle est:
+Question: "${question}"
+
+Génère UNE nouvelle flashcard différente mais toujours sur le sujet "${subject}".
+La question doit être claire et la réponse précise.
+
+Retourne UNIQUEMENT un objet JSON avec 'question' et 'answer'. Pas de texte avant ou après.
+Format: {"question": "...", "answer": "..."}`
+            }
+          ],
+          temperature: 0.9,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("AI gateway error:", response.status, errorText);
+        return new Response(
+          JSON.stringify({ error: "Erreur lors de la régénération" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const data = await response.json();
+      let flashcardText = data.choices[0].message.content;
+      
+      // Extract JSON from markdown code blocks if present
+      const jsonMatch = flashcardText.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+      if (jsonMatch) {
+        flashcardText = jsonMatch[1];
+      }
+      
+      const flashcard = JSON.parse(flashcardText);
+
+      return new Response(
+        JSON.stringify({ flashcard }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Check if this is a quiz wrong answers generation request
+    if (body.generateQuizOptions) {
+      const { question, correctAnswer, subject } = body;
+      
+      if (!question || !correctAnswer || !subject) {
+        return new Response(
+          JSON.stringify({ error: "Question, réponse et sujet requis" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+      if (!LOVABLE_API_KEY) {
+        throw new Error("LOVABLE_API_KEY is not configured");
+      }
+
+      console.log(`[generate-flashcards] Generating quiz options for subject: ${subject}`);
+
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            { 
+              role: "system", 
+              content: `Tu es un expert en création de QCM. Tu dois générer 3 mauvaises réponses plausibles pour une question de quiz. Les réponses doivent être cohérentes avec le sujet et sembler crédibles, mais être clairement incorrectes.` 
+            },
+            { 
+              role: "user", 
+              content: `Sujet: "${subject}"
+Question: "${question}"
+Bonne réponse: "${correctAnswer}"
+
+Génère exactement 3 mauvaises réponses qui:
+1. Sont liées au même sujet "${subject}"
+2. Semblent plausibles mais sont incorrectes
+3. Sont de longueur similaire à la bonne réponse
+4. Ne sont pas ridicules ou hors sujet
+
+Retourne UNIQUEMENT un tableau JSON avec les 3 mauvaises réponses.
+Format: ["mauvaise réponse 1", "mauvaise réponse 2", "mauvaise réponse 3"]`
+            }
+          ],
+          temperature: 0.7,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("AI gateway error:", response.status, errorText);
+        return new Response(
+          JSON.stringify({ error: "Erreur lors de la génération des options" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const data = await response.json();
+      let optionsText = data.choices[0].message.content;
+      
+      // Extract JSON from markdown code blocks if present
+      const jsonMatch = optionsText.match(/```(?:json)?\s*(\[[\s\S]*?\])\s*```/);
+      if (jsonMatch) {
+        optionsText = jsonMatch[1];
+      }
+      
+      const wrongAnswers = JSON.parse(optionsText);
+
+      return new Response(
+        JSON.stringify({ wrongAnswers }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
     // Validate input
     const validation = validateFlashcardRequest(body);
     if (!validation.valid) {
