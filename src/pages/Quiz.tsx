@@ -25,13 +25,16 @@ import {
   Sparkles,
   Target,
   TrendingUp,
+  Loader2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
 
 interface QuizQuestion {
   flashcard: Flashcard;
   options: string[];
   correctIndex: number;
+  isLoading?: boolean;
 }
 
 const Quiz = () => {
@@ -47,51 +50,122 @@ const Quiz = () => {
   const [bestStreak, setBestStreak] = useState(0);
   const [totalAnswered, setTotalAnswered] = useState(0);
   const [showResults, setShowResults] = useState(false);
+  const [generatingOptions, setGeneratingOptions] = useState(false);
 
-  // Generate quiz questions from flashcards
-  const generateQuestions = useCallback((cards: Flashcard[]) => {
-    if (cards.length < 2) return [];
+  // Generate AI-powered wrong answers for a question
+  const generateAIWrongAnswers = async (flashcard: Flashcard, subject: string): Promise<string[]> => {
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-flashcards', {
+        body: {
+          generateQuizOptions: true,
+          question: flashcard.question,
+          correctAnswer: flashcard.answer,
+          subject: subject,
+        }
+      });
 
-    const shuffled = [...cards].sort(() => Math.random() - 0.5);
-    
-    return shuffled.map((flashcard) => {
-      // Get 3 wrong answers from other flashcards
-      const otherAnswers = cards
-        .filter((c) => c.id !== flashcard.id)
-        .map((c) => c.answer)
-        .sort(() => Math.random() - 0.5)
-        .slice(0, 3);
-
-      // If not enough other answers, duplicate some
-      while (otherAnswers.length < 3) {
-        otherAnswers.push(`Option ${otherAnswers.length + 1}`);
+      if (error || !data.wrongAnswers) {
+        console.error("Error generating AI options:", error);
+        return [];
       }
 
-      // Mix correct answer with wrong ones
-      const correctIndex = Math.floor(Math.random() * 4);
-      const options = [...otherAnswers];
-      options.splice(correctIndex, 0, flashcard.answer);
+      return data.wrongAnswers;
+    } catch (err) {
+      console.error("Failed to generate AI options:", err);
+      return [];
+    }
+  };
 
+  // Generate quiz questions from flashcards with AI-generated wrong answers
+  const generateQuestions = useCallback(async (cards: Flashcard[]) => {
+    if (cards.length < 1) return [];
+
+    const shuffled = [...cards].sort(() => Math.random() - 0.5);
+    const selectedCards = shuffled.slice(0, Math.min(shuffled.length, 20)); // Limit to 20 questions
+    
+    // Get the subject from the first card or set
+    const subject = selectedCards[0]?.subject || 
+      sets.find(s => s.id === selectedSetId)?.name || 
+      "Culture générale";
+
+    setGeneratingOptions(true);
+
+    // Generate questions with placeholder options first
+    const initialQuestions: QuizQuestion[] = selectedCards.map((flashcard) => {
+      const correctIndex = Math.floor(Math.random() * 4);
       return {
         flashcard,
-        options: options.slice(0, 4),
+        options: ["Chargement...", "Chargement...", "Chargement...", "Chargement..."],
         correctIndex,
+        isLoading: true,
       };
     });
-  }, []);
+
+    setQuestions(initialQuestions);
+
+    // Generate AI options for each question
+    const questionsWithAI = await Promise.all(
+      selectedCards.map(async (flashcard, idx) => {
+        const wrongAnswers = await generateAIWrongAnswers(flashcard, subject);
+        
+        let finalWrongAnswers = wrongAnswers;
+        
+        // Fallback: use other flashcard answers if AI fails
+        if (finalWrongAnswers.length < 3) {
+          const otherAnswers = cards
+            .filter((c) => c.id !== flashcard.id)
+            .map((c) => c.answer)
+            .sort(() => Math.random() - 0.5)
+            .slice(0, 3 - finalWrongAnswers.length);
+          finalWrongAnswers = [...finalWrongAnswers, ...otherAnswers];
+        }
+
+        // If still not enough, add generic options
+        while (finalWrongAnswers.length < 3) {
+          finalWrongAnswers.push(`Option ${finalWrongAnswers.length + 1}`);
+        }
+
+        const correctIndex = Math.floor(Math.random() * 4);
+        const options = [...finalWrongAnswers.slice(0, 3)];
+        options.splice(correctIndex, 0, flashcard.answer);
+
+        return {
+          flashcard,
+          options: options.slice(0, 4),
+          correctIndex,
+          isLoading: false,
+        };
+      })
+    );
+
+    setGeneratingOptions(false);
+    return questionsWithAI;
+  }, [sets, selectedSetId]);
 
   // Filter and generate questions when selection changes
   useEffect(() => {
-    const filteredCards =
-      selectedSetId === "all"
-        ? flashcards
-        : flashcards.filter((f) => f.subject === selectedSetId || 
-            sets.find(s => s.id === selectedSetId)?.name === f.subject);
+    const loadQuestions = async () => {
+      const filteredCards =
+        selectedSetId === "all"
+          ? flashcards
+          : flashcards.filter((f) => {
+              const set = sets.find(s => s.id === selectedSetId);
+              return f.subject === selectedSetId || set?.name === f.subject;
+            });
 
-    const newQuestions = generateQuestions(filteredCards);
-    setQuestions(newQuestions);
-    resetQuiz();
-  }, [selectedSetId, flashcards, sets, generateQuestions]);
+      if (filteredCards.length > 0) {
+        const newQuestions = await generateQuestions(filteredCards);
+        setQuestions(newQuestions);
+      } else {
+        setQuestions([]);
+      }
+      resetQuiz();
+    };
+
+    if (!flashcardsLoading && !setsLoading) {
+      loadQuestions();
+    }
+  }, [selectedSetId, flashcards, sets, flashcardsLoading, setsLoading]);
 
   const resetQuiz = () => {
     setCurrentIndex(0);
@@ -104,7 +178,7 @@ const Quiz = () => {
   };
 
   const handleAnswer = async (index: number) => {
-    if (isAnswered) return;
+    if (isAnswered || questions[currentIndex]?.isLoading) return;
 
     setSelectedAnswer(index);
     setIsAnswered(true);
@@ -136,6 +210,20 @@ const Quiz = () => {
     } else {
       setShowResults(true);
     }
+  };
+
+  const handleRestart = async () => {
+    const filteredCards =
+      selectedSetId === "all"
+        ? flashcards
+        : flashcards.filter((f) => {
+            const set = sets.find(s => s.id === selectedSetId);
+            return f.subject === selectedSetId || set?.name === f.subject;
+          });
+
+    const newQuestions = await generateQuestions(filteredCards);
+    setQuestions(newQuestions);
+    resetQuiz();
   };
 
   const currentQuestion = questions[currentIndex];
@@ -214,12 +302,20 @@ const Quiz = () => {
 
       {/* Main content */}
       <div className="container mx-auto px-4 py-6">
-        {questions.length === 0 ? (
+        {generatingOptions && questions.length === 0 ? (
+          <Card className="glass-card p-8 text-center">
+            <Loader2 className="w-16 h-16 mx-auto mb-4 text-primary animate-spin" />
+            <h2 className="text-xl font-semibold mb-2">Génération des questions...</h2>
+            <p className="text-muted-foreground">
+              L'IA génère des réponses cohérentes avec le sujet
+            </p>
+          </Card>
+        ) : questions.length === 0 ? (
           <Card className="glass-card p-8 text-center">
             <Brain className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" />
             <h2 className="text-xl font-semibold mb-2">Pas assez de flashcards</h2>
             <p className="text-muted-foreground mb-4">
-              Créez au moins 2 flashcards pour commencer un quiz.
+              Créez au moins 1 flashcard pour commencer un quiz.
             </p>
             <Button
               onClick={() => window.location.href = '/flashcards'}
@@ -265,15 +361,7 @@ const Quiz = () => {
 
               <div className="flex gap-4">
                 <Button
-                  onClick={() => {
-                    const newQuestions = generateQuestions(
-                      selectedSetId === "all"
-                        ? flashcards
-                        : flashcards.filter((f) => f.subject === selectedSetId)
-                    );
-                    setQuestions(newQuestions);
-                    resetQuiz();
-                  }}
+                  onClick={handleRestart}
                   className="flex-1 bg-gradient-to-r from-fuchsia-500 to-violet-600"
                 >
                   <RefreshCw className="w-4 h-4 mr-2" />
@@ -313,59 +401,66 @@ const Quiz = () => {
                       <div className="flex-1">
                         <p className="text-xs text-muted-foreground mb-1">Question</p>
                         <h3 className="text-xl font-semibold leading-relaxed">
-                          {currentQuestion.flashcard.question}
+                          {currentQuestion?.flashcard.question}
                         </h3>
                       </div>
                     </div>
 
                     {/* Options */}
                     <div className="space-y-3">
-                      {currentQuestion.options.map((option, index) => {
-                        const isSelected = selectedAnswer === index;
-                        const isCorrect = index === currentQuestion.correctIndex;
-                        const showCorrect = isAnswered && isCorrect;
-                        const showWrong = isAnswered && isSelected && !isCorrect;
+                      {currentQuestion?.isLoading ? (
+                        <div className="flex flex-col items-center justify-center py-8 gap-4">
+                          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                          <p className="text-muted-foreground text-sm">Génération des options...</p>
+                        </div>
+                      ) : (
+                        currentQuestion?.options.map((option, index) => {
+                          const isSelected = selectedAnswer === index;
+                          const isCorrect = index === currentQuestion.correctIndex;
+                          const showCorrect = isAnswered && isCorrect;
+                          const showWrong = isAnswered && isSelected && !isCorrect;
 
-                        return (
-                          <motion.button
-                            key={index}
-                            onClick={() => handleAnswer(index)}
-                            disabled={isAnswered}
-                            className={`w-full p-4 rounded-2xl text-left transition-all duration-300 border-2 ${
-                              showCorrect
-                                ? "bg-emerald-500/20 border-emerald-500 text-emerald-400"
-                                : showWrong
-                                ? "bg-red-500/20 border-red-500 text-red-400"
-                                : isSelected
-                                ? "bg-primary/20 border-primary"
-                                : "bg-muted/30 border-transparent hover:bg-muted/50 hover:border-white/20"
-                            }`}
-                            whileHover={!isAnswered ? { scale: 1.02 } : {}}
-                            whileTap={!isAnswered ? { scale: 0.98 } : {}}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div
-                                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                                  showCorrect
-                                    ? "bg-emerald-500 text-white"
-                                    : showWrong
-                                    ? "bg-red-500 text-white"
-                                    : "bg-muted text-muted-foreground"
-                                }`}
-                              >
-                                {showCorrect ? (
-                                  <CheckCircle2 className="w-5 h-5" />
-                                ) : showWrong ? (
-                                  <XCircle className="w-5 h-5" />
-                                ) : (
-                                  String.fromCharCode(65 + index)
-                                )}
+                          return (
+                            <motion.button
+                              key={index}
+                              onClick={() => handleAnswer(index)}
+                              disabled={isAnswered}
+                              className={`w-full p-4 rounded-2xl text-left transition-all duration-300 border-2 ${
+                                showCorrect
+                                  ? "bg-emerald-500/20 border-emerald-500 text-emerald-400"
+                                  : showWrong
+                                  ? "bg-red-500/20 border-red-500 text-red-400"
+                                  : isSelected
+                                  ? "bg-primary/20 border-primary"
+                                  : "bg-muted/30 border-transparent hover:bg-muted/50 hover:border-white/20"
+                              }`}
+                              whileHover={!isAnswered ? { scale: 1.02 } : {}}
+                              whileTap={!isAnswered ? { scale: 0.98 } : {}}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div
+                                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                                    showCorrect
+                                      ? "bg-emerald-500 text-white"
+                                      : showWrong
+                                      ? "bg-red-500 text-white"
+                                      : "bg-muted text-muted-foreground"
+                                  }`}
+                                >
+                                  {showCorrect ? (
+                                    <CheckCircle2 className="w-5 h-5" />
+                                  ) : showWrong ? (
+                                    <XCircle className="w-5 h-5" />
+                                  ) : (
+                                    String.fromCharCode(65 + index)
+                                  )}
+                                </div>
+                                <span className="flex-1 font-medium">{option}</span>
                               </div>
-                              <span className="flex-1 font-medium">{option}</span>
-                            </div>
-                          </motion.button>
-                        );
-                      })}
+                            </motion.button>
+                          );
+                        })
+                      )}
                     </div>
 
                     {/* Next button */}
@@ -399,7 +494,7 @@ const Quiz = () => {
             </AnimatePresence>
 
             {/* Scroll hint */}
-            {!isAnswered && (
+            {!isAnswered && !currentQuestion?.isLoading && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}

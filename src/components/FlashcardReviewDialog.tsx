@@ -2,9 +2,11 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
+import { ChevronLeft, ChevronRight, RotateCcw, RefreshCw, Loader2 } from "lucide-react";
 import { Flashcard } from "@/hooks/useFlashcards";
 import { useFlashcards } from "@/hooks/useFlashcards";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface FlashcardReviewDialogProps {
   open: boolean;
@@ -19,11 +21,13 @@ export const FlashcardReviewDialog = ({
   setId,
   setName,
 }: FlashcardReviewDialogProps) => {
-  const { getFlashcardsBySet, recordReview } = useFlashcards();
+  const { getFlashcardsBySet, recordReview, updateFlashcard } = useFlashcards();
+  const { toast } = useToast();
   const [cards, setCards] = useState<Flashcard[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [regenerating, setRegenerating] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -58,6 +62,56 @@ export const FlashcardReviewDialog = ({
     if (cards[currentIndex]) {
       await recordReview(cards[currentIndex].id, isCorrect);
       handleNext();
+    }
+  };
+
+  const handleRegenerate = async () => {
+    const currentCard = cards[currentIndex];
+    if (!currentCard) return;
+
+    setRegenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-flashcards', {
+        body: {
+          regenerateSingle: true,
+          question: currentCard.question,
+          subject: currentCard.subject || setName,
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.flashcard) {
+        // Update the flashcard in the database
+        await updateFlashcard(currentCard.id, {
+          question: data.flashcard.question,
+          answer: data.flashcard.answer,
+        });
+
+        // Update local state
+        const updatedCards = [...cards];
+        updatedCards[currentIndex] = {
+          ...currentCard,
+          question: data.flashcard.question,
+          answer: data.flashcard.answer,
+        };
+        setCards(updatedCards);
+        setIsFlipped(false);
+
+        toast({
+          title: "Flashcard régénérée",
+          description: "La flashcard a été mise à jour avec succès",
+        });
+      }
+    } catch (error) {
+      console.error("Error regenerating flashcard:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de régénérer la flashcard",
+        variant: "destructive",
+      });
+    } finally {
+      setRegenerating(false);
     }
   };
 
@@ -101,9 +155,28 @@ export const FlashcardReviewDialog = ({
           </div>
 
           <Card
-            className="p-8 min-h-[300px] flex items-center justify-center cursor-pointer gradient-card border-0 shadow-sm hover:shadow-colored transition-smooth"
+            className="p-8 min-h-[300px] flex items-center justify-center cursor-pointer gradient-card border-0 shadow-sm hover:shadow-colored transition-smooth relative"
             onClick={() => setIsFlipped(!isFlipped)}
           >
+            {/* Regenerate button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-2 right-2 opacity-60 hover:opacity-100"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRegenerate();
+              }}
+              disabled={regenerating}
+              title="Régénérer cette flashcard"
+            >
+              {regenerating ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+            </Button>
+
             <div className="text-center">
               {!isFlipped ? (
                 <div>
