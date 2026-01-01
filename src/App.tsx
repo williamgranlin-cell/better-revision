@@ -15,6 +15,7 @@ import Controls from "./pages/Controls";
 import Profile from "./pages/Profile";
 import StudyChat from "./pages/StudyChat";
 import Schedule from "./pages/Schedule";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,6 +38,7 @@ const App = () => (
               <Route path="/study-chat" element={<ProtectedRoute><StudyChat /></ProtectedRoute>} />
               <Route path="/schedule" element={<ProtectedRoute><Schedule /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
