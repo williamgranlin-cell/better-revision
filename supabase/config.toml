@@ -17,3 +17,12 @@ verify_jwt = true
 
 [functions.generate-exercises]
 verify_jwt = true
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.ai-homework-help]
+verify_jwt = true
+
+[functions.generate-revision-content]
+verify_jwt = true
