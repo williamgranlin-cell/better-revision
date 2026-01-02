@@ -9,13 +9,13 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Auth from "./pages/Auth";
 import Calendar from "./pages/Calendar";
 import Classroom from "./pages/Classroom";
-import Quiz from "./pages/Quiz";
 import Flashcards from "./pages/Flashcards";
 import Controls from "./pages/Controls";
 import Profile from "./pages/Profile";
 import StudyChat from "./pages/StudyChat";
 import Schedule from "./pages/Schedule";
 import Admin from "./pages/Admin";
+import RevisionGenerator from "./pages/RevisionGenerator";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,14 +32,13 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
               <Route path="/classroom" element={<ProtectedRoute><Classroom /></ProtectedRoute>} />
-              <Route path="/quiz" element={<ProtectedRoute><Quiz /></ProtectedRoute>} />
               <Route path="/flashcards" element={<ProtectedRoute><Flashcards /></ProtectedRoute>} />
               <Route path="/controls" element={<ProtectedRoute><Controls /></ProtectedRoute>} />
               <Route path="/study-chat" element={<ProtectedRoute><StudyChat /></ProtectedRoute>} />
               <Route path="/schedule" element={<ProtectedRoute><Schedule /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="/revision-generator" element={<ProtectedRoute><RevisionGenerator /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
