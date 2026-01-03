@@ -488,12 +488,12 @@ const StudyChat = () => {
 
             <Card className="p-4">
               <div className="mb-3">
-                <Select value={homeworkSubject} onValueChange={setHomeworkSubject}>
+              <Select value={homeworkSubject} onValueChange={(v) => setHomeworkSubject(v === "all" ? "" : v)}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Matière (optionnel)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Toutes matières</SelectItem>
+                    <SelectItem value="all">Toutes matières</SelectItem>
                     <SelectItem value="maths">Mathématiques</SelectItem>
                     <SelectItem value="physique">Physique-Chimie</SelectItem>
                     <SelectItem value="svt">SVT</SelectItem>
