@@ -206,12 +206,12 @@ const RevisionGenerator = () => {
 
             <div>
               <label className="text-sm font-medium mb-2 block">Matière (optionnel)</label>
-              <Select value={subject} onValueChange={setSubject}>
+              <Select value={subject} onValueChange={(v) => setSubject(v === "none" ? "" : v)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Sélectionner une matière" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Aucune</SelectItem>
+                  <SelectItem value="none">Aucune</SelectItem>
                   <SelectItem value="maths">Mathématiques</SelectItem>
                   <SelectItem value="physique">Physique-Chimie</SelectItem>
                   <SelectItem value="svt">SVT</SelectItem>
