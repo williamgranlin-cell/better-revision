@@ -9,6 +9,7 @@ export interface Flashcard {
   question: string;
   answer: string;
   subject?: string;
+  set_id?: string;
   creation_method: "manual" | "import" | "ai" | "revision_sheet";
   times_reviewed: number;
   times_correct: number;
