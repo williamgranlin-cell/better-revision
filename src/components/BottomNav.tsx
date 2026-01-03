@@ -1,4 +1,4 @@
-import { Calendar, Target, BookOpen, FileCheck, Video, User, Clock, Brain } from "lucide-react";
+import { Calendar, Target, BookOpen, FileCheck, Video, User, Clock, FileText } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -6,7 +6,7 @@ const navItems = [
   { icon: Calendar, label: "Calendrier", path: "/" },
   { icon: Clock, label: "Emploi", path: "/schedule" },
   { icon: Target, label: "Classroom", path: "/classroom" },
-  { icon: Brain, label: "Quiz", path: "/quiz" },
+  { icon: FileText, label: "Fiches", path: "/revision-generator" },
   { icon: BookOpen, label: "Flashcards", path: "/flashcards" },
   { icon: FileCheck, label: "Contrôles", path: "/controls" },
   { icon: Video, label: "Vidéos", path: "/study-chat" },
