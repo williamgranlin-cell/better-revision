@@ -232,6 +232,39 @@ const Schedule = () => {
                 {/* Days columns */}
                 {days.map((day) => {
                   const dayItems = getItemsByDay(day.value).filter(isItemVisible);
+                  
+                  // Group overlapping items and assign columns
+                  const positionedItems = dayItems.map((item, index) => {
+                    const itemStartMin = parseInt(item.start_time.split(":")[0]) * 60 + parseInt(item.start_time.split(":")[1]);
+                    const itemEndMin = parseInt(item.end_time.split(":")[0]) * 60 + parseInt(item.end_time.split(":")[1]);
+                    
+                    // Find overlapping items that come before this one
+                    let column = 0;
+                    let maxColumns = 1;
+                    const overlapping = dayItems.filter((other, otherIndex) => {
+                      if (otherIndex >= index) return false;
+                      const otherStartMin = parseInt(other.start_time.split(":")[0]) * 60 + parseInt(other.start_time.split(":")[1]);
+                      const otherEndMin = parseInt(other.end_time.split(":")[0]) * 60 + parseInt(other.end_time.split(":")[1]);
+                      return itemStartMin < otherEndMin && itemEndMin > otherStartMin;
+                    });
+                    
+                    // Find the first available column
+                    const usedColumns = overlapping.map((_, i) => i);
+                    while (usedColumns.includes(column)) {
+                      column++;
+                    }
+                    
+                    // Calculate total columns needed for this time slot
+                    const allOverlapping = dayItems.filter((other) => {
+                      const otherStartMin = parseInt(other.start_time.split(":")[0]) * 60 + parseInt(other.start_time.split(":")[1]);
+                      const otherEndMin = parseInt(other.end_time.split(":")[0]) * 60 + parseInt(other.end_time.split(":")[1]);
+                      return itemStartMin < otherEndMin && itemEndMin > otherStartMin;
+                    });
+                    maxColumns = Math.max(allOverlapping.length, 1);
+                    
+                    return { item, column, maxColumns };
+                  });
+
                   return (
                     <div
                       key={day.value}
@@ -253,33 +286,44 @@ const Schedule = () => {
                         <Plus className="w-8 h-8 text-primary/50" />
                       </div>
 
-                      {/* Items */}
-                      {dayItems.map((item) => (
-                        <div
-                          key={item.id}
-                          className={cn(
-                            "absolute left-1 right-1 rounded-lg p-1.5 cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-lg z-20 overflow-hidden",
-                            item.color
-                          )}
-                          style={getItemStyle(item)}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleItemClick(item);
-                          }}
-                        >
-                          <div className="flex flex-col h-full text-white">
-                            <span className="font-medium text-xs truncate">
-                              {item.title}
-                            </span>
-                            <span className="text-[10px] opacity-80">
-                              {formatTime(item.start_time)} - {formatTime(item.end_time)}
-                            </span>
-                            {item.is_recurring && (
-                              <RefreshCw className="w-3 h-3 absolute bottom-1 right-1 opacity-60" />
+                      {/* Items with column positioning */}
+                      {positionedItems.map(({ item, column, maxColumns }) => {
+                        const style = getItemStyle(item);
+                        const width = `calc((100% - 8px) / ${maxColumns})`;
+                        const left = `calc(4px + (100% - 8px) / ${maxColumns} * ${column})`;
+                        
+                        return (
+                          <div
+                            key={item.id}
+                            className={cn(
+                              "absolute rounded-lg p-1 cursor-pointer transition-all duration-200 hover:z-30 hover:shadow-lg overflow-hidden",
+                              item.color
                             )}
+                            style={{
+                              ...style,
+                              width,
+                              left,
+                              right: 'auto',
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleItemClick(item);
+                            }}
+                          >
+                            <div className="flex flex-col h-full text-white">
+                              <span className="font-medium text-[10px] sm:text-xs truncate leading-tight">
+                                {item.title}
+                              </span>
+                              <span className="text-[8px] sm:text-[10px] opacity-80 leading-tight">
+                                {formatTime(item.start_time)}
+                              </span>
+                              {item.is_recurring && (
+                                <RefreshCw className="w-2.5 h-2.5 absolute bottom-0.5 right-0.5 opacity-60" />
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   );
                 })}

@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Network, Shapes, Loader2, Upload, Sparkles, Copy, Check, FileUp } from "lucide-react";
+import { FileText, Network, Shapes, Loader2, Upload, Sparkles, Copy, Check, FileUp, ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import DOMPurify from "dompurify";
@@ -20,6 +20,7 @@ const RevisionGenerator = () => {
   const [subject, setSubject] = useState("");
   const [content, setContent] = useState("");
   const [result, setResult] = useState("");
+  const [schemaImage, setSchemaImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -31,7 +32,6 @@ const RevisionGenerator = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast({
         title: "Fichier trop volumineux",
@@ -41,17 +41,15 @@ const RevisionGenerator = () => {
       return;
     }
 
-    // Read file content for text files
     if (file.type === "text/plain" || file.name.endsWith(".txt") || file.name.endsWith(".md")) {
       const text = await file.text();
-      setContent(text.substring(0, 10000)); // Limit to 10k chars
+      setContent(text.substring(0, 10000));
       setUploadedFile(file);
       toast({
         title: "Fichier importé",
         description: `${file.name} a été chargé`,
       });
     } else {
-      // For other file types, we just note the file was uploaded
       setUploadedFile(file);
       toast({
         title: "Fichier sélectionné",
@@ -65,6 +63,7 @@ const RevisionGenerator = () => {
 
     setLoading(true);
     setResult("");
+    setSchemaImage(null);
 
     try {
       const { data, error } = await supabase.functions.invoke("generate-revision-content", {
@@ -80,6 +79,10 @@ const RevisionGenerator = () => {
 
       if (data.result) {
         setResult(data.result);
+      }
+      
+      if (data.imageUrl) {
+        setSchemaImage(data.imageUrl);
       }
     } catch (error: any) {
       console.error("Error generating content:", error);
@@ -139,8 +142,8 @@ const RevisionGenerator = () => {
       case "schema":
         return {
           icon: Shapes,
-          title: "Schéma conceptuel",
-          description: "Un schéma montrant les relations entre les éléments"
+          title: "Schéma illustré",
+          description: "Un dessin avec des légendes pour visualiser le concept"
         };
     }
   };
@@ -166,7 +169,7 @@ const RevisionGenerator = () => {
         </div>
 
         {/* Type Selection */}
-        <Tabs value={generationType} onValueChange={(v) => setGenerationType(v as GenerationType)} className="mb-6 animate-fade-in stagger-1">
+        <Tabs value={generationType} onValueChange={(v) => { setGenerationType(v as GenerationType); setResult(""); setSchemaImage(null); }} className="mb-6 animate-fade-in stagger-1">
           <TabsList className="grid w-full grid-cols-3 p-1 bg-muted/50 rounded-2xl">
             <TabsTrigger value="revision_sheet" className="flex items-center gap-2 rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-md transition-all duration-300">
               <FileText className="h-4 w-4" />
@@ -179,9 +182,9 @@ const RevisionGenerator = () => {
               <span className="sm:hidden">🧠</span>
             </TabsTrigger>
             <TabsTrigger value="schema" className="flex items-center gap-2 rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-md transition-all duration-300">
-              <Shapes className="h-4 w-4" />
+              <ImageIcon className="h-4 w-4" />
               <span className="hidden sm:inline">Schéma</span>
-              <span className="sm:hidden">📊</span>
+              <span className="sm:hidden">🎨</span>
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -196,7 +199,7 @@ const RevisionGenerator = () => {
               <h3 className="font-semibold text-lg">{typeInfo.title}</h3>
               <p className="text-sm text-muted-foreground">{typeInfo.description}</p>
             </div>
-            <span className="text-2xl animate-bounce-soft">{generationType === "revision_sheet" ? "📝" : generationType === "mind_map" ? "🧠" : "📊"}</span>
+            <span className="text-2xl animate-bounce-soft">{generationType === "revision_sheet" ? "📝" : generationType === "mind_map" ? "🧠" : "🎨"}</span>
           </div>
 
           <div className="space-y-4">
@@ -205,9 +208,14 @@ const RevisionGenerator = () => {
               <Input
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
-                placeholder="Ex: La Révolution française, Les dérivées, La photosynthèse..."
+                placeholder={generationType === "schema" ? "Ex: Le cœur humain, La cellule, Le cycle de l'eau..." : "Ex: La Révolution française, Les dérivées, La photosynthèse..."}
                 maxLength={200}
               />
+              {generationType === "schema" && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  💡 Une image sera générée avec des légendes explicatives
+                </p>
+              )}
             </div>
 
             <div>
@@ -230,42 +238,44 @@ const RevisionGenerator = () => {
               </Select>
             </div>
 
-            <div>
-              <label className="text-sm font-medium mb-2 block">Contenu de base (optionnel)</label>
-              <Textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Collez ici votre cours ou vos notes pour une génération plus précise..."
-                className="min-h-[120px]"
-                maxLength={10000}
-              />
-              <div className="flex items-center justify-between mt-2">
-                <span className="text-xs text-muted-foreground">
-                  {content.length}/10000 caractères
-                </span>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileUpload}
-                  accept=".txt,.md,.doc,.docx,.pdf"
-                  className="hidden"
+            {generationType !== "schema" && (
+              <div>
+                <label className="text-sm font-medium mb-2 block">Contenu de base (optionnel)</label>
+                <Textarea
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="Collez ici votre cours ou vos notes pour une génération plus précise..."
+                  className="min-h-[120px]"
+                  maxLength={10000}
                 />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-2"
-                >
-                  <FileUp className="h-4 w-4" />
-                  Importer un fichier
-                </Button>
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-xs text-muted-foreground">
+                    {content.length}/10000 caractères
+                  </span>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                    accept=".txt,.md,.doc,.docx,.pdf"
+                    className="hidden"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex items-center gap-2"
+                  >
+                    <FileUp className="h-4 w-4" />
+                    Importer un fichier
+                  </Button>
+                </div>
+                {uploadedFile && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Fichier: {uploadedFile.name}
+                  </p>
+                )}
               </div>
-              {uploadedFile && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Fichier: {uploadedFile.name}
-                </p>
-              )}
-            </div>
+            )}
 
             <Button
               onClick={handleGenerate}
@@ -275,12 +285,12 @@ const RevisionGenerator = () => {
               {loading ? (
                 <>
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  La magie opère... ✨
+                  {generationType === "schema" ? "Création de l'image... 🎨" : "La magie opère... ✨"}
                 </>
               ) : (
                 <>
                   <Sparkles className="w-5 h-5 mr-2" />
-                  Générer ma {generationType === "revision_sheet" ? "fiche" : generationType === "mind_map" ? "carte" : "schéma"} 🚀
+                  {generationType === "schema" ? "Générer mon schéma 🎨" : `Générer ma ${generationType === "revision_sheet" ? "fiche" : "carte"} 🚀`}
                 </>
               )}
             </Button>
@@ -288,7 +298,7 @@ const RevisionGenerator = () => {
         </Card>
 
         {/* Result */}
-        {(result || loading) && (
+        {(result || schemaImage || loading) && (
           <Card className="p-6 animate-fade-in hover-lift border-border/50">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-border/50">
               <div className="flex items-center gap-3">
@@ -322,26 +332,59 @@ const RevisionGenerator = () => {
               )}
             </div>
             
-            <ScrollArea className="h-[400px]">
+            <ScrollArea className="h-[500px]">
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-16">
                   <div className="relative">
                     <Loader2 className="w-16 h-16 text-primary animate-spin" />
-                    <span className="absolute inset-0 flex items-center justify-center text-2xl animate-pulse-soft">🧠</span>
+                    <span className="absolute inset-0 flex items-center justify-center text-2xl animate-pulse-soft">
+                      {generationType === "schema" ? "🎨" : "🧠"}
+                    </span>
                   </div>
                   <p className="text-muted-foreground mt-6 text-center">
-                    L'IA réfléchit à ta {typeInfo.title.toLowerCase()}...
-                    <br />
-                    <span className="text-sm">Ça arrive dans quelques secondes ! ⏳</span>
+                    {generationType === "schema" ? (
+                      <>
+                        L'IA dessine ton schéma...
+                        <br />
+                        <span className="text-sm">Ça peut prendre quelques secondes ! 🖌️</span>
+                      </>
+                    ) : (
+                      <>
+                        L'IA réfléchit à ta {typeInfo.title.toLowerCase()}...
+                        <br />
+                        <span className="text-sm">Ça arrive dans quelques secondes ! ⏳</span>
+                      </>
+                    )}
                   </p>
                 </div>
               ) : (
-                <div 
-                  className="prose prose-sm max-w-none text-foreground font-mono text-sm leading-relaxed whitespace-pre-wrap"
-                  dangerouslySetInnerHTML={{
-                    __html: formatContent(result)
-                  }}
-                />
+                <div className="space-y-6">
+                  {/* Schema Image */}
+                  {schemaImage && (
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="relative w-full max-w-lg mx-auto rounded-xl overflow-hidden shadow-lg border border-border">
+                        <img 
+                          src={schemaImage} 
+                          alt={`Schéma: ${topic}`}
+                          className="w-full h-auto"
+                        />
+                      </div>
+                      <p className="text-sm text-muted-foreground text-center">
+                        🎨 Schéma généré par IA • Clic droit pour sauvegarder
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Text Content (Legends for schema, or full content for other types) */}
+                  {result && (
+                    <div 
+                      className="prose prose-sm max-w-none text-foreground font-mono text-sm leading-relaxed whitespace-pre-wrap"
+                      dangerouslySetInnerHTML={{
+                        __html: formatContent(result)
+                      }}
+                    />
+                  )}
+                </div>
               )}
             </ScrollArea>
           </Card>
