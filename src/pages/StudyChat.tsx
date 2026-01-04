@@ -218,12 +218,12 @@ const StudyChat = () => {
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-            <Sparkles className="w-6 h-6 text-primary" />
+            <HelpCircle className="w-6 h-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-display font-bold text-foreground">Assistant IA</h1>
+            <h1 className="text-2xl font-display font-bold text-foreground">Aide 🤗</h1>
             <p className="text-sm text-muted-foreground">
-              Vidéos, exercices ou aide aux devoirs
+              Vidéos, exercices et assistance devoirs
             </p>
           </div>
         </div>

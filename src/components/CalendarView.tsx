@@ -2,9 +2,14 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Trash2, Edit } from "lucide-react";
+import { ChevronLeft, ChevronRight, Trash2, Edit, Calendar } from "lucide-react";
 import { Course, RevisionEvent } from "@/hooks/useCourses";
 import { EditCourseDialog } from "./EditCourseDialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface CalendarViewProps {
   courses: Course[];
@@ -49,6 +54,12 @@ const CalendarView = ({ courses, revisionEvents, onDeleteCourse, onUpdateCourse 
   const today = new Date();
   const weekDays = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
+  // Get a contrasting text color based on background
+  const getTextColorClass = (bgColor: string) => {
+    const darkBgs = ["bg-gray-700", "bg-slate-700", "bg-zinc-700", "bg-neutral-700", "bg-stone-700", "bg-blue-600", "bg-indigo-600", "bg-violet-600", "bg-purple-600"];
+    return darkBgs.some(c => bgColor.includes(c)) ? "text-white" : "text-white";
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -63,13 +74,16 @@ const CalendarView = ({ courses, revisionEvents, onDeleteCourse, onUpdateCourse 
             <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
-        <Badge variant="outline" className="border-primary text-primary">Vue mois</Badge>
+        <Badge variant="outline" className="border-primary text-primary">
+          <Calendar className="w-3 h-3 mr-1" />
+          Vue mois
+        </Badge>
       </div>
 
-      <Card className="p-4 gradient-card border-0 shadow-sm">
-        <div className="grid grid-cols-7 gap-2">
+      <Card className="p-4 gradient-card border-0 shadow-sm overflow-hidden">
+        <div className="grid grid-cols-7 gap-1 md:gap-2">
           {weekDays.map((day) => (
-            <div key={day} className="text-center text-sm font-semibold text-muted-foreground py-2">
+            <div key={day} className="text-center text-xs md:text-sm font-semibold text-muted-foreground py-2">
               {day}
             </div>
           ))}
@@ -79,11 +93,15 @@ const CalendarView = ({ courses, revisionEvents, onDeleteCourse, onUpdateCourse 
                            currentDate.getMonth() === today.getMonth() &&
                            currentDate.getFullYear() === today.getFullYear();
             const dayEvents = day ? getEventsForDay(day) : [];
+            const maxVisibleEvents = 2;
+            const hasMoreEvents = dayEvents.length > maxVisibleEvents;
+            const visibleEvents = dayEvents.slice(0, maxVisibleEvents);
+            const hiddenCount = dayEvents.length - maxVisibleEvents;
 
             return (
               <div
                 key={index}
-                className={`min-h-20 md:min-h-24 p-2 rounded-lg border transition-smooth ${
+                className={`min-h-16 md:min-h-24 p-1 md:p-2 rounded-lg border transition-smooth ${
                   day
                     ? isToday
                       ? "bg-primary/10 border-primary shadow-sm"
@@ -92,24 +110,46 @@ const CalendarView = ({ courses, revisionEvents, onDeleteCourse, onUpdateCourse 
                 }`}
               >
                 {day && (
-                  <>
-                    <div className={`text-sm font-medium mb-1 ${isToday ? "text-primary" : "text-foreground"}`}>
+                  <div className="h-full flex flex-col">
+                    <div className={`text-xs md:text-sm font-medium mb-1 ${isToday ? "text-primary" : "text-foreground"}`}>
                       {day}
                     </div>
-                    {dayEvents.length > 0 && (
-                      <div className="space-y-1">
-                        {dayEvents.map((event) => (
-                          <div
-                            key={`${event.courseId}-${event.revisionNumber}`}
-                            className={`text-xs px-2 py-1 rounded ${event.color} text-white truncate shadow-sm`}
-                            title={`${event.courseName} - Révision ${event.revisionNumber}`}
-                          >
-                            {event.courseName}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </>
+                    <div className="flex-1 flex flex-col gap-0.5 overflow-hidden">
+                      {visibleEvents.map((event) => (
+                        <Tooltip key={`${event.courseId}-${event.revisionNumber}`}>
+                          <TooltipTrigger asChild>
+                            <div
+                              className={`text-[10px] md:text-xs px-1 md:px-2 py-0.5 rounded ${event.color} ${getTextColorClass(event.color)} truncate shadow-sm cursor-pointer hover:opacity-90 transition-opacity`}
+                            >
+                              <span className="hidden md:inline">{event.courseName}</span>
+                              <span className="md:hidden">{event.courseName.substring(0, 3)}</span>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="z-50">
+                            <p className="font-medium">{event.courseName}</p>
+                            <p className="text-xs text-muted-foreground">Révision {event.revisionNumber}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      ))}
+                      {hasMoreEvents && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="text-[10px] md:text-xs px-1 md:px-2 py-0.5 rounded bg-muted text-muted-foreground text-center cursor-pointer hover:bg-muted/80 transition-colors">
+                              +{hiddenCount}
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="z-50">
+                            <p className="font-medium mb-1">Autres révisions:</p>
+                            {dayEvents.slice(maxVisibleEvents).map((event) => (
+                              <p key={`${event.courseId}-${event.revisionNumber}`} className="text-xs">
+                                • {event.courseName} (Rév. {event.revisionNumber})
+                              </p>
+                            ))}
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                    </div>
+                  </div>
                 )}
               </div>
             );
@@ -119,7 +159,7 @@ const CalendarView = ({ courses, revisionEvents, onDeleteCourse, onUpdateCourse 
 
       {courses.length > 0 && (
         <Card className="p-4 gradient-card border-0 shadow-sm">
-          <h3 className="text-lg font-display font-semibold text-foreground mb-3">Mes cours</h3>
+          <h3 className="text-lg font-display font-semibold text-foreground mb-3">Mes cours 📚</h3>
           <div className="space-y-2">
             {courses.map((course) => (
               <div

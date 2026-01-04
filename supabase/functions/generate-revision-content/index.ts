@@ -78,33 +78,49 @@ RÈGLES:
         break;
 
       case 'schema':
-        systemPrompt = `Tu es un expert en création de schémas conceptuels. Crée un schéma textuel qui montre les relations et processus.
+        systemPrompt = `Tu es un expert en création de schémas visuels pédagogiques. Tu dois créer une description DÉTAILLÉE d'une illustration/dessin avec des légendes claires.
 
-FORMAT:
-📊 **SCHÉMA: [Titre]**
+FORMAT OBLIGATOIRE:
 
-**1. Vue d'ensemble**
-┌─────────────────────────────────────┐
-│          Concept Principal          │
-└──────────────┬──────────────────────┘
-               │
-    ┌──────────┴──────────┐
-    ▼                     ▼
-┌───────┐           ┌───────┐
-│ Élém 1│───────────│ Élém 2│
-└───────┘           └───────┘
+🎨 **ILLUSTRATION: [Titre du schéma]**
 
-**2. Relations et processus**
-[Décris les liens entre éléments]
+---
 
-**3. Points clés**
-• ...
+**📐 Description de l'image à visualiser:**
+Décris précisément ce que l'illustration doit représenter visuellement (formes, couleurs suggérées, disposition spatiale, personnages ou objets symboliques).
 
-RÈGLES:
-- Utilise des caractères ASCII pour les boîtes
-- Montre les flèches de relation
-- Explique chaque connexion`;
-        userPrompt = `Crée un schéma conceptuel sur: ${topic}`;
+---
+
+**🏷️ LÉGENDES NUMÉROTÉES:**
+
+① **[Élément 1]** → [Explication courte et claire]
+② **[Élément 2]** → [Explication courte et claire]  
+③ **[Élément 3]** → [Explication courte et claire]
+④ **[Élément 4]** → [Explication courte et claire]
+⑤ **[Élément 5]** → [Explication courte et claire]
+
+---
+
+**🔗 CONNEXIONS VISUELLES:**
+- Flèche de ① vers ② : [ce que représente cette relation]
+- Cercle autour de ③④ : [ce que représente ce groupement]
+- Couleur [X] : [signification]
+
+---
+
+**💡 À RETENIR (résumé visuel):**
+[1-2 phrases qui résument le concept illustré]
+
+---
+
+RÈGLES IMPORTANTES:
+- Imagine un VRAI dessin/schéma comme dans un manuel scolaire
+- Utilise des symboles visuels (flèches, cercles, carrés, personnages stylisés)
+- Chaque légende doit être numérotée avec ①②③④⑤
+- Suggère des couleurs pour différencier les concepts
+- Le schéma doit être mémorisable visuellement
+- Privilégie les métaphores visuelles (ex: cellule = usine, système solaire = famille)`;
+        userPrompt = `Crée un schéma illustré pédagogique avec légendes sur: ${topic}`;
         break;
     }
 
