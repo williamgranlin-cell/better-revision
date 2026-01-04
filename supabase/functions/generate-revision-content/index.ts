@@ -30,6 +30,108 @@ serve(async (req) => {
       );
     }
 
+    // For schema type, generate an actual image
+    if (type === 'schema') {
+      console.log('Generating schema image for topic:', topic);
+      
+      const imagePrompt = `Create a clear, educational scientific diagram/illustration about: "${topic}". 
+Style: Clean educational diagram like in a textbook. 
+Include: Labels with numbers (1, 2, 3...) pointing to each important part. 
+Colors: Use distinct colors to differentiate parts.
+Background: White or light colored.
+Text: Include brief labels in French for each numbered element.
+Make it simple, clear and easy to understand for students.`;
+
+      const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash-image-preview',
+          messages: [
+            { role: 'user', content: imagePrompt }
+          ],
+          modalities: ['image', 'text']
+        }),
+      });
+
+      if (!imageResponse.ok) {
+        const errorText = await imageResponse.text();
+        console.error('Image generation error:', imageResponse.status, errorText);
+        
+        if (imageResponse.status === 429) {
+          return new Response(
+            JSON.stringify({ error: "Trop de requêtes, veuillez réessayer dans quelques instants" }),
+            { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        
+        throw new Error(`Image generation failed: ${imageResponse.status}`);
+      }
+
+      const imageData = await imageResponse.json();
+      console.log('Image response received');
+      
+      const imageUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+      const textContent = imageData.choices?.[0]?.message?.content || '';
+
+      if (!imageUrl) {
+        throw new Error('No image generated');
+      }
+
+      // Now generate legends for the image
+      const legendPrompt = `Pour un schéma éducatif sur "${topic}", génère une liste de légendes numérotées en français.
+
+FORMAT:
+🎨 **SCHÉMA: ${topic}**
+
+**🏷️ LÉGENDES:**
+① [Élément principal] → [Description courte]
+② [Deuxième élément] → [Description courte]
+③ [Troisième élément] → [Description courte]
+④ [Quatrième élément] → [Description courte]
+⑤ [Cinquième élément] → [Description courte]
+
+**💡 À RETENIR:**
+[Résumé en 1-2 phrases du concept illustré]
+
+Génère 5-8 légendes pertinentes pour ce sujet.`;
+
+      const legendResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages: [
+            { role: 'user', content: legendPrompt }
+          ],
+          max_tokens: 1500,
+          temperature: 0.7,
+        }),
+      });
+
+      let legends = '';
+      if (legendResponse.ok) {
+        const legendData = await legendResponse.json();
+        legends = legendData.choices?.[0]?.message?.content || '';
+      }
+
+      return new Response(
+        JSON.stringify({ 
+          result: legends,
+          imageUrl: imageUrl,
+          type: 'schema'
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // For other types (revision_sheet, mind_map), generate text content
     let systemPrompt = '';
     let userPrompt = '';
 
@@ -75,52 +177,6 @@ RÈGLES:
 - Utilise des émojis pour les catégories
 - Relations claires entre concepts`;
         userPrompt = `Crée une carte mentale sur: ${topic}`;
-        break;
-
-      case 'schema':
-        systemPrompt = `Tu es un expert en création de schémas visuels pédagogiques. Tu dois créer une description DÉTAILLÉE d'une illustration/dessin avec des légendes claires.
-
-FORMAT OBLIGATOIRE:
-
-🎨 **ILLUSTRATION: [Titre du schéma]**
-
----
-
-**📐 Description de l'image à visualiser:**
-Décris précisément ce que l'illustration doit représenter visuellement (formes, couleurs suggérées, disposition spatiale, personnages ou objets symboliques).
-
----
-
-**🏷️ LÉGENDES NUMÉROTÉES:**
-
-① **[Élément 1]** → [Explication courte et claire]
-② **[Élément 2]** → [Explication courte et claire]  
-③ **[Élément 3]** → [Explication courte et claire]
-④ **[Élément 4]** → [Explication courte et claire]
-⑤ **[Élément 5]** → [Explication courte et claire]
-
----
-
-**🔗 CONNEXIONS VISUELLES:**
-- Flèche de ① vers ② : [ce que représente cette relation]
-- Cercle autour de ③④ : [ce que représente ce groupement]
-- Couleur [X] : [signification]
-
----
-
-**💡 À RETENIR (résumé visuel):**
-[1-2 phrases qui résument le concept illustré]
-
----
-
-RÈGLES IMPORTANTES:
-- Imagine un VRAI dessin/schéma comme dans un manuel scolaire
-- Utilise des symboles visuels (flèches, cercles, carrés, personnages stylisés)
-- Chaque légende doit être numérotée avec ①②③④⑤
-- Suggère des couleurs pour différencier les concepts
-- Le schéma doit être mémorisable visuellement
-- Privilégie les métaphores visuelles (ex: cellule = usine, système solaire = famille)`;
-        userPrompt = `Crée un schéma illustré pédagogique avec légendes sur: ${topic}`;
         break;
     }
 
