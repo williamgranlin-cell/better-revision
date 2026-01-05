@@ -96,11 +96,11 @@ const Schedule = () => {
         <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-br from-emerald-500/20 to-orange-500/20 rounded-full blur-3xl" />
       </div>
 
-      <header className="sticky top-0 z-40 glass-card border-b border-white/10">
+      <header className="sticky top-0 z-40 bg-[hsl(var(--header))] border-b border-border/50 shadow-sm">
         <div className="max-w-screen-xl mx-auto px-4 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-display font-bold bg-gradient-to-r from-violet-500 via-cyan-500 to-emerald-500 bg-clip-text text-transparent">
-              Emploi du Temps
+              Emploi du Temps ⏰
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
               Organise ta semaine efficacement
@@ -289,14 +289,14 @@ const Schedule = () => {
                       {/* Items with column positioning */}
                       {positionedItems.map(({ item, column, maxColumns }) => {
                         const style = getItemStyle(item);
-                        const width = `calc((100% - 8px) / ${maxColumns})`;
-                        const left = `calc(4px + (100% - 8px) / ${maxColumns} * ${column})`;
+                        const width = `calc((100% - ${4 + (maxColumns - 1) * 2}px) / ${maxColumns})`;
+                        const left = `calc(2px + ((100% - ${4 + (maxColumns - 1) * 2}px) / ${maxColumns} + 2px) * ${column})`;
                         
                         return (
                           <div
                             key={item.id}
                             className={cn(
-                              "absolute rounded-lg p-1 cursor-pointer transition-all duration-200 hover:z-30 hover:shadow-lg overflow-hidden",
+                              "absolute rounded-lg p-1.5 cursor-pointer transition-all duration-200 hover:z-30 hover:shadow-lg",
                               item.color
                             )}
                             style={{
@@ -304,21 +304,32 @@ const Schedule = () => {
                               width,
                               left,
                               right: 'auto',
+                              minHeight: '2.5rem',
                             }}
                             onClick={(e) => {
                               e.stopPropagation();
                               handleItemClick(item);
                             }}
+                            title={`${item.title} - ${formatTime(item.start_time)} à ${formatTime(item.end_time)}`}
                           >
-                            <div className="flex flex-col h-full text-white">
-                              <span className="font-medium text-[10px] sm:text-xs truncate leading-tight">
+                            <div className="flex flex-col h-full text-white overflow-hidden">
+                              <span 
+                                className="font-medium text-[9px] sm:text-xs leading-tight"
+                                style={{
+                                  display: '-webkit-box',
+                                  WebkitLineClamp: maxColumns > 2 ? 1 : 2,
+                                  WebkitBoxOrient: 'vertical',
+                                  overflow: 'hidden',
+                                  wordBreak: 'break-word',
+                                }}
+                              >
                                 {item.title}
                               </span>
-                              <span className="text-[8px] sm:text-[10px] opacity-80 leading-tight">
+                              <span className="text-[7px] sm:text-[9px] opacity-80 leading-tight mt-0.5">
                                 {formatTime(item.start_time)}
                               </span>
                               {item.is_recurring && (
-                                <RefreshCw className="w-2.5 h-2.5 absolute bottom-0.5 right-0.5 opacity-60" />
+                                <RefreshCw className="w-2 h-2 absolute bottom-0.5 right-0.5 opacity-60" />
                               )}
                             </div>
                           </div>
