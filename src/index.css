@@ -7,16 +7,16 @@ All colors MUST be HSL.
 */
 
 @layer base {
-  /* Classic Style (Original) */
+  /* Classic Style - Warm Beige Theme */
   :root, .classic-style {
-    --background: 220 25% 97%;
-    --foreground: 230 20% 15%;
+    --background: 35 30% 95%;
+    --foreground: 30 20% 15%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 230 20% 15%;
+    --card: 40 35% 97%;
+    --card-foreground: 30 20% 15%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 230 20% 15%;
+    --popover: 40 35% 97%;
+    --popover-foreground: 30 20% 15%;
 
     --primary: 235 65% 65%;
     --primary-foreground: 0 0% 100%;
@@ -30,8 +30,8 @@ All colors MUST be HSL.
     --warning: 340 75% 70%;
     --warning-foreground: 0 0% 100%;
 
-    --muted: 220 20% 94%;
-    --muted-foreground: 230 15% 45%;
+    --muted: 35 25% 90%;
+    --muted-foreground: 30 15% 45%;
 
     --accent: 270 60% 70%;
     --accent-foreground: 0 0% 100%;
@@ -39,9 +39,12 @@ All colors MUST be HSL.
     --destructive: 0 70% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 20% 88%;
-    --input: 220 20% 90%;
+    --border: 35 20% 85%;
+    --input: 35 25% 92%;
     --ring: 235 65% 65%;
+
+    /* Header/Nav darker beige */
+    --header: 35 35% 88%;
 
     --radius: 0.75rem;
 
@@ -49,13 +52,13 @@ All colors MUST be HSL.
     --gradient-primary: linear-gradient(135deg, hsl(235 65% 65%) 0%, hsl(270 60% 70%) 100%);
     --gradient-success: linear-gradient(135deg, hsl(160 70% 65%) 0%, hsl(180 65% 60%) 100%);
     --gradient-warning: linear-gradient(135deg, hsl(340 75% 70%) 0%, hsl(320 70% 65%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(220 25% 98%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(40 35% 97%) 0%, hsl(35 30% 95%) 100%);
 
     /* Shadows */
-    --shadow-sm: 0 2px 8px -2px hsl(235 65% 65% / 0.12);
-    --shadow-md: 0 4px 16px -4px hsl(235 65% 65% / 0.18);
-    --shadow-lg: 0 8px 24px -6px hsl(235 65% 65% / 0.24);
-    --shadow-colored: 0 8px 32px -8px hsl(235 65% 65% / 0.3);
+    --shadow-sm: 0 2px 8px -2px hsl(30 20% 30% / 0.1);
+    --shadow-md: 0 4px 16px -4px hsl(30 20% 30% / 0.15);
+    --shadow-lg: 0 8px 24px -6px hsl(30 20% 30% / 0.2);
+    --shadow-colored: 0 8px 32px -8px hsl(235 65% 65% / 0.25);
 
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -125,14 +128,14 @@ All colors MUST be HSL.
   }
 
   .dark.classic-style, .dark:not(.vibrant-style) {
-    --background: 230 25% 10%;
-    --foreground: 220 20% 95%;
+    --background: 30 15% 10%;
+    --foreground: 35 20% 95%;
 
-    --card: 230 20% 13%;
-    --card-foreground: 220 20% 95%;
+    --card: 30 15% 14%;
+    --card-foreground: 35 20% 95%;
 
-    --popover: 230 20% 13%;
-    --popover-foreground: 220 20% 95%;
+    --popover: 30 15% 14%;
+    --popover-foreground: 35 20% 95%;
 
     --primary: 235 65% 65%;
     --primary-foreground: 0 0% 100%;
@@ -146,8 +149,8 @@ All colors MUST be HSL.
     --warning: 340 75% 70%;
     --warning-foreground: 0 0% 100%;
 
-    --muted: 230 20% 20%;
-    --muted-foreground: 220 15% 65%;
+    --muted: 30 15% 20%;
+    --muted-foreground: 35 15% 65%;
 
     --accent: 270 60% 70%;
     --accent-foreground: 0 0% 100%;
@@ -155,15 +158,18 @@ All colors MUST be HSL.
     --destructive: 0 70% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 230 20% 22%;
-    --input: 230 20% 22%;
+    --border: 30 15% 22%;
+    --input: 30 15% 22%;
     --ring: 235 65% 65%;
+
+    /* Header/Nav darker beige */
+    --header: 30 15% 18%;
 
     /* Gradients for dark mode */
     --gradient-primary: linear-gradient(135deg, hsl(235 65% 55%) 0%, hsl(270 60% 60%) 100%);
     --gradient-success: linear-gradient(135deg, hsl(160 70% 55%) 0%, hsl(180 65% 50%) 100%);
     --gradient-warning: linear-gradient(135deg, hsl(340 75% 60%) 0%, hsl(320 70% 55%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(230 20% 13%) 0%, hsl(230 22% 16%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(30 15% 14%) 0%, hsl(30 17% 17%) 100%);
 
     /* Shadows for dark mode */
     --shadow-sm: 0 2px 8px -2px hsl(0 0% 0% / 0.3);

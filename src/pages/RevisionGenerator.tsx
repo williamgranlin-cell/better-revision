@@ -7,14 +7,19 @@ import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Network, Shapes, Loader2, Upload, Sparkles, Copy, Check, FileUp, ImageIcon } from "lucide-react";
+import { FileText, Network, Shapes, Loader2, Sparkles, Copy, Check, FileUp, ImageIcon, Save, Globe, Lock, Trash2, BookOpen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useRevisionContent, RevisionContent } from "@/hooks/useRevisionContent";
+import { useAuth } from "@/contexts/AuthContext";
 import DOMPurify from "dompurify";
+import { cn } from "@/lib/utils";
 
 type GenerationType = "revision_sheet" | "mind_map" | "schema";
+type ViewMode = "create" | "my_content" | "public";
 
 const RevisionGenerator = () => {
+  const [viewMode, setViewMode] = useState<ViewMode>("create");
   const [generationType, setGenerationType] = useState<GenerationType>("revision_sheet");
   const [topic, setTopic] = useState("");
   const [subject, setSubject] = useState("");
@@ -24,9 +29,12 @@ const RevisionGenerator = () => {
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [selectedContent, setSelectedContent] = useState<RevisionContent | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { toast } = useToast();
+  const { user } = useAuth();
+  const { items, publicItems, loading: loadingContent, saveContent, togglePublic, deleteContent } = useRevisionContent();
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -96,6 +104,22 @@ const RevisionGenerator = () => {
     }
   };
 
+  const handleSave = async () => {
+    if (!result && !schemaImage) return;
+    
+    const saved = await saveContent({
+      title: topic,
+      type: generationType,
+      content: result || undefined,
+      image_url: schemaImage || undefined,
+      subject: subject || undefined,
+    });
+
+    if (saved) {
+      setViewMode("my_content");
+    }
+  };
+
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(result);
@@ -131,263 +155,509 @@ const RevisionGenerator = () => {
         return {
           icon: FileText,
           title: "Fiche de révision",
-          description: "Une fiche structurée avec les points clés à retenir"
+          description: "Une fiche structurée avec les points clés à retenir",
+          emoji: "📝"
         };
       case "mind_map":
         return {
           icon: Network,
           title: "Carte mentale",
-          description: "Une carte mentale textuelle pour visualiser les concepts"
+          description: "Une carte mentale textuelle pour visualiser les concepts",
+          emoji: "🧠"
         };
       case "schema":
         return {
           icon: Shapes,
           title: "Schéma illustré",
-          description: "Un dessin avec des légendes pour visualiser le concept"
+          description: "Un dessin avec des légendes pour visualiser le concept",
+          emoji: "🎨"
         };
     }
   };
 
   const typeInfo = getTypeInfo(generationType);
 
+  const renderContentCard = (item: RevisionContent, isOwner: boolean) => {
+    const info = getTypeInfo(item.type);
+    return (
+      <Card
+        key={item.id}
+        className={cn(
+          "p-4 hover-lift cursor-pointer border-border/50",
+          selectedContent?.id === item.id && "ring-2 ring-primary"
+        )}
+        onClick={() => setSelectedContent(item)}
+      >
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+            <span className="text-lg">{info.emoji}</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold truncate">{item.title}</h3>
+              {item.is_public ? (
+                <Globe className="w-3.5 h-3.5 text-success shrink-0" />
+              ) : (
+                <Lock className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+              )}
+            </div>
+            <p className="text-sm text-muted-foreground">{info.title}</p>
+            {item.subject && (
+              <span className="text-xs bg-muted px-2 py-0.5 rounded-full mt-1 inline-block">
+                {item.subject}
+              </span>
+            )}
+          </div>
+          {isOwner && (
+            <div className="flex gap-1 shrink-0">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  togglePublic(item.id, !item.is_public);
+                }}
+              >
+                {item.is_public ? (
+                  <Lock className="w-4 h-4" />
+                ) : (
+                  <Globe className="w-4 h-4" />
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-destructive hover:text-destructive"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteContent(item.id);
+                  if (selectedContent?.id === item.id) {
+                    setSelectedContent(null);
+                  }
+                }}
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
+        </div>
+      </Card>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-background pb-20">
       <div className="container max-w-4xl mx-auto p-4">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6 animate-fade-in">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center shadow-lg animate-float">
+          <div className="w-14 h-14 rounded-2xl bg-[hsl(var(--header))] flex items-center justify-center shadow-lg animate-float">
             <Sparkles className="w-7 h-7 text-primary" />
           </div>
           <div>
             <h1 className="text-2xl font-display font-bold text-foreground">
-              Générateur IA ✨
+              Fiches & Schémas ✨
             </h1>
             <p className="text-sm text-muted-foreground">
-              Crée tes fiches, cartes mentales et schémas en un clic !
+              Crée, sauvegarde et partage tes révisions !
             </p>
           </div>
         </div>
 
-        {/* Type Selection */}
-        <Tabs value={generationType} onValueChange={(v) => { setGenerationType(v as GenerationType); setResult(""); setSchemaImage(null); }} className="mb-6 animate-fade-in stagger-1">
-          <TabsList className="grid w-full grid-cols-3 p-1 bg-muted/50 rounded-2xl">
-            <TabsTrigger value="revision_sheet" className="flex items-center gap-2 rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-md transition-all duration-300">
-              <FileText className="h-4 w-4" />
-              <span className="hidden sm:inline">Fiche</span>
-              <span className="sm:hidden">📝</span>
+        {/* View Mode Tabs */}
+        <Tabs value={viewMode} onValueChange={(v) => { setViewMode(v as ViewMode); setSelectedContent(null); }} className="mb-6 animate-fade-in stagger-1">
+          <TabsList className="grid w-full grid-cols-3 p-1 bg-[hsl(var(--header))] rounded-2xl">
+            <TabsTrigger value="create" className="flex items-center gap-2 rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-md transition-all duration-300">
+              <Sparkles className="h-4 w-4" />
+              <span className="hidden sm:inline">Créer</span>
             </TabsTrigger>
-            <TabsTrigger value="mind_map" className="flex items-center gap-2 rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-md transition-all duration-300">
-              <Network className="h-4 w-4" />
-              <span className="hidden sm:inline">Carte</span>
-              <span className="sm:hidden">🧠</span>
+            <TabsTrigger value="my_content" className="flex items-center gap-2 rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-md transition-all duration-300">
+              <BookOpen className="h-4 w-4" />
+              <span className="hidden sm:inline">Mes fiches</span>
+              {items.length > 0 && (
+                <span className="text-xs bg-primary/20 text-primary px-1.5 rounded-full">{items.length}</span>
+              )}
             </TabsTrigger>
-            <TabsTrigger value="schema" className="flex items-center gap-2 rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-md transition-all duration-300">
-              <ImageIcon className="h-4 w-4" />
-              <span className="hidden sm:inline">Schéma</span>
-              <span className="sm:hidden">🎨</span>
+            <TabsTrigger value="public" className="flex items-center gap-2 rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-md transition-all duration-300">
+              <Globe className="h-4 w-4" />
+              <span className="hidden sm:inline">Publiques</span>
             </TabsTrigger>
           </TabsList>
         </Tabs>
 
-        {/* Input Form */}
-        <Card className="p-6 mb-6 animate-fade-in stagger-2 hover-lift border-border/50">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
-              <typeInfo.icon className="w-6 h-6 text-primary" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-lg">{typeInfo.title}</h3>
-              <p className="text-sm text-muted-foreground">{typeInfo.description}</p>
-            </div>
-            <span className="text-2xl animate-bounce-soft">{generationType === "revision_sheet" ? "📝" : generationType === "mind_map" ? "🧠" : "🎨"}</span>
-          </div>
+        {/* Create Mode */}
+        {viewMode === "create" && (
+          <>
+            {/* Type Selection */}
+            <Tabs value={generationType} onValueChange={(v) => { setGenerationType(v as GenerationType); setResult(""); setSchemaImage(null); }} className="mb-6 animate-fade-in stagger-2">
+              <TabsList className="grid w-full grid-cols-3 p-1 bg-muted/50 rounded-2xl">
+                <TabsTrigger value="revision_sheet" className="flex items-center gap-2 rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-md transition-all duration-300">
+                  <FileText className="h-4 w-4" />
+                  <span className="hidden sm:inline">Fiche</span>
+                  <span className="sm:hidden">📝</span>
+                </TabsTrigger>
+                <TabsTrigger value="mind_map" className="flex items-center gap-2 rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-md transition-all duration-300">
+                  <Network className="h-4 w-4" />
+                  <span className="hidden sm:inline">Carte</span>
+                  <span className="sm:hidden">🧠</span>
+                </TabsTrigger>
+                <TabsTrigger value="schema" className="flex items-center gap-2 rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-md transition-all duration-300">
+                  <ImageIcon className="h-4 w-4" />
+                  <span className="hidden sm:inline">Schéma</span>
+                  <span className="sm:hidden">🎨</span>
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
 
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">Sujet / Thème *</label>
-              <Input
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                placeholder={generationType === "schema" ? "Ex: Le cœur humain, La cellule, Le cycle de l'eau..." : "Ex: La Révolution française, Les dérivées, La photosynthèse..."}
-                maxLength={200}
-              />
-              {generationType === "schema" && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  💡 Une image sera générée avec des légendes explicatives
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="text-sm font-medium mb-2 block">Matière (optionnel)</label>
-              <Select value={subject} onValueChange={(v) => setSubject(v === "none" ? "" : v)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner une matière" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Aucune</SelectItem>
-                  <SelectItem value="maths">Mathématiques</SelectItem>
-                  <SelectItem value="physique">Physique-Chimie</SelectItem>
-                  <SelectItem value="svt">SVT</SelectItem>
-                  <SelectItem value="francais">Français</SelectItem>
-                  <SelectItem value="histoire">Histoire-Géo</SelectItem>
-                  <SelectItem value="anglais">Anglais</SelectItem>
-                  <SelectItem value="philosophie">Philosophie</SelectItem>
-                  <SelectItem value="ses">SES</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {generationType !== "schema" && (
-              <div>
-                <label className="text-sm font-medium mb-2 block">Contenu de base (optionnel)</label>
-                <Textarea
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  placeholder="Collez ici votre cours ou vos notes pour une génération plus précise..."
-                  className="min-h-[120px]"
-                  maxLength={10000}
-                />
-                <div className="flex items-center justify-between mt-2">
-                  <span className="text-xs text-muted-foreground">
-                    {content.length}/10000 caractères
-                  </span>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleFileUpload}
-                    accept=".txt,.md,.doc,.docx,.pdf"
-                    className="hidden"
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center gap-2"
-                  >
-                    <FileUp className="h-4 w-4" />
-                    Importer un fichier
-                  </Button>
+            {/* Input Form */}
+            <Card className="p-6 mb-6 animate-fade-in stagger-3 hover-lift border-border/50">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
+                  <typeInfo.icon className="w-6 h-6 text-primary" />
                 </div>
-                {uploadedFile && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Fichier: {uploadedFile.name}
-                  </p>
-                )}
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg">{typeInfo.title}</h3>
+                  <p className="text-sm text-muted-foreground">{typeInfo.description}</p>
+                </div>
+                <span className="text-2xl animate-bounce-soft">{typeInfo.emoji}</span>
               </div>
-            )}
 
-            <Button
-              onClick={handleGenerate}
-              disabled={!topic.trim() || loading}
-              className="w-full btn-friendly text-base py-6 rounded-xl font-semibold"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  {generationType === "schema" ? "Création de l'image... 🎨" : "La magie opère... ✨"}
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-5 h-5 mr-2" />
-                  {generationType === "schema" ? "Générer mon schéma 🎨" : `Générer ma ${generationType === "revision_sheet" ? "fiche" : "carte"} 🚀`}
-                </>
-              )}
-            </Button>
-          </div>
-        </Card>
-
-        {/* Result */}
-        {(result || schemaImage || loading) && (
-          <Card className="p-6 animate-fade-in hover-lift border-border/50">
-            <div className="flex items-center justify-between mb-4 pb-3 border-b border-border/50">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
-                  <typeInfo.icon className="w-5 h-5 text-success" />
-                </div>
+              <div className="space-y-4">
                 <div>
-                  <h3 className="font-semibold">{typeInfo.title}</h3>
-                  <p className="text-sm text-muted-foreground">{topic}</p>
+                  <label className="text-sm font-medium mb-2 block">Sujet / Thème *</label>
+                  <Input
+                    value={topic}
+                    onChange={(e) => setTopic(e.target.value)}
+                    placeholder={generationType === "schema" ? "Ex: Le cœur humain, La cellule, Le cycle de l'eau..." : "Ex: La Révolution française, Les dérivées, La photosynthèse..."}
+                    maxLength={200}
+                  />
+                  {generationType === "schema" && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      💡 Une image sera générée avec des légendes explicatives
+                    </p>
+                  )}
                 </div>
-              </div>
-              {result && (
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Matière (optionnel)</label>
+                  <Select value={subject} onValueChange={(v) => setSubject(v === "none" ? "" : v)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner une matière" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Aucune</SelectItem>
+                      <SelectItem value="maths">Mathématiques</SelectItem>
+                      <SelectItem value="physique">Physique-Chimie</SelectItem>
+                      <SelectItem value="svt">SVT</SelectItem>
+                      <SelectItem value="francais">Français</SelectItem>
+                      <SelectItem value="histoire">Histoire-Géo</SelectItem>
+                      <SelectItem value="anglais">Anglais</SelectItem>
+                      <SelectItem value="philosophie">Philosophie</SelectItem>
+                      <SelectItem value="ses">SES</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {generationType !== "schema" && (
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Contenu de base (optionnel)</label>
+                    <Textarea
+                      value={content}
+                      onChange={(e) => setContent(e.target.value)}
+                      placeholder="Collez ici votre cours ou vos notes pour une génération plus précise..."
+                      className="min-h-[120px]"
+                      maxLength={10000}
+                    />
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="text-xs text-muted-foreground">
+                        {content.length}/10000 caractères
+                      </span>
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileUpload}
+                        accept=".txt,.md,.doc,.docx,.pdf"
+                        className="hidden"
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex items-center gap-2"
+                      >
+                        <FileUp className="h-4 w-4" />
+                        Importer un fichier
+                      </Button>
+                    </div>
+                    {uploadedFile && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Fichier: {uploadedFile.name}
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCopy}
-                  className="flex items-center gap-2 hover-scale"
+                  onClick={handleGenerate}
+                  disabled={!topic.trim() || loading}
+                  className="w-full btn-friendly text-base py-6 rounded-xl font-semibold"
                 >
-                  {copied ? (
+                  {loading ? (
                     <>
-                      <Check className="h-4 w-4 text-success" />
-                      Copié ! ✅
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      {generationType === "schema" ? "Création de l'image... 🎨" : "La magie opère... ✨"}
                     </>
                   ) : (
                     <>
-                      <Copy className="h-4 w-4" />
-                      Copier
+                      <Sparkles className="w-5 h-5 mr-2" />
+                      {generationType === "schema" ? "Générer mon schéma 🎨" : `Générer ma ${generationType === "revision_sheet" ? "fiche" : "carte"} 🚀`}
                     </>
                   )}
                 </Button>
-              )}
-            </div>
-            
-            <ScrollArea className="h-[500px]">
-              {loading ? (
-                <div className="flex flex-col items-center justify-center py-16">
-                  <div className="relative">
-                    <Loader2 className="w-16 h-16 text-primary animate-spin" />
-                    <span className="absolute inset-0 flex items-center justify-center text-2xl animate-pulse-soft">
-                      {generationType === "schema" ? "🎨" : "🧠"}
-                    </span>
+              </div>
+            </Card>
+
+            {/* Result */}
+            {(result || schemaImage || loading) && (
+              <Card className="p-6 animate-fade-in hover-lift border-border/50">
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-border/50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
+                      <typeInfo.icon className="w-5 h-5 text-success" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">{typeInfo.title}</h3>
+                      <p className="text-sm text-muted-foreground">{topic}</p>
+                    </div>
                   </div>
-                  <p className="text-muted-foreground mt-6 text-center">
-                    {generationType === "schema" ? (
-                      <>
-                        L'IA dessine ton schéma...
-                        <br />
-                        <span className="text-sm">Ça peut prendre quelques secondes ! 🖌️</span>
-                      </>
-                    ) : (
-                      <>
-                        L'IA réfléchit à ta {typeInfo.title.toLowerCase()}...
-                        <br />
-                        <span className="text-sm">Ça arrive dans quelques secondes ! ⏳</span>
-                      </>
+                  <div className="flex gap-2">
+                    {result && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleCopy}
+                        className="flex items-center gap-2 hover-scale"
+                      >
+                        {copied ? (
+                          <>
+                            <Check className="h-4 w-4 text-success" />
+                            Copié !
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="h-4 w-4" />
+                            Copier
+                          </>
+                        )}
+                      </Button>
                     )}
-                  </p>
+                    {(result || schemaImage) && user && (
+                      <Button
+                        size="sm"
+                        onClick={handleSave}
+                        className="flex items-center gap-2 btn-friendly"
+                      >
+                        <Save className="h-4 w-4" />
+                        Sauvegarder
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              ) : (
-                <div className="space-y-6">
-                  {/* Schema Image */}
-                  {schemaImage && (
-                    <div className="flex flex-col items-center gap-4">
-                      <div className="relative w-full max-w-lg mx-auto rounded-xl overflow-hidden shadow-lg border border-border">
-                        <img 
-                          src={schemaImage} 
-                          alt={`Schéma: ${topic}`}
-                          className="w-full h-auto"
-                        />
+                
+                <ScrollArea className="h-[500px]">
+                  {loading ? (
+                    <div className="flex flex-col items-center justify-center py-16">
+                      <div className="relative">
+                        <Loader2 className="w-16 h-16 text-primary animate-spin" />
+                        <span className="absolute inset-0 flex items-center justify-center text-2xl animate-pulse-soft">
+                          {generationType === "schema" ? "🎨" : "🧠"}
+                        </span>
                       </div>
-                      <p className="text-sm text-muted-foreground text-center">
-                        🎨 Schéma généré par IA • Clic droit pour sauvegarder
+                      <p className="text-muted-foreground mt-6 text-center">
+                        {generationType === "schema" ? (
+                          <>
+                            L'IA dessine ton schéma...
+                            <br />
+                            <span className="text-sm">Ça peut prendre quelques secondes ! 🖌️</span>
+                          </>
+                        ) : (
+                          <>
+                            L'IA réfléchit à ta {typeInfo.title.toLowerCase()}...
+                            <br />
+                            <span className="text-sm">Ça arrive dans quelques secondes ! ⏳</span>
+                          </>
+                        )}
                       </p>
                     </div>
+                  ) : (
+                    <div className="space-y-6">
+                      {schemaImage && (
+                        <div className="flex flex-col items-center gap-4">
+                          <div className="relative w-full max-w-lg mx-auto rounded-xl overflow-hidden shadow-lg border border-border">
+                            <img 
+                              src={schemaImage} 
+                              alt={`Schéma: ${topic}`}
+                              className="w-full h-auto"
+                            />
+                          </div>
+                          <p className="text-sm text-muted-foreground text-center">
+                            🎨 Schéma généré par IA • Clic droit pour sauvegarder
+                          </p>
+                        </div>
+                      )}
+                      
+                      {result && (
+                        <div 
+                          className="prose prose-sm max-w-none text-foreground font-mono text-sm leading-relaxed whitespace-pre-wrap"
+                          dangerouslySetInnerHTML={{
+                            __html: formatContent(result)
+                          }}
+                        />
+                      )}
+                    </div>
                   )}
-                  
-                  {/* Text Content (Legends for schema, or full content for other types) */}
-                  {result && (
-                    <div 
-                      className="prose prose-sm max-w-none text-foreground font-mono text-sm leading-relaxed whitespace-pre-wrap"
-                      dangerouslySetInnerHTML={{
-                        __html: formatContent(result)
-                      }}
-                    />
-                  )}
-                </div>
+                </ScrollArea>
+              </Card>
+            )}
+          </>
+        )}
+
+        {/* My Content Mode */}
+        {viewMode === "my_content" && (
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-3">
+              <h3 className="font-semibold text-lg flex items-center gap-2">
+                <BookOpen className="w-5 h-5" />
+                Mes fiches ({items.length})
+              </h3>
+              {loadingContent ? (
+                <div className="text-center py-8 text-muted-foreground">Chargement...</div>
+              ) : items.length === 0 ? (
+                <Card className="p-8 text-center border-dashed">
+                  <div className="text-4xl mb-3">📚</div>
+                  <p className="text-muted-foreground">Aucune fiche sauvegardée</p>
+                  <Button
+                    variant="outline"
+                    className="mt-4"
+                    onClick={() => setViewMode("create")}
+                  >
+                    Créer ma première fiche
+                  </Button>
+                </Card>
+              ) : (
+                <ScrollArea className="h-[500px] pr-2">
+                  <div className="space-y-3">
+                    {items.map((item) => renderContentCard(item, true))}
+                  </div>
+                </ScrollArea>
               )}
-            </ScrollArea>
-          </Card>
+            </div>
+
+            {/* Selected Content Preview */}
+            <div className="space-y-3">
+              <h3 className="font-semibold text-lg">Aperçu</h3>
+              {selectedContent ? (
+                <Card className="p-4 border-border/50">
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="text-2xl">{getTypeInfo(selectedContent.type).emoji}</span>
+                    <div>
+                      <h4 className="font-semibold">{selectedContent.title}</h4>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(selectedContent.created_at).toLocaleDateString('fr-FR')}
+                      </p>
+                    </div>
+                  </div>
+                  <ScrollArea className="h-[400px]">
+                    {selectedContent.image_url && (
+                      <img 
+                        src={selectedContent.image_url} 
+                        alt={selectedContent.title}
+                        className="w-full rounded-lg mb-4"
+                      />
+                    )}
+                    {selectedContent.content && (
+                      <div 
+                        className="prose prose-sm max-w-none text-foreground text-sm whitespace-pre-wrap"
+                        dangerouslySetInnerHTML={{
+                          __html: formatContent(selectedContent.content)
+                        }}
+                      />
+                    )}
+                  </ScrollArea>
+                </Card>
+              ) : (
+                <Card className="p-8 text-center border-dashed border-border/50">
+                  <p className="text-muted-foreground">Sélectionnez une fiche pour la visualiser</p>
+                </Card>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Public Content Mode */}
+        {viewMode === "public" && (
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-3">
+              <h3 className="font-semibold text-lg flex items-center gap-2">
+                <Globe className="w-5 h-5" />
+                Fiches publiques ({publicItems.length})
+              </h3>
+              {publicItems.length === 0 ? (
+                <Card className="p-8 text-center border-dashed">
+                  <div className="text-4xl mb-3">🌍</div>
+                  <p className="text-muted-foreground">Aucune fiche publique pour le moment</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Soyez le premier à partager vos révisions !
+                  </p>
+                </Card>
+              ) : (
+                <ScrollArea className="h-[500px] pr-2">
+                  <div className="space-y-3">
+                    {publicItems.map((item) => renderContentCard(item, user?.id === item.user_id))}
+                  </div>
+                </ScrollArea>
+              )}
+            </div>
+
+            {/* Selected Content Preview */}
+            <div className="space-y-3">
+              <h3 className="font-semibold text-lg">Aperçu</h3>
+              {selectedContent ? (
+                <Card className="p-4 border-border/50">
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="text-2xl">{getTypeInfo(selectedContent.type).emoji}</span>
+                    <div>
+                      <h4 className="font-semibold">{selectedContent.title}</h4>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(selectedContent.created_at).toLocaleDateString('fr-FR')}
+                      </p>
+                    </div>
+                  </div>
+                  <ScrollArea className="h-[400px]">
+                    {selectedContent.image_url && (
+                      <img 
+                        src={selectedContent.image_url} 
+                        alt={selectedContent.title}
+                        className="w-full rounded-lg mb-4"
+                      />
+                    )}
+                    {selectedContent.content && (
+                      <div 
+                        className="prose prose-sm max-w-none text-foreground text-sm whitespace-pre-wrap"
+                        dangerouslySetInnerHTML={{
+                          __html: formatContent(selectedContent.content)
+                        }}
+                      />
+                    )}
+                  </ScrollArea>
+                </Card>
+              ) : (
+                <Card className="p-8 text-center border-dashed border-border/50">
+                  <p className="text-muted-foreground">Sélectionnez une fiche pour la visualiser</p>
+                </Card>
+              )}
+            </div>
+          </div>
         )}
       </div>
 
