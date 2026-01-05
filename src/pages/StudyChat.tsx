@@ -214,19 +214,22 @@ const StudyChat = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <div className="container max-w-4xl mx-auto p-4">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-            <HelpCircle className="w-6 h-6 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-display font-bold text-foreground">Aide 🤗</h1>
-            <p className="text-sm text-muted-foreground">
-              Vidéos, exercices et assistance devoirs
-            </p>
+      <header className="sticky top-0 z-40 bg-[hsl(var(--header))] border-b border-border/50 shadow-sm">
+        <div className="container max-w-4xl mx-auto px-4 py-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <HelpCircle className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-display font-bold text-foreground">Aide 🤗</h1>
+              <p className="text-sm text-muted-foreground">
+                Vidéos, exercices et assistance devoirs
+              </p>
+            </div>
           </div>
         </div>
+      </header>
+      <div className="container max-w-4xl mx-auto p-4">
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ActiveTab)}>

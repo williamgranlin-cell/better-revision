@@ -12,11 +12,11 @@ const Calendar = () => {
 
   return (
     <div className="min-h-screen pb-24 bg-background">
-      <header className="sticky top-0 z-40 bg-card border-b border-border shadow-sm">
+      <header className="sticky top-0 z-40 bg-[hsl(var(--header))] border-b border-border/50 shadow-sm">
         <div className="max-w-screen-xl mx-auto px-4 py-4 flex items-center justify-between">
           <div>
           <h1 className="text-2xl font-display font-bold bg-gradient-primary bg-clip-text text-transparent">
-              Mon Calendrier
+              Mon Calendrier 📅
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
               Planifie tes révisions intelligemment

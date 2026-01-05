@@ -86,12 +86,12 @@ const Classroom = () => {
   });
 
   return (
-    <div className="min-h-screen pb-24 bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-      <header className="sticky top-0 z-40 bg-card border-b border-border shadow-sm">
+    <div className="min-h-screen pb-24 bg-background">
+      <header className="sticky top-0 z-40 bg-[hsl(var(--header))] border-b border-border/50 shadow-sm">
         <div className="max-w-screen-xl mx-auto px-4 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-display font-bold bg-gradient-primary bg-clip-text text-transparent">
-              Session de Travail
+              Session de Travail 🎯
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
               Concentre-toi et atteins tes objectifs
