@@ -138,7 +138,17 @@ const Flashcards = () => {
   const accuracy = totalAnswered > 0 ? Math.round((score / totalAnswered) * 100) : 0;
 
   return (
-    <div className="min-h-screen pb-24 bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+    <div className="min-h-screen pb-24 bg-background">
+      <header className="sticky top-0 z-40 bg-[hsl(var(--header))] border-b border-border/50 shadow-sm">
+        <div className="max-w-screen-xl mx-auto px-4 py-4">
+          <h1 className="text-2xl font-display font-bold bg-gradient-primary bg-clip-text text-transparent">
+            Flashcards 🃏
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Crée et révise tes cartes mémoire
+          </p>
+        </div>
+      </header>
       <main className="max-w-screen-xl mx-auto px-4 py-6">
         <Tabs defaultValue="create" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3">

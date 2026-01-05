@@ -250,19 +250,21 @@ const RevisionGenerator = () => {
     <div className="min-h-screen bg-background pb-20">
       <div className="container max-w-4xl mx-auto p-4">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-6 animate-fade-in">
-          <div className="w-14 h-14 rounded-2xl bg-[hsl(var(--header))] flex items-center justify-center shadow-lg animate-float">
-            <Sparkles className="w-7 h-7 text-primary" />
+        <header className="bg-[hsl(var(--header))] -mx-4 -mt-4 px-4 py-4 mb-6 border-b border-border/50 shadow-sm">
+          <div className="flex items-center gap-3 animate-fade-in">
+            <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center shadow-lg animate-float">
+              <Sparkles className="w-7 h-7 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-display font-bold text-foreground">
+                Fiches & Schémas ✨
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Crée, sauvegarde et partage tes révisions !
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-display font-bold text-foreground">
-              Fiches & Schémas ✨
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Crée, sauvegarde et partage tes révisions !
-            </p>
-          </div>
-        </div>
+        </header>
 
         {/* View Mode Tabs */}
         <Tabs value={viewMode} onValueChange={(v) => { setViewMode(v as ViewMode); setSelectedContent(null); }} className="mb-6 animate-fade-in stagger-1">

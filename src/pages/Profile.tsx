@@ -164,7 +164,7 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 pb-20">
+    <div className="min-h-screen bg-background pb-20">
       <div className="container mx-auto p-4 space-y-6">
         {/* Header Profile Card */}
         <Card className="bg-gradient-to-r from-primary to-secondary text-white overflow-hidden">
