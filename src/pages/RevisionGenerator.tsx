@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Network, Shapes, Loader2, Sparkles, Copy, Check, FileUp, ImageIcon, Save, Globe, Lock, Trash2, BookOpen } from "lucide-react";
+import { FileText, Network, Shapes, Loader2, Sparkles, Copy, Check, FileUp, ImageIcon, Save, Globe, Lock, Trash2, BookOpen, Pencil, Camera, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useRevisionContent, RevisionContent } from "@/hooks/useRevisionContent";
@@ -17,10 +17,12 @@ import { cn } from "@/lib/utils";
 
 type GenerationType = "revision_sheet" | "mind_map" | "schema";
 type ViewMode = "create" | "my_content" | "public";
+type CreationMode = "ai" | "manual" | "photo";
 
 const RevisionGenerator = () => {
   const [viewMode, setViewMode] = useState<ViewMode>("create");
   const [generationType, setGenerationType] = useState<GenerationType>("revision_sheet");
+  const [creationMode, setCreationMode] = useState<CreationMode>("ai");
   const [topic, setTopic] = useState("");
   const [subject, setSubject] = useState("");
   const [content, setContent] = useState("");
@@ -29,8 +31,16 @@ const RevisionGenerator = () => {
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [uploadedPhoto, setUploadedPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [selectedContent, setSelectedContent] = useState<RevisionContent | null>(null);
+  
+  // Manual creation state
+  const [manualTitle, setManualTitle] = useState("");
+  const [manualContent, setManualContent] = useState("");
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
   
   const { toast } = useToast();
   const { user } = useAuth();
@@ -66,6 +76,39 @@ const RevisionGenerator = () => {
     }
   };
 
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "Image trop volumineuse",
+        description: "L'image ne doit pas dépasser 10MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "Format invalide",
+        description: "Veuillez sélectionner une image",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadedPhoto(file);
+    const reader = new FileReader();
+    reader.onload = () => setPhotoPreview(reader.result as string);
+    reader.readAsDataURL(file);
+    
+    toast({
+      title: "Photo sélectionnée",
+      description: `${file.name} sera redessinée au propre`,
+    });
+  };
+
   const handleGenerate = async () => {
     if (!topic.trim() || loading) return;
 
@@ -74,12 +117,24 @@ const RevisionGenerator = () => {
     setSchemaImage(null);
 
     try {
+      let photoBase64: string | undefined;
+      
+      if (creationMode === "photo" && uploadedPhoto) {
+        const reader = new FileReader();
+        photoBase64 = await new Promise((resolve) => {
+          reader.onload = () => resolve(reader.result as string);
+          reader.readAsDataURL(uploadedPhoto);
+        });
+      }
+
       const { data, error } = await supabase.functions.invoke("generate-revision-content", {
         body: { 
           type: generationType,
           topic,
           subject: subject || undefined,
-          content: content || undefined
+          content: content || undefined,
+          photoBase64: photoBase64,
+          redrawPhoto: creationMode === "photo"
         }
       });
 
@@ -101,6 +156,34 @@ const RevisionGenerator = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveManual = async () => {
+    if (!manualTitle.trim() || !manualContent.trim()) {
+      toast({
+        title: "Champs requis",
+        description: "Veuillez remplir le titre et le contenu",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const saved = await saveContent({
+      title: manualTitle,
+      type: generationType,
+      content: manualContent,
+      subject: subject || undefined,
+    });
+
+    if (saved) {
+      setManualTitle("");
+      setManualContent("");
+      setViewMode("my_content");
+      toast({
+        title: "Sauvegardé !",
+        description: "Votre fiche a été créée avec succès",
+      });
     }
   };
 
@@ -250,7 +333,7 @@ const RevisionGenerator = () => {
     <div className="min-h-screen bg-background pb-20">
       <div className="container max-w-4xl mx-auto p-4">
         {/* Header */}
-        <header className="bg-[hsl(var(--header))] -mx-4 -mt-4 px-4 py-4 mb-6 border-b border-border/50 shadow-sm">
+        <header className="bg-card/95 backdrop-blur-lg -mx-4 -mt-4 px-4 py-4 mb-6 border-b border-border/50 shadow-sm">
           <div className="flex items-center gap-3 animate-fade-in">
             <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center shadow-lg animate-float">
               <Sparkles className="w-7 h-7 text-primary" />
@@ -268,7 +351,7 @@ const RevisionGenerator = () => {
 
         {/* View Mode Tabs */}
         <Tabs value={viewMode} onValueChange={(v) => { setViewMode(v as ViewMode); setSelectedContent(null); }} className="mb-6 animate-fade-in stagger-1">
-          <TabsList className="grid w-full grid-cols-3 p-1 bg-[hsl(var(--header))] rounded-2xl">
+          <TabsList className="grid w-full grid-cols-3 p-1 bg-muted/50 rounded-2xl">
             <TabsTrigger value="create" className="flex items-center gap-2 rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-md transition-all duration-300">
               <Sparkles className="h-4 w-4" />
               <span className="hidden sm:inline">Créer</span>
@@ -291,7 +374,7 @@ const RevisionGenerator = () => {
         {viewMode === "create" && (
           <>
             {/* Type Selection */}
-            <Tabs value={generationType} onValueChange={(v) => { setGenerationType(v as GenerationType); setResult(""); setSchemaImage(null); }} className="mb-6 animate-fade-in stagger-2">
+            <Tabs value={generationType} onValueChange={(v) => { setGenerationType(v as GenerationType); setResult(""); setSchemaImage(null); }} className="mb-4 animate-fade-in stagger-2">
               <TabsList className="grid w-full grid-cols-3 p-1 bg-muted/50 rounded-2xl">
                 <TabsTrigger value="revision_sheet" className="flex items-center gap-2 rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-md transition-all duration-300">
                   <FileText className="h-4 w-4" />
@@ -311,113 +394,347 @@ const RevisionGenerator = () => {
               </TabsList>
             </Tabs>
 
-            {/* Input Form */}
-            <Card className="p-6 mb-6 animate-fade-in stagger-3 hover-lift border-border/50">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
-                  <typeInfo.icon className="w-6 h-6 text-primary" />
+            {/* Creation Mode Selection */}
+            <div className="grid grid-cols-3 gap-3 mb-6 animate-fade-in stagger-3">
+              <Card
+                className={cn(
+                  "p-4 cursor-pointer transition-all duration-300 hover-lift border-2",
+                  creationMode === "ai" ? "border-primary bg-primary/5" : "border-transparent"
+                )}
+                onClick={() => setCreationMode("ai")}
+              >
+                <div className="flex flex-col items-center text-center gap-2">
+                  <div className={cn(
+                    "w-12 h-12 rounded-xl flex items-center justify-center",
+                    creationMode === "ai" ? "bg-primary/20" : "bg-muted"
+                  )}>
+                    <Sparkles className={cn("w-6 h-6", creationMode === "ai" ? "text-primary" : "text-muted-foreground")} />
+                  </div>
+                  <span className="text-sm font-medium">IA</span>
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-lg">{typeInfo.title}</h3>
-                  <p className="text-sm text-muted-foreground">{typeInfo.description}</p>
+              </Card>
+              
+              <Card
+                className={cn(
+                  "p-4 cursor-pointer transition-all duration-300 hover-lift border-2",
+                  creationMode === "manual" ? "border-secondary bg-secondary/5" : "border-transparent"
+                )}
+                onClick={() => setCreationMode("manual")}
+              >
+                <div className="flex flex-col items-center text-center gap-2">
+                  <div className={cn(
+                    "w-12 h-12 rounded-xl flex items-center justify-center",
+                    creationMode === "manual" ? "bg-secondary/20" : "bg-muted"
+                  )}>
+                    <Pencil className={cn("w-6 h-6", creationMode === "manual" ? "text-secondary" : "text-muted-foreground")} />
+                  </div>
+                  <span className="text-sm font-medium">Manuel</span>
                 </div>
-                <span className="text-2xl animate-bounce-soft">{typeInfo.emoji}</span>
-              </div>
+              </Card>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Sujet / Thème *</label>
-                  <Input
-                    value={topic}
-                    onChange={(e) => setTopic(e.target.value)}
-                    placeholder={generationType === "schema" ? "Ex: Le cœur humain, La cellule, Le cycle de l'eau..." : "Ex: La Révolution française, Les dérivées, La photosynthèse..."}
-                    maxLength={200}
-                  />
-                  {generationType === "schema" && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      💡 Une image sera générée avec des légendes explicatives
-                    </p>
+              {generationType === "schema" && (
+                <Card
+                  className={cn(
+                    "p-4 cursor-pointer transition-all duration-300 hover-lift border-2",
+                    creationMode === "photo" ? "border-accent bg-accent/5" : "border-transparent"
                   )}
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Matière (optionnel)</label>
-                  <Select value={subject} onValueChange={(v) => setSubject(v === "none" ? "" : v)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner une matière" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Aucune</SelectItem>
-                      <SelectItem value="maths">Mathématiques</SelectItem>
-                      <SelectItem value="physique">Physique-Chimie</SelectItem>
-                      <SelectItem value="svt">SVT</SelectItem>
-                      <SelectItem value="francais">Français</SelectItem>
-                      <SelectItem value="histoire">Histoire-Géo</SelectItem>
-                      <SelectItem value="anglais">Anglais</SelectItem>
-                      <SelectItem value="philosophie">Philosophie</SelectItem>
-                      <SelectItem value="ses">SES</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {generationType !== "schema" && (
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Contenu de base (optionnel)</label>
-                    <Textarea
-                      value={content}
-                      onChange={(e) => setContent(e.target.value)}
-                      placeholder="Collez ici votre cours ou vos notes pour une génération plus précise..."
-                      className="min-h-[120px]"
-                      maxLength={10000}
-                    />
-                    <div className="flex items-center justify-between mt-2">
-                      <span className="text-xs text-muted-foreground">
-                        {content.length}/10000 caractères
-                      </span>
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleFileUpload}
-                        accept=".txt,.md,.doc,.docx,.pdf"
-                        className="hidden"
-                      />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="flex items-center gap-2"
-                      >
-                        <FileUp className="h-4 w-4" />
-                        Importer un fichier
-                      </Button>
+                  onClick={() => setCreationMode("photo")}
+                >
+                  <div className="flex flex-col items-center text-center gap-2">
+                    <div className={cn(
+                      "w-12 h-12 rounded-xl flex items-center justify-center",
+                      creationMode === "photo" ? "bg-accent/20" : "bg-muted"
+                    )}>
+                      <Camera className={cn("w-6 h-6", creationMode === "photo" ? "text-accent" : "text-muted-foreground")} />
                     </div>
-                    {uploadedFile && (
+                    <span className="text-sm font-medium">Photo</span>
+                  </div>
+                </Card>
+              )}
+              
+              {generationType !== "schema" && (
+                <Card className="p-4 opacity-50 cursor-not-allowed border-2 border-transparent">
+                  <div className="flex flex-col items-center text-center gap-2">
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-muted">
+                      <Camera className="w-6 h-6 text-muted-foreground" />
+                    </div>
+                    <span className="text-sm font-medium text-muted-foreground">Photo</span>
+                  </div>
+                </Card>
+              )}
+            </div>
+
+            {/* Manual Creation Form */}
+            {creationMode === "manual" && (
+              <Card className="p-6 mb-6 animate-fade-in hover-lift border-border/50">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-secondary/10 to-accent/10 flex items-center justify-center">
+                    <Pencil className="w-6 h-6 text-secondary" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg">Création manuelle</h3>
+                    <p className="text-sm text-muted-foreground">Rédigez votre propre {typeInfo.title.toLowerCase()}</p>
+                  </div>
+                  <span className="text-2xl">✍️</span>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Titre *</label>
+                    <Input
+                      value={manualTitle}
+                      onChange={(e) => setManualTitle(e.target.value)}
+                      placeholder="Ex: Les guerres mondiales, Le système digestif..."
+                      maxLength={200}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Matière (optionnel)</label>
+                    <Select value={subject} onValueChange={(v) => setSubject(v === "none" ? "" : v)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner une matière" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Aucune</SelectItem>
+                        <SelectItem value="maths">Mathématiques</SelectItem>
+                        <SelectItem value="physique">Physique-Chimie</SelectItem>
+                        <SelectItem value="svt">SVT</SelectItem>
+                        <SelectItem value="francais">Français</SelectItem>
+                        <SelectItem value="histoire">Histoire-Géo</SelectItem>
+                        <SelectItem value="anglais">Anglais</SelectItem>
+                        <SelectItem value="philosophie">Philosophie</SelectItem>
+                        <SelectItem value="ses">SES</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Contenu *</label>
+                    <Textarea
+                      value={manualContent}
+                      onChange={(e) => setManualContent(e.target.value)}
+                      placeholder="Rédigez le contenu de votre fiche ici..."
+                      className="min-h-[200px]"
+                      maxLength={20000}
+                    />
+                    <span className="text-xs text-muted-foreground">
+                      {manualContent.length}/20000 caractères
+                    </span>
+                  </div>
+
+                  <Button
+                    onClick={handleSaveManual}
+                    disabled={!manualTitle.trim() || !manualContent.trim()}
+                    className="w-full btn-friendly text-base py-6 rounded-xl font-semibold"
+                  >
+                    <Save className="w-5 h-5 mr-2" />
+                    Sauvegarder ma fiche 💾
+                  </Button>
+                </div>
+              </Card>
+            )}
+
+            {/* Photo to Schema Form */}
+            {creationMode === "photo" && generationType === "schema" && (
+              <Card className="p-6 mb-6 animate-fade-in hover-lift border-border/50">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent/10 to-primary/10 flex items-center justify-center">
+                    <Camera className="w-6 h-6 text-accent" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg">Redessiner depuis une photo</h3>
+                    <p className="text-sm text-muted-foreground">L'IA va redessiner proprement votre schéma</p>
+                  </div>
+                  <span className="text-2xl">📸</span>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Titre du schéma *</label>
+                    <Input
+                      value={topic}
+                      onChange={(e) => setTopic(e.target.value)}
+                      placeholder="Ex: Le cœur humain, La cellule..."
+                      maxLength={200}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Photo du schéma *</label>
+                    <input
+                      type="file"
+                      ref={photoInputRef}
+                      onChange={handlePhotoUpload}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                    
+                    {photoPreview ? (
+                      <div className="relative">
+                        <img 
+                          src={photoPreview} 
+                          alt="Aperçu" 
+                          className="w-full max-h-64 object-contain rounded-xl border border-border"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="absolute top-2 right-2"
+                          onClick={() => {
+                            setUploadedPhoto(null);
+                            setPhotoPreview(null);
+                          }}
+                        >
+                          Changer
+                        </Button>
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() => photoInputRef.current?.click()}
+                        className="border-2 border-dashed border-border rounded-xl p-8 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                      >
+                        <Upload className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+                        <p className="text-muted-foreground">
+                          Cliquez pour importer votre photo de schéma
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          JPG, PNG, WEBP (max 10MB)
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <Button
+                    onClick={handleGenerate}
+                    disabled={!topic.trim() || !uploadedPhoto || loading}
+                    className="w-full btn-friendly text-base py-6 rounded-xl font-semibold"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Redessinage en cours... 🎨
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-5 h-5 mr-2" />
+                        Redessiner au propre ✨
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </Card>
+            )}
+
+            {/* AI Generation Form */}
+            {creationMode === "ai" && (
+              <Card className="p-6 mb-6 animate-fade-in hover-lift border-border/50">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
+                    <typeInfo.icon className="w-6 h-6 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg">{typeInfo.title}</h3>
+                    <p className="text-sm text-muted-foreground">{typeInfo.description}</p>
+                  </div>
+                  <span className="text-2xl animate-bounce-soft">{typeInfo.emoji}</span>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Sujet / Thème *</label>
+                    <Input
+                      value={topic}
+                      onChange={(e) => setTopic(e.target.value)}
+                      placeholder={generationType === "schema" ? "Ex: Le cœur humain, La cellule, Le cycle de l'eau..." : "Ex: La Révolution française, Les dérivées, La photosynthèse..."}
+                      maxLength={200}
+                    />
+                    {generationType === "schema" && (
                       <p className="text-xs text-muted-foreground mt-1">
-                        Fichier: {uploadedFile.name}
+                        💡 Une image sera générée avec des légendes explicatives
                       </p>
                     )}
                   </div>
-                )}
 
-                <Button
-                  onClick={handleGenerate}
-                  disabled={!topic.trim() || loading}
-                  className="w-full btn-friendly text-base py-6 rounded-xl font-semibold"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      {generationType === "schema" ? "Création de l'image... 🎨" : "La magie opère... ✨"}
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-5 h-5 mr-2" />
-                      {generationType === "schema" ? "Générer mon schéma 🎨" : `Générer ma ${generationType === "revision_sheet" ? "fiche" : "carte"} 🚀`}
-                    </>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Matière (optionnel)</label>
+                    <Select value={subject} onValueChange={(v) => setSubject(v === "none" ? "" : v)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner une matière" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Aucune</SelectItem>
+                        <SelectItem value="maths">Mathématiques</SelectItem>
+                        <SelectItem value="physique">Physique-Chimie</SelectItem>
+                        <SelectItem value="svt">SVT</SelectItem>
+                        <SelectItem value="francais">Français</SelectItem>
+                        <SelectItem value="histoire">Histoire-Géo</SelectItem>
+                        <SelectItem value="anglais">Anglais</SelectItem>
+                        <SelectItem value="philosophie">Philosophie</SelectItem>
+                        <SelectItem value="ses">SES</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {generationType !== "schema" && (
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Contenu de base (optionnel)</label>
+                      <Textarea
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                        placeholder="Collez ici votre cours ou vos notes pour une génération plus précise..."
+                        className="min-h-[120px]"
+                        maxLength={10000}
+                      />
+                      <div className="flex items-center justify-between mt-2">
+                        <span className="text-xs text-muted-foreground">
+                          {content.length}/10000 caractères
+                        </span>
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          onChange={handleFileUpload}
+                          accept=".txt,.md,.doc,.docx,.pdf"
+                          className="hidden"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="flex items-center gap-2"
+                        >
+                          <FileUp className="h-4 w-4" />
+                          Importer un fichier
+                        </Button>
+                      </div>
+                      {uploadedFile && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Fichier: {uploadedFile.name}
+                        </p>
+                      )}
+                    </div>
                   )}
-                </Button>
-              </div>
-            </Card>
+
+                  <Button
+                    onClick={handleGenerate}
+                    disabled={!topic.trim() || loading}
+                    className="w-full btn-friendly text-base py-6 rounded-xl font-semibold"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        {generationType === "schema" ? "Création de l'image... 🎨" : "La magie opère... ✨"}
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-5 h-5 mr-2" />
+                        {generationType === "schema" ? "Générer mon schéma 🎨" : `Générer ma ${generationType === "revision_sheet" ? "fiche" : "carte"} 🚀`}
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </Card>
+            )}
 
             {/* Result */}
             {(result || schemaImage || loading) && (

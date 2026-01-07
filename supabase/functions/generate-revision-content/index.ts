@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { type, topic, content, subject } = await req.json();
+    const { type, topic, content, subject, photoBase64, redrawPhoto } = await req.json();
 
     if (!type || !topic) {
       return new Response(
@@ -32,15 +32,48 @@ serve(async (req) => {
 
     // For schema type, generate an actual image
     if (type === 'schema') {
-      console.log('Generating schema image for topic:', topic);
+      console.log('Generating schema image for topic:', topic, 'redrawPhoto:', redrawPhoto);
       
-      const imagePrompt = `Create a clear, educational scientific diagram/illustration about: "${topic}". 
+      let imagePrompt: string;
+      let messages: any[];
+      
+      if (redrawPhoto && photoBase64) {
+        // Redraw from photo
+        imagePrompt = `Redessine ce schéma de manière propre, claire et professionnelle. 
+Sujet: "${topic}"
+Style: Schéma éducatif propre comme dans un manuel scolaire.
+Consignes:
+- Garde les mêmes éléments et structure que l'image originale
+- Améliore la lisibilité et la clarté
+- Ajoute des numéros (1, 2, 3...) pour chaque partie importante
+- Utilise des couleurs distinctes pour différencier les éléments
+- Fond blanc ou très clair
+- Ajoute des légendes claires en français
+- Rends le schéma plus professionnel et facile à comprendre`;
+
+        messages = [
+          { 
+            role: 'user', 
+            content: [
+              { type: 'text', text: imagePrompt },
+              { type: 'image_url', image_url: { url: photoBase64 } }
+            ]
+          }
+        ];
+      } else {
+        // Generate from scratch
+        imagePrompt = `Create a clear, educational scientific diagram/illustration about: "${topic}". 
 Style: Clean educational diagram like in a textbook. 
 Include: Labels with numbers (1, 2, 3...) pointing to each important part. 
 Colors: Use distinct colors to differentiate parts.
 Background: White or light colored.
 Text: Include brief labels in French for each numbered element.
 Make it simple, clear and easy to understand for students.`;
+
+        messages = [
+          { role: 'user', content: imagePrompt }
+        ];
+      }
 
       const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
@@ -50,9 +83,7 @@ Make it simple, clear and easy to understand for students.`;
         },
         body: JSON.stringify({
           model: 'google/gemini-2.5-flash-image-preview',
-          messages: [
-            { role: 'user', content: imagePrompt }
-          ],
+          messages,
           modalities: ['image', 'text']
         }),
       });

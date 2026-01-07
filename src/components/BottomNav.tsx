@@ -17,7 +17,7 @@ export const BottomNav = () => {
   const location = useLocation();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[hsl(var(--header))] backdrop-blur-lg border-t border-border/50 shadow-[0_-4px_20px_-4px_hsl(var(--primary)/0.1)]">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-lg border-t border-border/50 shadow-[0_-4px_20px_-4px_hsl(var(--primary)/0.1)]">
       <div className="max-w-screen-xl mx-auto px-1">
         <div className="flex justify-around items-center py-2">
           {navItems.map((item, index) => {
