@@ -96,7 +96,7 @@ const Schedule = () => {
         <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-br from-emerald-500/20 to-orange-500/20 rounded-full blur-3xl" />
       </div>
 
-      <header className="sticky top-0 z-40 bg-[hsl(var(--header))] border-b border-border/50 shadow-sm">
+      <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-lg border-b border-border/50 shadow-sm">
         <div className="max-w-screen-xl mx-auto px-4 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-display font-bold bg-gradient-to-r from-violet-500 via-cyan-500 to-emerald-500 bg-clip-text text-transparent">
