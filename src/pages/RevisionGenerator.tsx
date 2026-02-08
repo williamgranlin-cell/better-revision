@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SubjectSelect } from "@/components/SubjectSelect";
 import { FileText, Network, Shapes, Loader2, Sparkles, Copy, Check, FileUp, ImageIcon, Save, Globe, Lock, Trash2, BookOpen, Pencil, Camera, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -14,6 +14,7 @@ import { useRevisionContent, RevisionContent } from "@/hooks/useRevisionContent"
 import { useAuth } from "@/contexts/AuthContext";
 import DOMPurify from "dompurify";
 import { cn } from "@/lib/utils";
+import { getSubjectLabel } from "@/lib/subjects";
 
 type GenerationType = "revision_sheet" | "mind_map" | "schema";
 type ViewMode = "create" | "my_content" | "public";
@@ -287,7 +288,7 @@ const RevisionGenerator = () => {
             <p className="text-sm text-muted-foreground">{info.title}</p>
             {item.subject && (
               <span className="text-xs bg-muted px-2 py-0.5 rounded-full mt-1 inline-block">
-                {item.subject}
+                {getSubjectLabel(item.subject)}
               </span>
             )}
           </div>
@@ -331,18 +332,18 @@ const RevisionGenerator = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <div className="container max-w-4xl mx-auto p-4">
+      <div className="container max-w-4xl md:max-w-5xl lg:max-w-6xl mx-auto p-4 md:p-6">
         {/* Header */}
-        <header className="bg-card/95 backdrop-blur-lg -mx-4 -mt-4 px-4 py-4 mb-6 border-b border-border/50 shadow-sm">
-          <div className="flex items-center gap-3 animate-fade-in">
-            <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center shadow-lg animate-float">
-              <Sparkles className="w-7 h-7 text-primary" />
+        <header className="bg-card/95 backdrop-blur-lg -mx-4 md:-mx-6 -mt-4 md:-mt-6 px-4 md:px-6 py-4 mb-6 border-b border-border/50 shadow-sm">
+          <div className="flex items-center gap-3 md:gap-4 animate-fade-in">
+            <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-primary/10 flex items-center justify-center shadow-lg animate-float">
+              <Sparkles className="w-6 h-6 md:w-7 md:h-7 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-display font-bold text-foreground">
+              <h1 className="text-xl md:text-2xl lg:text-3xl font-display font-bold text-foreground">
                 Fiches & Schémas ✨
               </h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm md:text-base text-muted-foreground">
                 Crée, sauvegarde et partage tes révisions !
               </p>
             </div>
@@ -491,22 +492,11 @@ const RevisionGenerator = () => {
 
                   <div>
                     <label className="text-sm font-medium mb-2 block">Matière (optionnel)</label>
-                    <Select value={subject} onValueChange={(v) => setSubject(v === "none" ? "" : v)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner une matière" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Aucune</SelectItem>
-                        <SelectItem value="maths">Mathématiques</SelectItem>
-                        <SelectItem value="physique">Physique-Chimie</SelectItem>
-                        <SelectItem value="svt">SVT</SelectItem>
-                        <SelectItem value="francais">Français</SelectItem>
-                        <SelectItem value="histoire">Histoire-Géo</SelectItem>
-                        <SelectItem value="anglais">Anglais</SelectItem>
-                        <SelectItem value="philosophie">Philosophie</SelectItem>
-                        <SelectItem value="ses">SES</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <SubjectSelect
+                      value={subject}
+                      onValueChange={setSubject}
+                      allLabel="Aucune"
+                    />
                   </div>
 
                   <div>
@@ -658,22 +648,11 @@ const RevisionGenerator = () => {
 
                   <div>
                     <label className="text-sm font-medium mb-2 block">Matière (optionnel)</label>
-                    <Select value={subject} onValueChange={(v) => setSubject(v === "none" ? "" : v)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner une matière" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Aucune</SelectItem>
-                        <SelectItem value="maths">Mathématiques</SelectItem>
-                        <SelectItem value="physique">Physique-Chimie</SelectItem>
-                        <SelectItem value="svt">SVT</SelectItem>
-                        <SelectItem value="francais">Français</SelectItem>
-                        <SelectItem value="histoire">Histoire-Géo</SelectItem>
-                        <SelectItem value="anglais">Anglais</SelectItem>
-                        <SelectItem value="philosophie">Philosophie</SelectItem>
-                        <SelectItem value="ses">SES</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <SubjectSelect
+                      value={subject}
+                      onValueChange={setSubject}
+                      allLabel="Aucune"
+                    />
                   </div>
 
                   {generationType !== "schema" && (

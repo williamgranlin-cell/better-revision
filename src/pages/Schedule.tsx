@@ -97,12 +97,12 @@ const Schedule = () => {
       </div>
 
       <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-lg border-b border-border/50 shadow-sm">
-        <div className="max-w-screen-xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-screen-xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-display font-bold bg-gradient-to-r from-violet-500 via-cyan-500 to-emerald-500 bg-clip-text text-transparent">
+            <h1 className="text-xl md:text-2xl lg:text-3xl font-display font-bold bg-gradient-to-r from-violet-500 via-cyan-500 to-emerald-500 bg-clip-text text-transparent">
               Emploi du Temps ⏰
             </h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm md:text-base text-muted-foreground mt-1">
               Organise ta semaine efficacement
             </p>
           </div>

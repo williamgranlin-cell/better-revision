@@ -349,25 +349,68 @@ Format: ["mauvaise réponse 1", "mauvaise réponse 2"${wrongAnswersCount === 3 ?
     let userPrompt = "";
 
     if (type === "ai_subject") {
-      systemPrompt = `Tu es un expert pédagogique spécialisé dans la création de flashcards éducatives. Tu dois générer des flashcards de haute qualité sur le sujet demandé, couvrant les concepts clés, définitions, formules, dates importantes, et toute information essentielle à maîtriser.`;
-      userPrompt = `Génère exactement ${count} flashcards éducatives sur le sujet suivant: "${subject}".
+      systemPrompt = `Tu es un EXPERT PÉDAGOGIQUE spécialisé dans la création de flashcards éducatives de HAUTE QUALITÉ.
 
-Les flashcards doivent être:
-- Variées (définitions, concepts, applications, exemples)
-- Progressives en difficulté
-- Claires et concises
-- Adaptées à un étudiant
+🎯 MISSION: Créer des flashcards PRÉCISES, VARIÉES et PÉDAGOGIQUES sur le sujet demandé.
+
+📋 CRITÈRES DE QUALITÉ:
+1. **QUESTIONS VARIÉES**: Définitions, concepts, applications, dates, formules, exemples
+2. **PROGRESSION**: Du plus simple au plus complexe
+3. **PRÉCISION**: Chaque réponse doit être EXACTE et VÉRIFIABLE
+4. **CLARTÉ**: Questions directes, réponses concises mais complètes
+5. **COUVERTURE**: Couvrir TOUS les aspects importants du sujet
+
+📝 TYPES DE FLASHCARDS À INCLURE:
+• 📖 Définitions: "Qu'est-ce que...?"
+• 🔬 Concepts: "Explique le principe de..."
+• 📐 Formules/Règles: "Quelle est la formule de...?"
+• 📅 Dates/Faits: "Quand/Où/Qui...?"
+• 💡 Applications: "Comment utilise-t-on...?"
+• ⚖️ Comparaisons: "Quelle est la différence entre...?"
+• 🔗 Relations: "Quel est le lien entre...?"
+
+RÈGLES:
+- Réponses entre 1 et 3 phrases maximum
+- Pas de questions trop vagues ou trop spécifiques
+- Inclure les éléments ESSENTIELS du sujet
+- Adapter le niveau au contexte (lycée/études supérieures)`;
+      userPrompt = `Génère exactement ${count} flashcards éducatives VARIÉES et COMPLÈTES sur le sujet: "${subject}".
+
+Assure-toi de couvrir:
+- Les définitions clés
+- Les concepts fondamentaux  
+- Les formules/règles importantes (si applicable)
+- Les applications pratiques
+- Les points souvent mal compris
 
 Retourne UNIQUEMENT un tableau JSON avec des objets contenant 'question' et 'answer'. Pas de texte avant ou après.
-
-Exemple de format:
-[{"question": "...", "answer": "..."}, ...]`;
+Format: [{"question": "...", "answer": "..."}, ...]`;
     } else if (type === "text") {
-      systemPrompt = "Tu es un assistant qui génère des flashcards éducatives à partir de texte de cours. Génère des questions pertinentes et leurs réponses détaillées.";
-      userPrompt = `Génère ${count} flashcards à partir du texte de cours suivant. Retourne uniquement un tableau JSON avec des objets contenant 'question' et 'answer'.\n\nTexte:\n${content}`;
+      systemPrompt = `Tu es un EXPERT en création de flashcards à partir de contenu textuel. Tu analyses le texte pour extraire les informations CLÉS et les transformer en questions d'apprentissage EFFICACES.
+
+OBJECTIF: Créer des flashcards qui testent la COMPRÉHENSION profonde du texte, pas juste la mémorisation mot à mot.
+
+TYPES DE QUESTIONS À CRÉER:
+• Questions sur les définitions et concepts
+• Questions sur les causes et conséquences
+• Questions sur les exemples et applications
+• Questions de synthèse et comparaison`;
+      userPrompt = `Analyse ce texte de cours et génère ${count} flashcards PERTINENTES qui testent la compréhension des points clés.
+
+Texte:
+${content}
+
+Retourne UNIQUEMENT un tableau JSON avec des objets contenant 'question' et 'answer'. Chaque réponse doit être précise et issue du texte.`;
     } else if (type === "revision_sheet") {
-      systemPrompt = "Tu es un assistant qui génère des flashcards à partir de fiches de révision. Crée des questions qui testent la compréhension des concepts clés.";
-      userPrompt = `Génère ${count} flashcards à partir de cette fiche de révision. Retourne uniquement un tableau JSON avec des objets contenant 'question' et 'answer'.\n\nFiche:\n${content}`;
+      systemPrompt = `Tu es un EXPERT en création de flashcards à partir de fiches de révision. Tu identifies les éléments ESSENTIELS à mémoriser et les transformes en questions d'apprentissage.
+
+OBJECTIF: Créer des flashcards qui permettent de RÉVISER EFFICACEMENT les points clés de la fiche.`;
+      userPrompt = `Analyse cette fiche de révision et génère ${count} flashcards qui couvrent les points ESSENTIELS à retenir.
+
+Fiche:
+${content}
+
+Retourne UNIQUEMENT un tableau JSON avec des objets contenant 'question' et 'answer'.`;
     }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {

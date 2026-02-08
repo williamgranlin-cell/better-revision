@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SubjectSelect } from "@/components/SubjectSelect";
 import { Send, Sparkles, Video, BookOpen, Loader2, GraduationCap, HelpCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -215,21 +216,21 @@ const StudyChat = () => {
   return (
     <div className="min-h-screen bg-background pb-20">
       <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-lg border-b border-border/50 shadow-sm">
-        <div className="container max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <HelpCircle className="w-6 h-6 text-primary" />
+        <div className="container max-w-4xl md:max-w-5xl lg:max-w-6xl mx-auto px-4 md:px-6 py-4">
+          <div className="flex items-center gap-3 md:gap-4">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <HelpCircle className="w-5 h-5 md:w-6 md:h-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-display font-bold text-foreground">Aide 🤗</h1>
-              <p className="text-sm text-muted-foreground">
+              <h1 className="text-xl md:text-2xl lg:text-3xl font-display font-bold text-foreground">Aide 🤗</h1>
+              <p className="text-sm md:text-base text-muted-foreground">
                 Vidéos, exercices et assistance devoirs
               </p>
             </div>
           </div>
         </div>
       </header>
-      <div className="container max-w-4xl mx-auto p-4">
+      <div className="container max-w-4xl md:max-w-5xl lg:max-w-6xl mx-auto p-4 md:p-6">
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ActiveTab)}>
@@ -491,22 +492,11 @@ const StudyChat = () => {
 
             <Card className="p-4">
               <div className="mb-3">
-              <Select value={homeworkSubject} onValueChange={(v) => setHomeworkSubject(v === "all" ? "" : v)}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Matière (optionnel)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Toutes matières</SelectItem>
-                    <SelectItem value="maths">Mathématiques</SelectItem>
-                    <SelectItem value="physique">Physique-Chimie</SelectItem>
-                    <SelectItem value="svt">SVT</SelectItem>
-                    <SelectItem value="francais">Français</SelectItem>
-                    <SelectItem value="histoire">Histoire-Géo</SelectItem>
-                    <SelectItem value="anglais">Anglais</SelectItem>
-                    <SelectItem value="philosophie">Philosophie</SelectItem>
-                    <SelectItem value="ses">SES</SelectItem>
-                  </SelectContent>
-                </Select>
+                <SubjectSelect
+                  value={homeworkSubject}
+                  onValueChange={setHomeworkSubject}
+                  allLabel="Toutes matières"
+                />
               </div>
               <div className="flex gap-2">
                 <Textarea

@@ -88,12 +88,12 @@ const Classroom = () => {
   return (
     <div className="min-h-screen pb-24 bg-background">
       <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-lg border-b border-border/50 shadow-sm">
-        <div className="max-w-screen-xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-screen-xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-display font-bold bg-gradient-primary bg-clip-text text-transparent">
+            <h1 className="text-xl md:text-2xl lg:text-3xl font-display font-bold bg-gradient-primary bg-clip-text text-transparent">
               Session de Travail 🎯
             </h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm md:text-base text-muted-foreground mt-1">
               Concentre-toi et atteins tes objectifs
             </p>
           </div>
@@ -122,7 +122,7 @@ const Classroom = () => {
                     }}
                   />
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <Button
                     type="button"
                     variant="outline"
@@ -144,6 +144,13 @@ const Classroom = () => {
                   >
                     45 min
                   </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => handleTimerDurationChange(60)}
+                  >
+                    60 min
+                  </Button>
                 </div>
                 <Button
                   className="w-full gradient-primary"
@@ -157,15 +164,15 @@ const Classroom = () => {
         </div>
       </header>
 
-      <main className="max-w-screen-xl mx-auto px-4 py-8">
+      <main className="max-w-screen-xl mx-auto px-4 md:px-6 py-6 md:py-8">
         <div className="text-center mb-8">
           <p className="text-sm text-muted-foreground capitalize">{currentDate}</p>
         </div>
 
-        {/* Mobile: Stack vertically, Desktop: Side by side with objectives on left, timer on right */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          {/* Objectives - Left on desktop, top on mobile */}
-          <Card className="p-6 gradient-card border-0 shadow-sm order-2 lg:order-1">
+        {/* Mobile: Stack vertically, Tablet: side by side, Desktop: larger */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6">
+          {/* Objectives - Left on tablet/desktop, bottom on mobile */}
+          <Card className="p-4 md:p-6 gradient-card border-0 shadow-sm order-2 md:order-1">
             <h2 className="text-lg font-semibold text-foreground mb-4">
               Objectifs du jour
             </h2>
@@ -210,10 +217,10 @@ const Classroom = () => {
             </div>
           </Card>
 
-          {/* Timer - Right on desktop, top on mobile */}
-          <Card className="p-8 gradient-card shadow-colored border-0 order-1 lg:order-2">
+          {/* Timer - Right on tablet/desktop, top on mobile */}
+          <Card className="p-6 md:p-8 gradient-card shadow-colored border-0 order-1 md:order-2">
             <div className="text-center">
-              <div className="text-6xl md:text-8xl font-bold text-foreground mb-6 tabular-nums">
+              <div className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-foreground mb-4 md:mb-6 tabular-nums">
                 {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
               </div>
               
