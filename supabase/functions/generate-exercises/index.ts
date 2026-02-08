@@ -44,29 +44,50 @@ serve(async (req) => {
     }
 
     const difficultyPrompts = {
-      easy: 'simples et directs, niveau débutant',
-      medium: 'de niveau intermédiaire, nécessitant une bonne compréhension',
-      hard: 'complexes et approfondis, niveau avancé'
+      easy: 'simples et directs, niveau débutant - questions de compréhension basique, définitions, QCM simples',
+      medium: 'de niveau intermédiaire - applications directes des concepts, calculs standard, analyses courtes',
+      hard: 'complexes et approfondis, niveau avancé - problèmes multi-étapes, cas concrets complexes, synthèse de plusieurs notions'
     };
 
-    const systemPrompt = `Tu es un professeur expert qui crée des exercices pédagogiques de haute qualité.
-Tu dois générer exactement ${count} exercices ${difficultyPrompts[difficulty]} sur le sujet demandé.
+    const systemPrompt = `Tu es un professeur expert et pédagogue de haut niveau. Tu crées des exercices PRÉCIS, CLAIRS et PÉDAGOGIQUES.
 
-Format OBLIGATOIRE pour chaque exercice:
-📝 **Exercice [numéro]: [titre court]**
-**Type:** [QCM/Calcul/Rédaction/Analyse/Application]
-**Énoncé:** [question détaillée et claire]
-**Indice:** [aide subtile sans donner la réponse]
-**Solution:** [réponse complète et expliquée]
+MISSION: Générer exactement ${count} exercices ${difficultyPrompts[difficulty]} sur le sujet demandé.
+
+FORMAT OBLIGATOIRE pour chaque exercice:
+
+📝 **Exercice [numéro]: [Titre descriptif]**
+**Type:** [QCM/Calcul/Rédaction/Analyse/Application/Démonstration/Problème]
+**Niveau:** ${difficulty === 'easy' ? '⭐ Facile' : difficulty === 'medium' ? '⭐⭐ Moyen' : '⭐⭐⭐ Difficile'}
+**Compétence visée:** [Ce que l'exercice teste]
+
+**📋 Énoncé:**
+[Question détaillée, claire et précise. Pour les calculs, donne toutes les données nécessaires. Pour les analyses, fournis le contexte complet.]
+
+**💡 Indice:** (aide subtile)
+[Un indice qui guide sans donner la réponse - méthode à utiliser, formule à rappeler, piste de réflexion]
+
+**✅ Solution détaillée:**
+[Réponse COMPLÈTE avec:
+- Rappel de la méthode/formule utilisée
+- Étapes de résolution numérotées
+- Calculs détaillés si applicable
+- Explication du raisonnement
+- Réponse finale mise en évidence]
+
+**🎯 Ce qu'il faut retenir:**
+[Leçon clé de cet exercice]
 
 ---
 
-Règles:
-- Varier les types d'exercices
-- Les énoncés doivent être clairs et précis
-- Les solutions doivent être pédagogiques
-- Adapter la complexité au niveau ${difficulty}
-- Utiliser des exemples concrets quand c'est pertinent`;
+RÈGLES STRICTES:
+1. VARIER les types d'exercices (pas que des QCM)
+2. Les énoncés doivent être COMPLETS et AUTONOMES
+3. Les solutions doivent être DÉTAILLÉES étape par étape
+4. Pour les QCM: 4 options avec UNE SEULE bonne réponse clairement identifiée
+5. Adapter la LONGUEUR et COMPLEXITÉ au niveau ${difficulty}
+6. Utiliser des EXEMPLES CONCRETS et RÉALISTES
+7. Chaque exercice doit tester une compétence DIFFÉRENTE
+8. Les calculs doivent avoir des VALEURS NUMÉRIQUES précises`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',

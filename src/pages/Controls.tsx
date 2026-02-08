@@ -32,12 +32,12 @@ const Controls = () => {
   return (
     <div className="min-h-screen pb-24 bg-background">
       <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-lg border-b border-border/50 shadow-sm">
-        <div className="max-w-screen-xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-screen-xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-display font-bold bg-gradient-primary bg-clip-text text-transparent">
+            <h1 className="text-xl md:text-2xl lg:text-3xl font-display font-bold bg-gradient-primary bg-clip-text text-transparent">
               Mes Contrôles 📋
             </h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm md:text-base text-muted-foreground mt-1">
               Prépare tes examens à venir
             </p>
           </div>
@@ -52,8 +52,8 @@ const Controls = () => {
         </div>
       </header>
 
-      <main className="max-w-screen-xl mx-auto px-4 py-6">
-        <div className="space-y-4">
+      <main className="max-w-screen-xl mx-auto px-4 md:px-6 py-4 md:py-6">
+        <div className="space-y-3 md:space-y-4 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 md:space-y-0">
           {sortedControls.map((control) => {
             const daysUntil = getDaysUntil(control.date);
             const config = importanceConfig[control.importance];

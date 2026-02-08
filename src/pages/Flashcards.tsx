@@ -140,69 +140,69 @@ const Flashcards = () => {
   return (
     <div className="min-h-screen pb-24 bg-background">
       <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-lg border-b border-border/50 shadow-sm">
-        <div className="max-w-screen-xl mx-auto px-4 py-4">
-          <h1 className="text-2xl font-display font-bold bg-gradient-primary bg-clip-text text-transparent">
+        <div className="max-w-screen-xl mx-auto px-4 md:px-6 py-4">
+          <h1 className="text-xl md:text-2xl lg:text-3xl font-display font-bold bg-gradient-primary bg-clip-text text-transparent">
             Flashcards 🃏
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-sm md:text-base text-muted-foreground mt-1">
             Crée et révise tes cartes mémoire
           </p>
         </div>
       </header>
-      <main className="max-w-screen-xl mx-auto px-4 py-6">
-        <Tabs defaultValue="create" className="space-y-6">
+      <main className="max-w-screen-xl mx-auto px-4 md:px-6 py-4 md:py-6">
+        <Tabs defaultValue="create" className="space-y-4 md:space-y-6">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="create">Créer</TabsTrigger>
             <TabsTrigger value="review">Réviser</TabsTrigger>
             <TabsTrigger value="quiz" className="flex items-center gap-1">
               <Zap className="h-4 w-4" />
-              Quiz
+              <span className="hidden sm:inline">Quiz</span>
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="create" className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-4">
-              <Card className="p-6 gradient-card border-0 shadow-sm hover:shadow-colored cursor-pointer transition-smooth group" onClick={() => setIsManualDialogOpen(true)}>
-                <div className="flex flex-col items-center text-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-smooth">
-                    <Plus className="w-8 h-8 text-primary" />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+              <Card className="p-4 md:p-6 gradient-card border-0 shadow-sm hover:shadow-colored cursor-pointer transition-smooth group" onClick={() => setIsManualDialogOpen(true)}>
+                <div className="flex flex-col items-center text-center gap-3 md:gap-4">
+                  <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-smooth">
+                    <Plus className="w-6 h-6 md:w-8 md:h-8 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-display font-semibold text-lg mb-2">Création manuelle</h3>
-                    <p className="text-sm text-muted-foreground">Crée un lot de flashcards manuellement (max 50)</p>
+                    <h3 className="font-display font-semibold text-sm md:text-lg mb-1 md:mb-2">Création manuelle</h3>
+                    <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">Crée un lot de flashcards manuellement (max 50)</p>
                   </div>
                 </div>
               </Card>
-              <Card className="p-6 gradient-card border-0 shadow-sm hover:shadow-colored cursor-pointer transition-smooth group" onClick={() => setIsImportDialogOpen(true)}>
-                <div className="flex flex-col items-center text-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl bg-secondary/10 flex items-center justify-center group-hover:bg-secondary/20 transition-smooth">
-                    <FileUp className="w-8 h-8 text-secondary" />
+              <Card className="p-4 md:p-6 gradient-card border-0 shadow-sm hover:shadow-colored cursor-pointer transition-smooth group" onClick={() => setIsImportDialogOpen(true)}>
+                <div className="flex flex-col items-center text-center gap-3 md:gap-4">
+                  <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-secondary/10 flex items-center justify-center group-hover:bg-secondary/20 transition-smooth">
+                    <FileUp className="w-6 h-6 md:w-8 md:h-8 text-secondary" />
                   </div>
                   <div>
-                    <h3 className="font-display font-semibold text-lg mb-2">Import de cours</h3>
-                    <p className="text-sm text-muted-foreground">Importe un fichier PDF, Word ou image</p>
+                    <h3 className="font-display font-semibold text-sm md:text-lg mb-1 md:mb-2">Import de cours</h3>
+                    <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">Importe un fichier PDF, Word ou image</p>
                   </div>
                 </div>
               </Card>
-              <Card className="p-6 gradient-card border-0 shadow-sm hover:shadow-colored cursor-pointer transition-smooth group" onClick={() => setIsAIDialogOpen(true)}>
-                <div className="flex flex-col items-center text-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-smooth">
-                    <Brain className="w-8 h-8 text-accent" />
+              <Card className="p-4 md:p-6 gradient-card border-0 shadow-sm hover:shadow-colored cursor-pointer transition-smooth group" onClick={() => setIsAIDialogOpen(true)}>
+                <div className="flex flex-col items-center text-center gap-3 md:gap-4">
+                  <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-smooth">
+                    <Brain className="w-6 h-6 md:w-8 md:h-8 text-accent" />
                   </div>
                   <div>
-                    <h3 className="font-display font-semibold text-lg mb-2">Génération IA</h3>
-                    <p className="text-sm text-muted-foreground">L'IA crée automatiquement des flashcards</p>
+                    <h3 className="font-display font-semibold text-sm md:text-lg mb-1 md:mb-2">Génération IA</h3>
+                    <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">L'IA crée automatiquement des flashcards</p>
                   </div>
                 </div>
               </Card>
-              <Card className="p-6 gradient-card border-0 shadow-sm hover:shadow-colored cursor-pointer transition-smooth group" onClick={() => setIsRevisionDialogOpen(true)}>
-                <div className="flex flex-col items-center text-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl bg-success/10 flex items-center justify-center group-hover:bg-success/20 transition-smooth">
-                    <FileText className="w-8 h-8 text-success" />
+              <Card className="p-4 md:p-6 gradient-card border-0 shadow-sm hover:shadow-colored cursor-pointer transition-smooth group" onClick={() => setIsRevisionDialogOpen(true)}>
+                <div className="flex flex-col items-center text-center gap-3 md:gap-4">
+                  <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-success/10 flex items-center justify-center group-hover:bg-success/20 transition-smooth">
+                    <FileText className="w-6 h-6 md:w-8 md:h-8 text-success" />
                   </div>
                   <div>
-                    <h3 className="font-display font-semibold text-lg mb-2">Depuis fiche de révision</h3>
-                    <p className="text-sm text-muted-foreground">Utilise une fiche existante</p>
+                    <h3 className="font-display font-semibold text-sm md:text-lg mb-1 md:mb-2">Depuis fiche</h3>
+                    <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">Utilise une fiche existante</p>
                   </div>
                 </div>
               </Card>

@@ -157,23 +157,33 @@ serve(async (req) => {
       };
     });
 
-    const systemPrompt = `Tu es un assistant d'apprentissage. On te fournit une liste de vraies vidéos YouTube vérifiées et accessibles.
-    
-Ta tâche est de présenter ces vidéos de manière pédagogique et attrayante en expliquant pourquoi chaque vidéo est pertinente pour le sujet.
+    const systemPrompt = `Tu es un CONSEILLER PÉDAGOGIQUE expert en ressources éducatives. Tu présentes des vidéos YouTube de manière CLAIRE et UTILE pour les étudiants.
 
-Format ta réponse ainsi:
+🎯 MISSION: Présenter les vidéos trouvées de façon ATTRAYANTE et INFORMATIVE.
 
-📚 Vidéos YouTube disponibles pour [SUJET]:
+📋 FORMAT DE PRÉSENTATION OBLIGATOIRE:
 
-Pour chaque vidéo:
-**[Numéro]. [Titre]** par [Chaîne]
-🔗 [URL]
-👁️ [Vues] | 📅 [Date]
-💡 [Explique en 1-2 phrases pourquoi cette vidéo est utile pour apprendre ce sujet]
+📚 **Vidéos YouTube pour apprendre: [SUJET]**
 
-Les vidéos sont déjà triées par popularité et toutes ont plus de 50 000 vues.`;
+Pour chaque vidéo, présente:
 
-    const aiPrompt = `Voici les vidéos YouTube pour le sujet "${message}":\n\n${JSON.stringify(videosInfo, null, 2)}\n\nPrésente ces vidéos de manière attrayante et pédagogique.`;
+**[Numéro]. [Titre de la vidéo]**
+🎬 *par [Nom de la chaîne]*
+🔗 [URL de la vidéo]
+📊 [Nombre de vues] vues | 📅 Publié le [Date]
+
+💡 **Pourquoi cette vidéo est utile:**
+[2-3 phrases expliquant ce que l'étudiant va apprendre et pourquoi cette vidéo est pertinente]
+
+---
+
+RÈGLES:
+- Sois ENTHOUSIASTE mais PROFESSIONNEL
+- Explique clairement la VALEUR de chaque vidéo
+- Les vidéos sont triées par popularité (les plus vues en premier)
+- Toutes ont été vérifiées et ont plus de 50 000 vues`;
+
+    const aiPrompt = `Voici les vidéos YouTube trouvées pour le sujet "${message}":\n\n${JSON.stringify(videosInfo, null, 2)}\n\nPrésente ces vidéos de manière attrayante et pédagogique selon le format demandé.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

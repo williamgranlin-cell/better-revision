@@ -168,46 +168,116 @@ Génère 5-8 légendes pertinentes pour ce sujet.`;
 
     switch (type) {
       case 'revision_sheet':
-        systemPrompt = `Tu es un expert en création de fiches de révision. Crée des fiches claires, concises et structurées pour aider les étudiants à mémoriser efficacement.
+        systemPrompt = `Tu es un expert pédagogique de niveau universitaire, spécialisé dans la création de fiches de révision de haute qualité.
 
-FORMAT:
-- Utilise des titres clairs avec **
-- Organise par sections thématiques
-- Inclus les définitions clés
-- Ajoute des formules si pertinent
-- Utilise des listes à puces
-- Ajoute des exemples courts
-- Termine par les points essentiels à retenir
+OBJECTIF: Créer une fiche de révision COMPLÈTE, PRÉCISE et STRUCTURÉE qui couvre TOUS les aspects importants du sujet.
 
-IMPORTANT: La fiche doit tenir sur 1-2 pages maximum.`;
-        userPrompt = `Crée une fiche de révision complète sur: ${topic}`;
+FORMAT OBLIGATOIRE:
+📚 **FICHE DE RÉVISION: [TITRE]**
+${subject ? `📖 Matière: ${subject}` : ''}
+
+**🎯 OBJECTIFS D'APPRENTISSAGE:**
+- [Ce que l'étudiant doit maîtriser après cette fiche]
+
+**📝 DÉFINITIONS CLÉS:**
+• **[Terme 1]**: [Définition précise et complète]
+• **[Terme 2]**: [Définition précise et complète]
+
+**🔑 CONCEPTS FONDAMENTAUX:**
+1. **[Concept 1]**
+   - Explication détaillée
+   - Exemple concret
+   
+2. **[Concept 2]**
+   - Explication détaillée
+   - Exemple concret
+
+**📐 FORMULES / RÈGLES IMPORTANTES:** (si applicable)
+• [Formule 1]: [Explication de chaque variable]
+• [Formule 2]: [Explication de chaque variable]
+
+**💡 EXEMPLES D'APPLICATION:**
+[Exemples concrets avec résolution étape par étape]
+
+**⚠️ ERREURS COURANTES À ÉVITER:**
+• [Erreur 1] → [Comment l'éviter]
+• [Erreur 2] → [Comment l'éviter]
+
+**🧠 MOYENS MNÉMOTECHNIQUES:**
+[Astuces pour mémoriser]
+
+**✅ RÉSUMÉ EN 5 POINTS:**
+1. [Point essentiel 1]
+2. [Point essentiel 2]
+3. [Point essentiel 3]
+4. [Point essentiel 4]
+5. [Point essentiel 5]
+
+RÈGLES:
+- Sois EXHAUSTIF et PRÉCIS
+- Utilise un vocabulaire adapté au niveau d'études
+- Chaque définition doit être claire et complète
+- Les exemples doivent être concrets et instructifs
+- Adapte la complexité au sujet (lycée vs études supérieures)`;
+        userPrompt = `Crée une fiche de révision COMPLÈTE et DÉTAILLÉE sur: "${topic}"
+${subject ? `Matière: ${subject}` : ''}
+${content ? `\nContenu de référence fourni:\n${content.substring(0, 5000)}` : ''}
+
+IMPORTANT: Sois le plus précis et complet possible. Cette fiche doit permettre à l'étudiant de maîtriser parfaitement le sujet.`;
         break;
 
       case 'mind_map':
-        systemPrompt = `Tu es un expert en création de cartes mentales. Crée une carte mentale textuelle structurée pour visualiser les concepts et leurs relations.
+        systemPrompt = `Tu es un expert en cartographie mentale et en pédagogie. Crée des cartes mentales DÉTAILLÉES et STRUCTURÉES qui permettent de visualiser TOUS les concepts et leurs relations.
 
-FORMAT (utilise cette structure textuelle):
-🎯 **CONCEPT CENTRAL: [Titre]**
+FORMAT OBLIGATOIRE (utilise cette structure textuelle):
+🎯 **CONCEPT CENTRAL: [TITRE]**
+${subject ? `📖 Matière: ${subject}` : ''}
 
-├── 📌 **Branche 1: [Thème]**
-│   ├── • Point clé 1
-│   ├── • Point clé 2
-│   └── • Point clé 3
+├── 📌 **BRANCHE 1: [Thème principal 1]**
+│   ├── 🔹 [Sous-concept 1.1]
+│   │   ├── • Détail important
+│   │   └── • Exemple ou application
+│   ├── 🔹 [Sous-concept 1.2]
+│   │   ├── • Détail important
+│   │   └── • Exemple ou application
+│   └── 🔹 [Sous-concept 1.3]
+│       └── • Détail important
 
-├── 📌 **Branche 2: [Thème]**
-│   ├── • Point clé 1
-│   └── • Point clé 2
+├── 📌 **BRANCHE 2: [Thème principal 2]**
+│   ├── 🔹 [Sous-concept 2.1]
+│   │   └── • Détails...
+│   └── 🔹 [Sous-concept 2.2]
+│       └── • Détails...
 
-└── 📌 **Branche 3: [Thème]**
-    ├── • Point clé 1
-    └── • Point clé 2
+├── 📌 **BRANCHE 3: [Thème principal 3]**
+│   └── [Sous-concepts avec détails...]
+
+├── 📌 **BRANCHE 4: [Thème principal 4]**
+│   └── [Sous-concepts avec détails...]
+
+└── 📌 **BRANCHE 5: [Thème principal 5]**
+    └── [Sous-concepts avec détails...]
+
+🔗 **CONNEXIONS IMPORTANTES:**
+• [Concept A] ↔ [Concept B]: [Explication du lien]
+• [Concept C] → [Concept D]: [Relation de cause/effet]
+
+💡 **POINTS CLÉS À RETENIR:**
+1. [Élément essentiel 1]
+2. [Élément essentiel 2]
+3. [Élément essentiel 3]
 
 RÈGLES:
-- Maximum 5-6 branches principales
-- 3-4 sous-points par branche
-- Utilise des émojis pour les catégories
-- Relations claires entre concepts`;
-        userPrompt = `Crée une carte mentale sur: ${topic}`;
+- Minimum 5 branches principales
+- Chaque branche doit avoir 2-4 sous-concepts
+- Utilise des émojis pertinents pour chaque catégorie
+- Montre les RELATIONS entre les concepts
+- Sois EXHAUSTIF dans la couverture du sujet`;
+        userPrompt = `Crée une carte mentale COMPLÈTE et DÉTAILLÉE sur: "${topic}"
+${subject ? `Matière: ${subject}` : ''}
+${content ? `\nContenu de référence fourni:\n${content.substring(0, 5000)}` : ''}
+
+IMPORTANT: La carte doit couvrir TOUS les aspects importants du sujet avec des connexions claires entre les concepts.`;
         break;
     }
 
