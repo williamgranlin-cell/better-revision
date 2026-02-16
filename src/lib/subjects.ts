@@ -4,6 +4,31 @@ export interface SubjectGroup {
   subjects: { value: string; label: string }[];
 }
 
+export interface SchoolLevel {
+  value: string;
+  label: string;
+  emoji: string;
+}
+
+export const SCHOOL_LEVELS: SchoolLevel[] = [
+  { value: "6eme", label: "6ème", emoji: "📗" },
+  { value: "5eme", label: "5ème", emoji: "📗" },
+  { value: "4eme", label: "4ème", emoji: "📘" },
+  { value: "3eme", label: "3ème", emoji: "📘" },
+  { value: "seconde", label: "Seconde", emoji: "📙" },
+  { value: "premiere", label: "Première", emoji: "📙" },
+  { value: "terminale", label: "Terminale", emoji: "📕" },
+  { value: "bts", label: "BTS", emoji: "🎓" },
+  { value: "licence1", label: "Licence 1", emoji: "🎓" },
+  { value: "licence2", label: "Licence 2", emoji: "🎓" },
+  { value: "licence3", label: "Licence 3", emoji: "🎓" },
+  { value: "master1", label: "Master 1", emoji: "🎓" },
+  { value: "master2", label: "Master 2", emoji: "🎓" },
+  { value: "prepa", label: "Prépa (CPGE)", emoji: "🔥" },
+  { value: "medecine", label: "Médecine (PASS/LAS)", emoji: "🏥" },
+  { value: "doctorat", label: "Doctorat", emoji: "🎓" },
+];
+
 export const SUBJECT_GROUPS: SubjectGroup[] = [
   {
     label: "📚 Lycée / Collège",
@@ -135,4 +160,10 @@ export const ALL_SUBJECTS = SUBJECT_GROUPS.flatMap((group) => group.subjects);
 export const getSubjectLabel = (value: string): string => {
   const subject = ALL_SUBJECTS.find((s) => s.value === value);
   return subject?.label || value;
+};
+
+// Get school level label by value
+export const getSchoolLevelLabel = (value: string): string => {
+  const level = SCHOOL_LEVELS.find((l) => l.value === value);
+  return level?.label || value;
 };

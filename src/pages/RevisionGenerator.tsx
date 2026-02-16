@@ -7,7 +7,8 @@ import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SubjectSelect } from "@/components/SubjectSelect";
-import { FileText, Network, Shapes, Loader2, Sparkles, Copy, Check, FileUp, ImageIcon, Save, Globe, Lock, Trash2, BookOpen, Pencil, Camera, Upload } from "lucide-react";
+import { SchoolLevelSelect } from "@/components/SchoolLevelSelect";
+import { FileText, Network, Shapes, Loader2, Sparkles, Copy, Check, FileUp, ImageIcon, Save, Globe, Lock, Trash2, BookOpen, Pencil, Camera, Upload, GraduationCap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useRevisionContent, RevisionContent } from "@/hooks/useRevisionContent";
@@ -26,6 +27,7 @@ const RevisionGenerator = () => {
   const [creationMode, setCreationMode] = useState<CreationMode>("ai");
   const [topic, setTopic] = useState("");
   const [subject, setSubject] = useState("");
+  const [schoolLevel, setSchoolLevel] = useState("");
   const [content, setContent] = useState("");
   const [result, setResult] = useState("");
   const [schemaImage, setSchemaImage] = useState<string | null>(null);
@@ -133,6 +135,7 @@ const RevisionGenerator = () => {
           type: generationType,
           topic,
           subject: subject || undefined,
+          schoolLevel: schoolLevel || undefined,
           content: content || undefined,
           photoBase64: photoBase64,
           redrawPhoto: creationMode === "photo"
@@ -500,6 +503,14 @@ const RevisionGenerator = () => {
                   </div>
 
                   <div>
+                    <label className="text-sm font-medium mb-2 block">Niveau scolaire (optionnel)</label>
+                    <SchoolLevelSelect
+                      value={schoolLevel}
+                      onValueChange={setSchoolLevel}
+                    />
+                  </div>
+
+                  <div>
                     <label className="text-sm font-medium mb-2 block">Contenu *</label>
                     <Textarea
                       value={manualContent}
@@ -652,6 +663,14 @@ const RevisionGenerator = () => {
                       value={subject}
                       onValueChange={setSubject}
                       allLabel="Aucune"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Niveau scolaire (optionnel)</label>
+                    <SchoolLevelSelect
+                      value={schoolLevel}
+                      onValueChange={setSchoolLevel}
                     />
                   </div>
 
