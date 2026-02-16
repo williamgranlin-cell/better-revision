@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Calendar, RefreshCw, Settings, ChevronDown } from "lucide-react";
+import { Plus, Calendar, RefreshCw, Settings, ChevronDown, X, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BottomNav } from "@/components/BottomNav";
 import { useSchedule, ScheduleItem } from "@/hooks/useSchedule";
@@ -30,6 +30,7 @@ const Schedule = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ScheduleItem | null>(null);
   const [selectedDay, setSelectedDay] = useState(0);
+  const [fullscreenDay, setFullscreenDay] = useState<number | null>(null);
   
   // Customizable time grid
   const [startHour, setStartHour] = useState(() => {
@@ -62,13 +63,13 @@ const Schedule = () => {
     setIsAddDialogOpen(true);
   };
 
-  const getItemStyle = (item: ScheduleItem) => {
+  const getItemStyle = (item: ScheduleItem, gridStartHour: number) => {
     const itemStartHour = parseInt(item.start_time.split(":")[0]);
     const itemStartMin = parseInt(item.start_time.split(":")[1]);
     const itemEndHour = parseInt(item.end_time.split(":")[0]);
     const itemEndMin = parseInt(item.end_time.split(":")[1]);
 
-    const startOffset = (itemStartHour - startHour) * 60 + itemStartMin;
+    const startOffset = (itemStartHour - gridStartHour) * 60 + itemStartMin;
     const duration = (itemEndHour - itemStartHour) * 60 + (itemEndMin - itemStartMin);
 
     return {
@@ -87,6 +88,211 @@ const Schedule = () => {
     const itemEndHour = parseInt(item.end_time.split(":")[0]);
     return itemStartHour >= startHour && itemEndHour <= endHour;
   };
+
+  const isItemInRange = (item: ScheduleItem, fromHour: number, toHour: number) => {
+    const itemStartHour = parseInt(item.start_time.split(":")[0]);
+    return itemStartHour >= fromHour && itemStartHour < toHour;
+  };
+
+  const getPositionedItems = (dayItems: ScheduleItem[]) => {
+    return dayItems.map((item, index) => {
+      const itemStartMin = parseInt(item.start_time.split(":")[0]) * 60 + parseInt(item.start_time.split(":")[1]);
+      const itemEndMin = parseInt(item.end_time.split(":")[0]) * 60 + parseInt(item.end_time.split(":")[1]);
+      
+      let column = 0;
+      const overlapping = dayItems.filter((other, otherIndex) => {
+        if (otherIndex >= index) return false;
+        const otherStartMin = parseInt(other.start_time.split(":")[0]) * 60 + parseInt(other.start_time.split(":")[1]);
+        const otherEndMin = parseInt(other.end_time.split(":")[0]) * 60 + parseInt(other.end_time.split(":")[1]);
+        return itemStartMin < otherEndMin && itemEndMin > otherStartMin;
+      });
+      
+      const usedColumns = overlapping.map((_, i) => i);
+      while (usedColumns.includes(column)) {
+        column++;
+      }
+      
+      const allOverlapping = dayItems.filter((other) => {
+        const otherStartMin = parseInt(other.start_time.split(":")[0]) * 60 + parseInt(other.start_time.split(":")[1]);
+        const otherEndMin = parseInt(other.end_time.split(":")[0]) * 60 + parseInt(other.end_time.split(":")[1]);
+        return itemStartMin < otherEndMin && itemEndMin > otherStartMin;
+      });
+      const maxColumns = Math.max(allOverlapping.length, 1);
+      
+      return { item, column, maxColumns };
+    });
+  };
+
+  const renderDayColumn = (dayItems: ScheduleItem[], gridStartHour: number, gridHours: number[], showAdd = true) => {
+    const positionedItems = getPositionedItems(dayItems);
+    
+    return (
+      <div
+        className="relative glass-card rounded-xl overflow-hidden cursor-pointer group"
+        onClick={() => showAdd && handleAddClick(fullscreenDay ?? undefined)}
+        style={{ height: `${gridHours.length * 4}rem` }}
+      >
+        {gridHours.map((hour) => (
+          <div
+            key={hour}
+            className="absolute w-full border-t border-border/30"
+            style={{ top: `${(hour - gridStartHour) * 4}rem` }}
+          />
+        ))}
+
+        {showAdd && (
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-primary/5 z-10 pointer-events-none">
+            <Plus className="w-8 h-8 text-primary/50" />
+          </div>
+        )}
+
+        {positionedItems.map(({ item, column, maxColumns }) => {
+          const style = getItemStyle(item, gridStartHour);
+          const width = `calc((100% - ${4 + (maxColumns - 1) * 2}px) / ${maxColumns})`;
+          const left = `calc(2px + ((100% - ${4 + (maxColumns - 1) * 2}px) / ${maxColumns} + 2px) * ${column})`;
+          
+          return (
+            <div
+              key={item.id}
+              className={cn(
+                "absolute rounded-lg p-2 cursor-pointer transition-all duration-200 hover:z-30 hover:shadow-lg",
+                item.color
+              )}
+              style={{ ...style, width, left, right: 'auto', minHeight: '2.5rem' }}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleItemClick(item);
+              }}
+              title={`${item.title} - ${formatTime(item.start_time)} à ${formatTime(item.end_time)}`}
+            >
+              <div className="flex flex-col h-full text-white overflow-hidden">
+                <span className="font-medium text-xs sm:text-sm leading-tight truncate">
+                  {item.title}
+                </span>
+                <span className="text-[10px] sm:text-xs opacity-80 leading-tight mt-0.5">
+                  {formatTime(item.start_time)} - {formatTime(item.end_time)}
+                </span>
+                {item.is_recurring && (
+                  <RefreshCw className="w-2.5 h-2.5 absolute bottom-1 right-1 opacity-60" />
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  // Fullscreen day view
+  if (fullscreenDay !== null) {
+    const dayLabel = days.find(d => d.value === fullscreenDay)?.label || "";
+    const allDayItems = getItemsByDay(fullscreenDay).filter(isItemVisible);
+    const morningItems = allDayItems.filter(item => isItemInRange(item, startHour, 13));
+    const afternoonItems = allDayItems.filter(item => isItemInRange(item, 13, endHour + 1));
+    
+    const morningHours = hours.filter(h => h < 13);
+    const afternoonHours = hours.filter(h => h >= 13);
+
+    return (
+      <div className="min-h-screen pb-24 bg-background">
+        <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-lg border-b border-border/50 shadow-sm">
+          <div className="max-w-screen-xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
+            <div>
+              <h1 className="text-xl md:text-2xl lg:text-3xl font-display font-bold bg-gradient-to-r from-violet-500 via-cyan-500 to-emerald-500 bg-clip-text text-transparent">
+                {dayLabel} 📋
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                {allDayItems.length} événement{allDayItems.length !== 1 ? "s" : ""}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => handleAddClick(fullscreenDay)}
+                size="sm"
+                className="bg-gradient-to-r from-violet-500 to-cyan-500 text-white"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Ajouter
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setFullscreenDay(null)}
+              >
+                <X className="w-4 h-4 mr-2" />
+                Fermer
+              </Button>
+            </div>
+          </div>
+        </header>
+
+        <main className="max-w-screen-xl mx-auto px-4 md:px-6 py-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Morning */}
+            <div>
+              <div className="flex items-center gap-2 mb-3 px-2">
+                <Sun className="w-5 h-5 text-amber-500" />
+                <h2 className="font-semibold text-lg">Matin</h2>
+                <span className="text-sm text-muted-foreground">({morningItems.length})</span>
+              </div>
+              {morningHours.length > 0 ? (
+                <div className="grid grid-cols-[60px_1fr] gap-1">
+                  <div className="relative">
+                    {morningHours.map((hour) => (
+                      <div key={hour} className="h-16 flex items-start justify-end pr-2 text-xs text-muted-foreground">
+                        {hour}:00
+                      </div>
+                    ))}
+                  </div>
+                  {renderDayColumn(morningItems, morningHours[0], morningHours)}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">Aucune heure matinale dans la grille</div>
+              )}
+            </div>
+
+            {/* Afternoon */}
+            <div>
+              <div className="flex items-center gap-2 mb-3 px-2">
+                <Moon className="w-5 h-5 text-indigo-500" />
+                <h2 className="font-semibold text-lg">Après-midi</h2>
+                <span className="text-sm text-muted-foreground">({afternoonItems.length})</span>
+              </div>
+              {afternoonHours.length > 0 ? (
+                <div className="grid grid-cols-[60px_1fr] gap-1">
+                  <div className="relative">
+                    {afternoonHours.map((hour) => (
+                      <div key={hour} className="h-16 flex items-start justify-end pr-2 text-xs text-muted-foreground">
+                        {hour}:00
+                      </div>
+                    ))}
+                  </div>
+                  {renderDayColumn(afternoonItems, afternoonHours[0], afternoonHours)}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">Aucune heure d'après-midi dans la grille</div>
+              )}
+            </div>
+          </div>
+        </main>
+
+        <AddScheduleItemDialog
+          open={isAddDialogOpen}
+          onOpenChange={setIsAddDialogOpen}
+          onAddItem={addItem}
+          defaultDay={selectedDay}
+        />
+        <EditScheduleItemDialog
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          item={selectedItem}
+          onUpdateItem={updateItem}
+          onDeleteItem={deleteItem}
+        />
+        <BottomNav />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-24 bg-background">
@@ -150,30 +356,9 @@ const Schedule = () => {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="flex-1 text-xs"
-                      onClick={() => handleTimeGridChange(7, 18)}
-                    >
-                      Journée
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="flex-1 text-xs"
-                      onClick={() => handleTimeGridChange(8, 17)}
-                    >
-                      École
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="flex-1 text-xs"
-                      onClick={() => handleTimeGridChange(6, 22)}
-                    >
-                      Étendu
-                    </Button>
+                    <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => handleTimeGridChange(7, 18)}>Journée</Button>
+                    <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => handleTimeGridChange(8, 17)}>École</Button>
+                    <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => handleTimeGridChange(6, 22)}>Étendu</Button>
                   </div>
                 </div>
               </PopoverContent>
@@ -207,7 +392,9 @@ const Schedule = () => {
                 {days.map((day) => (
                   <div
                     key={day.value}
-                    className="p-2 text-center glass-card rounded-xl"
+                    className="p-2 text-center glass-card rounded-xl cursor-pointer hover:bg-primary/10 transition-colors"
+                    onClick={() => setFullscreenDay(day.value)}
+                    title={`Cliquez pour voir ${day.label} en plein écran`}
                   >
                     <span className="hidden sm:inline font-medium text-sm">{day.label}</span>
                     <span className="sm:hidden font-medium text-xs">{day.short}</span>
@@ -232,38 +419,7 @@ const Schedule = () => {
                 {/* Days columns */}
                 {days.map((day) => {
                   const dayItems = getItemsByDay(day.value).filter(isItemVisible);
-                  
-                  // Group overlapping items and assign columns
-                  const positionedItems = dayItems.map((item, index) => {
-                    const itemStartMin = parseInt(item.start_time.split(":")[0]) * 60 + parseInt(item.start_time.split(":")[1]);
-                    const itemEndMin = parseInt(item.end_time.split(":")[0]) * 60 + parseInt(item.end_time.split(":")[1]);
-                    
-                    // Find overlapping items that come before this one
-                    let column = 0;
-                    let maxColumns = 1;
-                    const overlapping = dayItems.filter((other, otherIndex) => {
-                      if (otherIndex >= index) return false;
-                      const otherStartMin = parseInt(other.start_time.split(":")[0]) * 60 + parseInt(other.start_time.split(":")[1]);
-                      const otherEndMin = parseInt(other.end_time.split(":")[0]) * 60 + parseInt(other.end_time.split(":")[1]);
-                      return itemStartMin < otherEndMin && itemEndMin > otherStartMin;
-                    });
-                    
-                    // Find the first available column
-                    const usedColumns = overlapping.map((_, i) => i);
-                    while (usedColumns.includes(column)) {
-                      column++;
-                    }
-                    
-                    // Calculate total columns needed for this time slot
-                    const allOverlapping = dayItems.filter((other) => {
-                      const otherStartMin = parseInt(other.start_time.split(":")[0]) * 60 + parseInt(other.start_time.split(":")[1]);
-                      const otherEndMin = parseInt(other.end_time.split(":")[0]) * 60 + parseInt(other.end_time.split(":")[1]);
-                      return itemStartMin < otherEndMin && itemEndMin > otherStartMin;
-                    });
-                    maxColumns = Math.max(allOverlapping.length, 1);
-                    
-                    return { item, column, maxColumns };
-                  });
+                  const positionedItems = getPositionedItems(dayItems);
 
                   return (
                     <div
@@ -272,7 +428,6 @@ const Schedule = () => {
                       onClick={() => handleAddClick(day.value)}
                       style={{ height: `${hours.length * 4}rem` }}
                     >
-                      {/* Hour lines */}
                       {hours.map((hour) => (
                         <div
                           key={hour}
@@ -281,14 +436,12 @@ const Schedule = () => {
                         />
                       ))}
 
-                      {/* Add button on hover */}
                       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-primary/5 z-10 pointer-events-none">
                         <Plus className="w-8 h-8 text-primary/50" />
                       </div>
 
-                      {/* Items with column positioning */}
                       {positionedItems.map(({ item, column, maxColumns }) => {
-                        const style = getItemStyle(item);
+                        const style = getItemStyle(item, startHour);
                         const width = `calc((100% - ${4 + (maxColumns - 1) * 2}px) / ${maxColumns})`;
                         const left = `calc(2px + ((100% - ${4 + (maxColumns - 1) * 2}px) / ${maxColumns} + 2px) * ${column})`;
                         
@@ -344,7 +497,7 @@ const Schedule = () => {
         )}
 
         {/* Legend */}
-        <div className="mt-6 flex items-center gap-4 justify-center text-sm text-muted-foreground">
+        <div className="mt-6 flex flex-wrap items-center gap-4 justify-center text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <RefreshCw className="w-4 h-4" />
             <span>Événement récurrent</span>
@@ -352,6 +505,9 @@ const Schedule = () => {
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4" />
             <span>{items.length} événement{items.length !== 1 ? "s" : ""}</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs">
+            💡 <span>Cliquez sur un jour pour l'ouvrir en plein écran</span>
           </div>
         </div>
       </main>

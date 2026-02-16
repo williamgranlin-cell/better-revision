@@ -7,13 +7,21 @@ const corsHeaders = {
 
 const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
+function buildContextBlock(subject?: string, schoolLevel?: string, content?: string): string {
+  const parts: string[] = [];
+  if (subject) parts.push(`📖 MATIÈRE: ${subject}`);
+  if (schoolLevel) parts.push(`🎓 NIVEAU SCOLAIRE: ${schoolLevel}`);
+  if (content) parts.push(`📄 COURS FOURNI PAR L'ÉLÈVE (à exploiter en priorité):\n${content.substring(0, 6000)}`);
+  return parts.length > 0 ? parts.join('\n') : '';
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { type, topic, content, subject, photoBase64, redrawPhoto } = await req.json();
+    const { type, topic, content, subject, schoolLevel, photoBase64, redrawPhoto } = await req.json();
 
     if (!type || !topic) {
       return new Response(
@@ -30,49 +38,54 @@ serve(async (req) => {
       );
     }
 
+    const contextBlock = buildContextBlock(subject, schoolLevel, content);
+
     // For schema type, generate an actual image
     if (type === 'schema') {
-      console.log('Generating schema image for topic:', topic, 'redrawPhoto:', redrawPhoto);
+      console.log('Generating schema image for topic:', topic, 'subject:', subject, 'level:', schoolLevel);
       
-      let imagePrompt: string;
       let messages: any[];
       
       if (redrawPhoto && photoBase64) {
-        // Redraw from photo
-        imagePrompt = `Redessine ce schéma de manière propre, claire et professionnelle. 
+        const imagePrompt = `Redessine ce schéma de manière propre, claire et professionnelle.
 Sujet: "${topic}"
-Style: Schéma éducatif propre comme dans un manuel scolaire.
-Consignes:
+${subject ? `Matière: ${subject}` : ''}
+${schoolLevel ? `Niveau: ${schoolLevel}` : ''}
+
+Style: Schéma éducatif propre et précis comme dans un manuel scolaire de référence.
+Consignes STRICTES:
 - Garde les mêmes éléments et structure que l'image originale
-- Améliore la lisibilité et la clarté
+- Améliore considérablement la lisibilité et la clarté
 - Ajoute des numéros (1, 2, 3...) pour chaque partie importante
-- Utilise des couleurs distinctes pour différencier les éléments
+- Utilise des couleurs distinctes et professionnelles pour différencier les éléments
 - Fond blanc ou très clair
-- Ajoute des légendes claires en français
-- Rends le schéma plus professionnel et facile à comprendre`;
+- Ajoute des légendes claires, précises et complètes en français
+- Rends le schéma professionnel, scientifiquement exact et facile à comprendre
+- Adapte le niveau de détail au niveau scolaire indiqué`;
 
         messages = [
-          { 
-            role: 'user', 
-            content: [
-              { type: 'text', text: imagePrompt },
-              { type: 'image_url', image_url: { url: photoBase64 } }
-            ]
-          }
+          { role: 'user', content: [
+            { type: 'text', text: imagePrompt },
+            { type: 'image_url', image_url: { url: photoBase64 } }
+          ]}
         ];
       } else {
-        // Generate from scratch
-        imagePrompt = `Create a clear, educational scientific diagram/illustration about: "${topic}". 
-Style: Clean educational diagram like in a textbook. 
-Include: Labels with numbers (1, 2, 3...) pointing to each important part. 
-Colors: Use distinct colors to differentiate parts.
-Background: White or light colored.
-Text: Include brief labels in French for each numbered element.
-Make it simple, clear and easy to understand for students.`;
+        const imagePrompt = `Create a clear, detailed, scientifically accurate educational diagram about: "${topic}".
+${subject ? `Subject: ${subject}` : ''}
+${schoolLevel ? `Academic level: ${schoolLevel}` : ''}
 
-        messages = [
-          { role: 'user', content: imagePrompt }
-        ];
+Requirements:
+- Clean educational diagram like in a reference textbook
+- Include numbered labels (1, 2, 3...) pointing to each important part
+- Use distinct professional colors to differentiate parts
+- White or light background
+- Include brief labels in French for each numbered element
+- Be scientifically precise and accurate
+- Adapt complexity to the academic level
+- Make it comprehensive, covering all key elements of the topic
+- Simple, clear, and easy to understand for students`;
+
+        messages = [{ role: 'user', content: imagePrompt }];
       }
 
       const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -91,44 +104,45 @@ Make it simple, clear and easy to understand for students.`;
       if (!imageResponse.ok) {
         const errorText = await imageResponse.text();
         console.error('Image generation error:', imageResponse.status, errorText);
-        
         if (imageResponse.status === 429) {
           return new Response(
             JSON.stringify({ error: "Trop de requêtes, veuillez réessayer dans quelques instants" }),
             { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
-        
         throw new Error(`Image generation failed: ${imageResponse.status}`);
       }
 
       const imageData = await imageResponse.json();
-      console.log('Image response received');
-      
       const imageUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-      const textContent = imageData.choices?.[0]?.message?.content || '';
+      if (!imageUrl) throw new Error('No image generated');
 
-      if (!imageUrl) {
-        throw new Error('No image generated');
-      }
+      // Generate legends
+      const legendPrompt = `Tu es un expert pédagogique. Pour un schéma éducatif sur "${topic}", génère des légendes numérotées ultra-précises.
+${contextBlock}
 
-      // Now generate legends for the image
-      const legendPrompt = `Pour un schéma éducatif sur "${topic}", génère une liste de légendes numérotées en français.
-
-FORMAT:
+FORMAT OBLIGATOIRE:
 🎨 **SCHÉMA: ${topic}**
+${subject ? `📖 Matière: ${subject}` : ''}
+${schoolLevel ? `🎓 Niveau: ${schoolLevel}` : ''}
 
-**🏷️ LÉGENDES:**
-① [Élément principal] → [Description courte]
-② [Deuxième élément] → [Description courte]
-③ [Troisième élément] → [Description courte]
-④ [Quatrième élément] → [Description courte]
-⑤ [Cinquième élément] → [Description courte]
+**🏷️ LÉGENDES DÉTAILLÉES:**
+① [Élément] → [Description précise avec fonction/rôle]
+② [Élément] → [Description précise avec fonction/rôle]
+③ [Élément] → [Description précise avec fonction/rôle]
+④ [Élément] → [Description précise avec fonction/rôle]
+⑤ [Élément] → [Description précise avec fonction/rôle]
+⑥ [Élément] → [Description précise avec fonction/rôle]
+
+**📝 EXPLICATIONS CLÉS:**
+[Pour chaque élément important, une explication de 1-2 phrases sur son rôle, sa fonction ou son importance dans le contexte du sujet]
 
 **💡 À RETENIR:**
-[Résumé en 1-2 phrases du concept illustré]
+[Résumé en 2-3 phrases des concepts essentiels illustrés par ce schéma]
 
-Génère 5-8 légendes pertinentes pour ce sujet.`;
+${content ? `\nIMPORTANT: Base-toi sur le cours fourni par l'élève pour les légendes et explications. Reprends les termes exacts du cours.` : ''}
+
+Génère 5-10 légendes pertinentes et précises adaptées au niveau ${schoolLevel || 'de l\'élève'}.`;
 
       const legendResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
@@ -138,11 +152,9 @@ Génère 5-8 légendes pertinentes pour ce sujet.`;
         },
         body: JSON.stringify({
           model: 'google/gemini-2.5-flash',
-          messages: [
-            { role: 'user', content: legendPrompt }
-          ],
-          max_tokens: 1500,
-          temperature: 0.7,
+          messages: [{ role: 'user', content: legendPrompt }],
+          max_tokens: 2000,
+          temperature: 0.5,
         }),
       });
 
@@ -153,101 +165,127 @@ Génère 5-8 légendes pertinentes pour ce sujet.`;
       }
 
       return new Response(
-        JSON.stringify({ 
-          result: legends,
-          imageUrl: imageUrl,
-          type: 'schema'
-        }),
+        JSON.stringify({ result: legends, imageUrl, type: 'schema' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // For other types (revision_sheet, mind_map), generate text content
+    // Text content generation (revision_sheet, mind_map)
     let systemPrompt = '';
     let userPrompt = '';
 
+    const levelInstruction = schoolLevel 
+      ? `\n\nNIVEAU SCOLAIRE DE L'ÉLÈVE: ${schoolLevel}\nTu DOIS adapter le vocabulaire, la complexité des explications, la profondeur du contenu et les exemples à ce niveau précis. Un élève de 6ème n'a pas les mêmes connaissances qu'un étudiant en Master.`
+      : '';
+
+    const courseInstruction = content
+      ? `\n\nCOURS FOURNI PAR L'ÉLÈVE:\n${content.substring(0, 6000)}\n\nINSTRUCTION CRITIQUE: Tu DOIS te baser EN PRIORITÉ sur ce cours fourni. Résume-le, structure-le, et enrichis-le. Ne génère pas un contenu générique : utilise les termes, exemples et concepts présents dans le cours de l'élève. Complète avec tes connaissances uniquement pour clarifier ou enrichir.`
+      : '';
+
+    const subjectInstruction = subject
+      ? `\n\nMATIÈRE: ${subject}\nAdapte ton contenu spécifiquement à cette matière. Utilise la méthodologie, le vocabulaire technique et les conventions propres à cette discipline.`
+      : '';
+
     switch (type) {
       case 'revision_sheet':
-        systemPrompt = `Tu es un expert pédagogique de niveau universitaire, spécialisé dans la création de fiches de révision de haute qualité.
+        systemPrompt = `Tu es un professeur expert et pédagogue exceptionnel, spécialisé dans la création de fiches de révision PARFAITES. Tu sais rendre n'importe quel sujet limpide et mémorable.
+${levelInstruction}${subjectInstruction}
 
-OBJECTIF: Créer une fiche de révision COMPLÈTE, PRÉCISE et STRUCTURÉE qui couvre TOUS les aspects importants du sujet.
+OBJECTIF: Créer LA fiche de révision définitive sur le sujet. Elle doit être si bien faite qu'un élève qui la lit et la comprend maîtrisera parfaitement le sujet.
 
 FORMAT OBLIGATOIRE:
 📚 **FICHE DE RÉVISION: [TITRE]**
 ${subject ? `📖 Matière: ${subject}` : ''}
+${schoolLevel ? `🎓 Niveau: ${schoolLevel}` : ''}
 
-**🎯 OBJECTIFS D'APPRENTISSAGE:**
-- [Ce que l'étudiant doit maîtriser après cette fiche]
+**🎯 CE QUE TU DOIS SAVOIR APRÈS CETTE FICHE:**
+- [Objectif 1 clair et mesurable]
+- [Objectif 2]
+- [Objectif 3]
 
-**📝 DÉFINITIONS CLÉS:**
-• **[Terme 1]**: [Définition précise et complète]
-• **[Terme 2]**: [Définition précise et complète]
+**📝 DÉFINITIONS ESSENTIELLES:**
+• **[Terme 1]**: [Définition précise, claire, avec un exemple concret entre parenthèses si utile]
+• **[Terme 2]**: [Définition précise]
+(Continue avec TOUS les termes importants du sujet)
 
-**🔑 CONCEPTS FONDAMENTAUX:**
-1. **[Concept 1]**
-   - Explication détaillée
-   - Exemple concret
-   
-2. **[Concept 2]**
-   - Explication détaillée
-   - Exemple concret
+**🔑 LES CONCEPTS FONDAMENTAUX:**
 
-**📐 FORMULES / RÈGLES IMPORTANTES:** (si applicable)
-• [Formule 1]: [Explication de chaque variable]
-• [Formule 2]: [Explication de chaque variable]
+**1. [Premier concept majeur]**
+📌 Explication claire et progressive (du simple au complexe)
+💡 Exemple concret qui rend le concept évident
+🔗 Lien avec les autres concepts
 
-**💡 EXEMPLES D'APPLICATION:**
-[Exemples concrets avec résolution étape par étape]
+**2. [Deuxième concept majeur]**
+📌 Explication claire et progressive
+💡 Exemple concret
+🔗 Lien avec les autres concepts
 
-**⚠️ ERREURS COURANTES À ÉVITER:**
-• [Erreur 1] → [Comment l'éviter]
-• [Erreur 2] → [Comment l'éviter]
+(Continue avec TOUS les concepts importants)
 
-**🧠 MOYENS MNÉMOTECHNIQUES:**
-[Astuces pour mémoriser]
+**📐 FORMULES / RÈGLES / MÉTHODES:** (si applicable)
+• [Formule/Règle 1]: [Explication de chaque élément + quand l'utiliser]
+• [Formule/Règle 2]: [Explication]
 
-**✅ RÉSUMÉ EN 5 POINTS:**
-1. [Point essentiel 1]
-2. [Point essentiel 2]
-3. [Point essentiel 3]
-4. [Point essentiel 4]
-5. [Point essentiel 5]
+**💡 EXEMPLES RÉSOLUS ÉTAPE PAR ÉTAPE:**
+[Au moins 2 exemples complets avec chaque étape expliquée]
 
-RÈGLES:
-- Sois EXHAUSTIF et PRÉCIS
-- Utilise un vocabulaire adapté au niveau d'études
-- Chaque définition doit être claire et complète
-- Les exemples doivent être concrets et instructifs
-- Adapte la complexité au sujet (lycée vs études supérieures)`;
-        userPrompt = `Crée une fiche de révision COMPLÈTE et DÉTAILLÉE sur: "${topic}"
-${subject ? `Matière: ${subject}` : ''}
-${content ? `\nContenu de référence fourni:\n${content.substring(0, 5000)}` : ''}
+**⚠️ PIÈGES CLASSIQUES ET ERREURS À ÉVITER:**
+❌ [Erreur 1] → ✅ [Ce qu'il faut faire à la place]
+❌ [Erreur 2] → ✅ [Correction]
 
-IMPORTANT: Sois le plus précis et complet possible. Cette fiche doit permettre à l'étudiant de maîtriser parfaitement le sujet.`;
+**🧠 ASTUCES POUR MÉMORISER:**
+[Moyens mnémotechniques, analogies, images mentales]
+
+**✅ L'ESSENTIEL EN 5-7 POINTS:**
+1. [Point clé 1]
+2. [Point clé 2]
+3. [Point clé 3]
+4. [Point clé 4]
+5. [Point clé 5]
+
+RÈGLES ABSOLUES:
+- Sois EXHAUSTIF: couvre TOUT ce qui est important
+- Sois PRÉCIS: chaque information doit être exacte et vérifiable
+- Sois CLAIR: un élève doit comprendre du premier coup
+- Sois STRUCTURÉ: l'organisation doit faciliter la révision
+- ADAPTE le niveau de complexité au niveau scolaire indiqué
+- Si un cours est fourni, RÉSUME-LE et STRUCTURE-LE en priorité`;
+
+        userPrompt = `Crée une fiche de révision COMPLÈTE, PRÉCISE et ULTRA-CLAIRE sur: "${topic}"
+${contextBlock}
+
+IMPORTANT: 
+- Sois le plus précis et complet possible
+- Cette fiche doit permettre de maîtriser PARFAITEMENT le sujet
+- Adapte absolument tout au niveau scolaire et à la matière
+${content ? '- BASE-TOI EN PRIORITÉ sur le cours fourni par l\'élève, résume-le et structure-le' : ''}`;
         break;
 
       case 'mind_map':
-        systemPrompt = `Tu es un expert en cartographie mentale et en pédagogie. Crée des cartes mentales DÉTAILLÉES et STRUCTURÉES qui permettent de visualiser TOUS les concepts et leurs relations.
+        systemPrompt = `Tu es un expert en pédagogie et en cartographie mentale. Tu crées des cartes mentales COMPLÈTES qui permettent de visualiser et comprendre TOUT un sujet en un coup d'œil.
+${levelInstruction}${subjectInstruction}
 
-FORMAT OBLIGATOIRE (utilise cette structure textuelle):
+FORMAT OBLIGATOIRE:
 🎯 **CONCEPT CENTRAL: [TITRE]**
 ${subject ? `📖 Matière: ${subject}` : ''}
+${schoolLevel ? `🎓 Niveau: ${schoolLevel}` : ''}
 
 ├── 📌 **BRANCHE 1: [Thème principal 1]**
 │   ├── 🔹 [Sous-concept 1.1]
-│   │   ├── • Détail important
-│   │   └── • Exemple ou application
+│   │   ├── • [Détail essentiel]
+│   │   ├── • [Exemple concret]
+│   │   └── • [À retenir]
 │   ├── 🔹 [Sous-concept 1.2]
-│   │   ├── • Détail important
-│   │   └── • Exemple ou application
+│   │   ├── • [Détail]
+│   │   └── • [Exemple]
 │   └── 🔹 [Sous-concept 1.3]
-│       └── • Détail important
+│       └── • [Détail]
 
 ├── 📌 **BRANCHE 2: [Thème principal 2]**
 │   ├── 🔹 [Sous-concept 2.1]
-│   │   └── • Détails...
+│   │   └── • [Détails...]
 │   └── 🔹 [Sous-concept 2.2]
-│       └── • Détails...
+│       └── • [Détails...]
 
 ├── 📌 **BRANCHE 3: [Thème principal 3]**
 │   └── [Sous-concepts avec détails...]
@@ -258,34 +296,29 @@ ${subject ? `📖 Matière: ${subject}` : ''}
 └── 📌 **BRANCHE 5: [Thème principal 5]**
     └── [Sous-concepts avec détails...]
 
-🔗 **CONNEXIONS IMPORTANTES:**
-• [Concept A] ↔ [Concept B]: [Explication du lien]
-• [Concept C] → [Concept D]: [Relation de cause/effet]
+🔗 **CONNEXIONS CLÉS ENTRE LES CONCEPTS:**
+• [Concept A] ↔ [Concept B]: [Pourquoi ils sont liés]
+• [Concept C] → [Concept D]: [Relation cause/effet]
 
-💡 **POINTS CLÉS À RETENIR:**
-1. [Élément essentiel 1]
-2. [Élément essentiel 2]
-3. [Élément essentiel 3]
+⚡ **SYNTHÈSE EXPRESS (pour réviser en 2 min):**
+1. [L'idée la plus importante]
+2. [La deuxième plus importante]
+3. [La troisième]
 
 RÈGLES:
-- Minimum 5 branches principales
-- Chaque branche doit avoir 2-4 sous-concepts
-- Utilise des émojis pertinents pour chaque catégorie
+- Minimum 5 branches principales, chacune avec 2-4 sous-concepts
 - Montre les RELATIONS entre les concepts
-- Sois EXHAUSTIF dans la couverture du sujet`;
+- Sois EXHAUSTIF dans la couverture du sujet
+- Adapte la profondeur au niveau scolaire
+${content ? '- Reprends les concepts et termes du cours fourni par l\'élève' : ''}`;
+
         userPrompt = `Crée une carte mentale COMPLÈTE et DÉTAILLÉE sur: "${topic}"
-${subject ? `Matière: ${subject}` : ''}
-${content ? `\nContenu de référence fourni:\n${content.substring(0, 5000)}` : ''}
+${contextBlock}
 
-IMPORTANT: La carte doit couvrir TOUS les aspects importants du sujet avec des connexions claires entre les concepts.`;
+IMPORTANT: 
+- Couvre TOUS les aspects importants avec des connexions claires
+${content ? '- BASE-TOI EN PRIORITÉ sur le cours fourni, structure ses concepts' : ''}`;
         break;
-    }
-
-    if (content) {
-      userPrompt += `\n\nContenu de base à utiliser:\n${content.substring(0, 5000)}`;
-    }
-    if (subject) {
-      userPrompt = `[Matière: ${subject}]\n\n${userPrompt}`;
     }
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -300,22 +333,20 @@ IMPORTANT: La carte doit couvrir TOUS les aspects importants du sujet avec des c
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
-        max_tokens: 3000,
-        temperature: 0.7,
+        max_tokens: 4000,
+        temperature: 0.5,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error('AI API error:', response.status, errorText);
-      
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: "Trop de requêtes, veuillez réessayer" }),
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      
       throw new Error(`AI API error: ${response.status}`);
     }
 
