@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SubjectSelect } from "@/components/SubjectSelect";
 import { SchoolLevelSelect } from "@/components/SchoolLevelSelect";
-import { FileText, Network, Shapes, Loader2, Sparkles, Copy, Check, FileUp, ImageIcon, Save, Globe, Lock, Trash2, BookOpen, Pencil, Camera, Upload, GraduationCap } from "lucide-react";
+import { FileText, Network, Shapes, Loader2, Sparkles, Copy, Check, FileUp, ImageIcon, Save, Globe, Lock, Trash2, BookOpen, Pencil, Camera, Upload, GraduationCap, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useRevisionContent, RevisionContent } from "@/hooks/useRevisionContent";
@@ -220,6 +220,117 @@ const RevisionGenerator = () => {
       toast({
         title: "Erreur",
         description: "Impossible de copier le contenu",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleExportPDF = async (title: string, contentHtml?: string, imageUrl?: string | null) => {
+    try {
+      toast({ title: "Export en cours...", description: "Préparation du PDF" });
+      
+      const { default: jsPDF } = await import("jspdf");
+      const { default: html2canvas } = await import("html2canvas");
+      
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 15;
+      const usableWidth = pageWidth - margin * 2;
+      let yPos = margin;
+
+      // Title
+      pdf.setFontSize(18);
+      pdf.setFont("helvetica", "bold");
+      const titleLines = pdf.splitTextToSize(title, usableWidth);
+      pdf.text(titleLines, margin, yPos + 6);
+      yPos += titleLines.length * 8 + 6;
+
+      // Separator line
+      pdf.setDrawColor(200);
+      pdf.line(margin, yPos, pageWidth - margin, yPos);
+      yPos += 8;
+
+      // Schema image
+      if (imageUrl) {
+        try {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          await new Promise<void>((resolve, reject) => {
+            img.onload = () => resolve();
+            img.onerror = reject;
+            img.src = imageUrl;
+          });
+          
+          const imgRatio = img.width / img.height;
+          const imgWidth = Math.min(usableWidth, 160);
+          const imgHeight = imgWidth / imgRatio;
+          
+          if (yPos + imgHeight > pageHeight - margin) {
+            pdf.addPage();
+            yPos = margin;
+          }
+          
+          pdf.addImage(img, "PNG", (pageWidth - imgWidth) / 2, yPos, imgWidth, imgHeight);
+          yPos += imgHeight + 10;
+        } catch {
+          console.warn("Could not load schema image for PDF");
+        }
+      }
+
+      // Text content
+      if (contentHtml) {
+        // Clean markdown-like content to plain text
+        const plainText = contentHtml
+          .replace(/\*\*(.*?)\*\*/g, "$1")
+          .replace(/<[^>]*>/g, "")
+          .replace(/&nbsp;/g, " ");
+        
+        pdf.setFontSize(10);
+        pdf.setFont("helvetica", "normal");
+        
+        const lines = plainText.split("\n");
+        
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed) {
+            yPos += 3;
+            continue;
+          }
+
+          // Check if it's a header-like line (starts with emoji or is in caps)
+          const isHeader = /^[📚🎯📝🔑📐💡⚠️🧠✅🎨🏷️🔗⚡├└│📌🔹①②③④⑤⑥⑦⑧⑨⑩]/.test(trimmed) || 
+                          (trimmed.length < 60 && trimmed === trimmed.toUpperCase() && trimmed.length > 3);
+          
+          if (isHeader) {
+            pdf.setFont("helvetica", "bold");
+            pdf.setFontSize(11);
+          } else {
+            pdf.setFont("helvetica", "normal");
+            pdf.setFontSize(10);
+          }
+
+          const wrappedLines = pdf.splitTextToSize(trimmed, usableWidth);
+          const blockHeight = wrappedLines.length * 4.5;
+          
+          if (yPos + blockHeight > pageHeight - margin) {
+            pdf.addPage();
+            yPos = margin;
+          }
+          
+          pdf.text(wrappedLines, margin, yPos);
+          yPos += blockHeight + 1;
+        }
+      }
+
+      pdf.save(`${title.replace(/[^a-zA-Z0-9àâäéèêëïîôùûüÿçœæ\s-]/g, "").substring(0, 50)}.pdf`);
+      
+      toast({ title: "PDF exporté ! 📄", description: "Le fichier a été téléchargé" });
+    } catch (error) {
+      console.error("PDF export error:", error);
+      toast({
+        title: "Erreur d'export",
+        description: "Impossible de générer le PDF",
         variant: "destructive",
       });
     }
@@ -768,6 +879,17 @@ const RevisionGenerator = () => {
                         )}
                       </Button>
                     )}
+                    {(result || schemaImage) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleExportPDF(topic, result || undefined, schemaImage)}
+                        className="flex items-center gap-2 hover-scale"
+                      >
+                        <Download className="h-4 w-4" />
+                        PDF
+                      </Button>
+                    )}
                     {(result || schemaImage) && user && (
                       <Button
                         size="sm"
@@ -875,14 +997,24 @@ const RevisionGenerator = () => {
               <h3 className="font-semibold text-lg">Aperçu</h3>
               {selectedContent ? (
                 <Card className="p-4 border-border/50">
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="text-2xl">{getTypeInfo(selectedContent.type).emoji}</span>
-                    <div>
-                      <h4 className="font-semibold">{selectedContent.title}</h4>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(selectedContent.created_at).toLocaleDateString('fr-FR')}
-                      </p>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">{getTypeInfo(selectedContent.type).emoji}</span>
+                      <div>
+                        <h4 className="font-semibold">{selectedContent.title}</h4>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(selectedContent.created_at).toLocaleDateString('fr-FR')}
+                        </p>
+                      </div>
                     </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleExportPDF(selectedContent.title, selectedContent.content || undefined, selectedContent.image_url)}
+                    >
+                      <Download className="h-4 w-4 mr-1" />
+                      PDF
+                    </Button>
                   </div>
                   <ScrollArea className="h-[400px]">
                     {selectedContent.image_url && (
@@ -941,14 +1073,24 @@ const RevisionGenerator = () => {
               <h3 className="font-semibold text-lg">Aperçu</h3>
               {selectedContent ? (
                 <Card className="p-4 border-border/50">
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="text-2xl">{getTypeInfo(selectedContent.type).emoji}</span>
-                    <div>
-                      <h4 className="font-semibold">{selectedContent.title}</h4>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(selectedContent.created_at).toLocaleDateString('fr-FR')}
-                      </p>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">{getTypeInfo(selectedContent.type).emoji}</span>
+                      <div>
+                        <h4 className="font-semibold">{selectedContent.title}</h4>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(selectedContent.created_at).toLocaleDateString('fr-FR')}
+                        </p>
+                      </div>
                     </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleExportPDF(selectedContent.title, selectedContent.content || undefined, selectedContent.image_url)}
+                    >
+                      <Download className="h-4 w-4 mr-1" />
+                      PDF
+                    </Button>
                   </div>
                   <ScrollArea className="h-[400px]">
                     {selectedContent.image_url && (
