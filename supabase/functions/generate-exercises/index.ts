@@ -51,6 +51,8 @@ serve(async (req) => {
 
     const systemPrompt = `Tu es un professeur expert et pédagogue de haut niveau. Tu crées des exercices PRÉCIS, CLAIRS et PÉDAGOGIQUES.
 
+RÈGLE ABSOLUE: Tu DOIS écrire un français IMPECCABLE, sans AUCUNE faute d'orthographe, de grammaire, de conjugaison ou de syntaxe. Vérifie chaque accord et chaque accent.
+
 MISSION: Générer exactement ${count} exercices ${difficultyPrompts[difficulty]} sur le sujet demandé.
 
 FORMAT OBLIGATOIRE pour chaque exercice:

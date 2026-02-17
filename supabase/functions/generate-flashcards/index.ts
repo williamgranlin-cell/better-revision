@@ -349,7 +349,7 @@ Format: ["mauvaise réponse 1", "mauvaise réponse 2"${wrongAnswersCount === 3 ?
     let userPrompt = "";
 
     if (type === "ai_subject") {
-      systemPrompt = `Tu es un EXPERT PÉDAGOGIQUE spécialisé dans la création de flashcards éducatives de HAUTE QUALITÉ.
+      systemPrompt = `Tu es un EXPERT PÉDAGOGIQUE spécialisé dans la création de flashcards éducatives de HAUTE QUALITÉ. Tu DOIS écrire un français IMPECCABLE, sans AUCUNE faute d'orthographe, de grammaire ou de conjugaison.
 
 🎯 MISSION: Créer des flashcards PRÉCISES, VARIÉES et PÉDAGOGIQUES sur le sujet demandé.
 
@@ -386,7 +386,7 @@ Assure-toi de couvrir:
 Retourne UNIQUEMENT un tableau JSON avec des objets contenant 'question' et 'answer'. Pas de texte avant ou après.
 Format: [{"question": "...", "answer": "..."}, ...]`;
     } else if (type === "text") {
-      systemPrompt = `Tu es un EXPERT en création de flashcards à partir de contenu textuel. Tu analyses le texte pour extraire les informations CLÉS et les transformer en questions d'apprentissage EFFICACES.
+      systemPrompt = `Tu es un EXPERT en création de flashcards à partir de contenu textuel. Tu analyses le texte pour extraire les informations CLÉS et les transformer en questions d'apprentissage EFFICACES. Tu DOIS écrire un français IMPECCABLE, sans AUCUNE faute.
 
 OBJECTIF: Créer des flashcards qui testent la COMPRÉHENSION profonde du texte, pas juste la mémorisation mot à mot.
 
@@ -402,7 +402,7 @@ ${content}
 
 Retourne UNIQUEMENT un tableau JSON avec des objets contenant 'question' et 'answer'. Chaque réponse doit être précise et issue du texte.`;
     } else if (type === "revision_sheet") {
-      systemPrompt = `Tu es un EXPERT en création de flashcards à partir de fiches de révision. Tu identifies les éléments ESSENTIELS à mémoriser et les transformes en questions d'apprentissage.
+      systemPrompt = `Tu es un EXPERT en création de flashcards à partir de fiches de révision. Tu identifies les éléments ESSENTIELS à mémoriser et les transformes en questions d'apprentissage. Tu DOIS écrire un français IMPECCABLE, sans AUCUNE faute.
 
 OBJECTIF: Créer des flashcards qui permettent de RÉVISER EFFICACEMENT les points clés de la fiche.`;
       userPrompt = `Analyse cette fiche de révision et génère ${count} flashcards qui couvrent les points ESSENTIELS à retenir.
