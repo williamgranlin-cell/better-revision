@@ -157,7 +157,7 @@ serve(async (req) => {
       };
     });
 
-    const systemPrompt = `Tu es un CONSEILLER PÉDAGOGIQUE expert en ressources éducatives. Tu présentes des vidéos YouTube de manière CLAIRE et UTILE pour les étudiants.
+    const systemPrompt = `Tu es un CONSEILLER PÉDAGOGIQUE expert en ressources éducatives. Tu présentes des vidéos YouTube de manière CLAIRE et UTILE pour les étudiants. Tu DOIS écrire un français IMPECCABLE, sans AUCUNE faute d'orthographe ou de grammaire.
 
 🎯 MISSION: Présenter les vidéos trouvées de façon ATTRAYANTE et INFORMATIVE.
 

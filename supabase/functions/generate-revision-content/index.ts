@@ -118,7 +118,7 @@ Requirements:
       if (!imageUrl) throw new Error('No image generated');
 
       // Generate legends
-      const legendPrompt = `Tu es un expert pédagogique. Pour un schéma éducatif sur "${topic}", génère des légendes numérotées ultra-précises.
+      const legendPrompt = `Tu es un expert pédagogique. Pour un schéma éducatif sur "${topic}", génère des légendes numérotées ultra-précises. Tu DOIS écrire un français IMPECCABLE, sans AUCUNE faute d'orthographe, de grammaire ou de conjugaison.
 ${contextBlock}
 
 FORMAT OBLIGATOIRE:
@@ -189,6 +189,12 @@ Génère 5-10 légendes pertinentes et précises adaptées au niveau ${schoolLev
     switch (type) {
       case 'revision_sheet':
         systemPrompt = `Tu es un professeur expert et pédagogue exceptionnel, spécialisé dans la création de fiches de révision PARFAITES. Tu sais rendre n'importe quel sujet limpide et mémorable.
+
+RÈGLE ABSOLUE D'ORTHOGRAPHE ET DE GRAMMAIRE:
+- Tu DOIS écrire un français IMPECCABLE, sans AUCUNE faute d'orthographe, de grammaire, de conjugaison ou de syntaxe.
+- Vérifie chaque mot, chaque accord (sujet-verbe, adjectif-nom, participe passé), chaque accent.
+- Utilise le vocabulaire technique EXACT de la matière concernée avec l'orthographe correcte.
+- En cas de doute sur un mot, utilise une formulation dont tu es certain.
 ${levelInstruction}${subjectInstruction}
 
 OBJECTIF: Créer LA fiche de révision définitive sur le sujet. Elle doit être si bien faite qu'un élève qui la lit et la comprend maîtrisera parfaitement le sujet.
@@ -263,6 +269,10 @@ ${content ? '- BASE-TOI EN PRIORITÉ sur le cours fourni par l\'élève, résume
 
       case 'mind_map':
         systemPrompt = `Tu es un expert en pédagogie et en cartographie mentale. Tu crées des cartes mentales COMPLÈTES qui permettent de visualiser et comprendre TOUT un sujet en un coup d'œil.
+
+RÈGLE ABSOLUE D'ORTHOGRAPHE ET DE GRAMMAIRE:
+- Tu DOIS écrire un français IMPECCABLE, sans AUCUNE faute d'orthographe, de grammaire, de conjugaison ou de syntaxe.
+- Vérifie chaque mot, chaque accord, chaque accent. Utilise le vocabulaire technique EXACT.
 ${levelInstruction}${subjectInstruction}
 
 FORMAT OBLIGATOIRE:

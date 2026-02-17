@@ -183,15 +183,65 @@ const Schedule = () => {
     );
   };
 
+  const renderEventList = (eventItems: ScheduleItem[], emptyMessage: string) => {
+    if (eventItems.length === 0) {
+      return (
+        <div className="text-center py-8 text-muted-foreground italic">
+          {emptyMessage}
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-3">
+        {eventItems
+          .sort((a, b) => a.start_time.localeCompare(b.start_time))
+          .map((item) => (
+            <div
+              key={item.id}
+              className={cn(
+                "rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.01]",
+                item.color
+              )}
+              onClick={() => handleItemClick(item)}
+            >
+              <div className="flex items-start gap-3 text-white">
+                <div className="bg-white/20 rounded-lg px-3 py-1.5 text-sm font-mono font-semibold shrink-0">
+                  {formatTime(item.start_time)}
+                  <br />
+                  {formatTime(item.end_time)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-base leading-snug break-words">
+                    {item.title}
+                  </h3>
+                  {item.description && (
+                    <p className="text-sm opacity-80 mt-1 break-words line-clamp-2">
+                      {item.description}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-2 mt-1.5 text-xs opacity-70">
+                    {item.is_recurring && (
+                      <span className="flex items-center gap-1">
+                        <RefreshCw className="w-3 h-3" />
+                        {item.recurrence_type === "weekly" ? "Hebdomadaire" : item.recurrence_type === "biweekly" ? "Bihebdomadaire" : "Mensuel"}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+      </div>
+    );
+  };
+
   // Fullscreen day view
   if (fullscreenDay !== null) {
     const dayLabel = days.find(d => d.value === fullscreenDay)?.label || "";
     const allDayItems = getItemsByDay(fullscreenDay).filter(isItemVisible);
     const morningItems = allDayItems.filter(item => isItemInRange(item, startHour, 13));
     const afternoonItems = allDayItems.filter(item => isItemInRange(item, 13, endHour + 1));
-    
-    const morningHours = hours.filter(h => h < 13);
-    const afternoonHours = hours.filter(h => h >= 13);
 
     return (
       <div className="min-h-screen pb-24 bg-background">
@@ -202,7 +252,7 @@ const Schedule = () => {
                 {dayLabel} 📋
               </h1>
               <p className="text-sm text-muted-foreground mt-1">
-                {allDayItems.length} événement{allDayItems.length !== 1 ? "s" : ""}
+                {allDayItems.length} événement{allDayItems.length !== 1 ? "s" : ""} programmé{allDayItems.length !== 1 ? "s" : ""}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -226,52 +276,30 @@ const Schedule = () => {
           </div>
         </header>
 
-        <main className="max-w-screen-xl mx-auto px-4 md:px-6 py-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <main className="max-w-screen-xl mx-auto px-4 md:px-6 py-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Morning */}
             <div>
-              <div className="flex items-center gap-2 mb-3 px-2">
+              <div className="flex items-center gap-2 mb-4 px-1">
                 <Sun className="w-5 h-5 text-amber-500" />
                 <h2 className="font-semibold text-lg">Matin</h2>
-                <span className="text-sm text-muted-foreground">({morningItems.length})</span>
+                <span className="text-sm text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                  {morningItems.length}
+                </span>
               </div>
-              {morningHours.length > 0 ? (
-                <div className="grid grid-cols-[60px_1fr] gap-1">
-                  <div className="relative">
-                    {morningHours.map((hour) => (
-                      <div key={hour} className="h-16 flex items-start justify-end pr-2 text-xs text-muted-foreground">
-                        {hour}:00
-                      </div>
-                    ))}
-                  </div>
-                  {renderDayColumn(morningItems, morningHours[0], morningHours)}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">Aucune heure matinale dans la grille</div>
-              )}
+              {renderEventList(morningItems, "Aucun cours le matin")}
             </div>
 
             {/* Afternoon */}
             <div>
-              <div className="flex items-center gap-2 mb-3 px-2">
+              <div className="flex items-center gap-2 mb-4 px-1">
                 <Moon className="w-5 h-5 text-indigo-500" />
                 <h2 className="font-semibold text-lg">Après-midi</h2>
-                <span className="text-sm text-muted-foreground">({afternoonItems.length})</span>
+                <span className="text-sm text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                  {afternoonItems.length}
+                </span>
               </div>
-              {afternoonHours.length > 0 ? (
-                <div className="grid grid-cols-[60px_1fr] gap-1">
-                  <div className="relative">
-                    {afternoonHours.map((hour) => (
-                      <div key={hour} className="h-16 flex items-start justify-end pr-2 text-xs text-muted-foreground">
-                        {hour}:00
-                      </div>
-                    ))}
-                  </div>
-                  {renderDayColumn(afternoonItems, afternoonHours[0], afternoonHours)}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">Aucune heure d'après-midi dans la grille</div>
-              )}
+              {renderEventList(afternoonItems, "Aucun cours l'après-midi")}
             </div>
           </div>
         </main>
