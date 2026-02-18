@@ -26,3 +26,6 @@ verify_jwt = true
 
 [functions.generate-revision-content]
 verify_jwt = true
+
+[functions.transcribe-and-enhance]
+verify_jwt = true
