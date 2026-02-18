@@ -16,6 +16,7 @@ import StudyChat from "./pages/StudyChat";
 import Schedule from "./pages/Schedule";
 import Admin from "./pages/Admin";
 import RevisionGenerator from "./pages/RevisionGenerator";
+import CoursNotes from "./pages/CoursNotes";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ const App = () => (
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
               <Route path="/revision-generator" element={<ProtectedRoute><RevisionGenerator /></ProtectedRoute>} />
+              <Route path="/cours" element={<ProtectedRoute><CoursNotes /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
