@@ -1,14 +1,74 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const ROLE_LIMITS: Record<string, number> = {
+  free: 5,
+  premium: Infinity,
+  admin: Infinity,
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    // Authenticate user
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Non autorisé" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } }
+    );
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
+    if (userError || !userData.user) {
+      return new Response(JSON.stringify({ error: "Non autorisé" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+    const userId = userData.user.id;
+
+    // Get user role server-side
+    const { data: roleData } = await supabaseClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .single();
+
+    const userRole = roleData?.role || 'free';
+    const dailyLimit = ROLE_LIMITS[userRole] ?? ROLE_LIMITS.free;
+
+    // Enforce daily limit for free users
+    if (dailyLimit !== Infinity) {
+      const { data: usageResult, error: usageError } = await supabaseClient.rpc(
+        'check_and_increment_usage',
+        { _user_id: userId, _feature: 'ai_chat_messages', _limit: dailyLimit }
+      );
+
+      if (!usageError && usageResult && !usageResult.allowed) {
+        return new Response(
+          JSON.stringify({
+            error: `Limite journalière atteinte (${dailyLimit} messages/jour). Passez à Premium pour un accès illimité.`,
+            limitExceeded: true,
+            limit: dailyLimit,
+            feature: 'ai_chat_messages'
+          }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY non configuré");
 
@@ -76,8 +136,7 @@ Le cours doit être complet, précis, pédagogique et agréable à lire.`;
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
+      console.error("AI gateway error:", response.status);
       return new Response(JSON.stringify({ error: "Erreur du service IA" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -92,7 +151,7 @@ Le cours doit être complet, précis, pédagogique et agréable à lire.`;
     });
   } catch (e) {
     console.error("transcribe-and-enhance error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Erreur inconnue" }), {
+    return new Response(JSON.stringify({ error: "Une erreur est survenue" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
