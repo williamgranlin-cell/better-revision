@@ -111,27 +111,38 @@ export const useCourseNotes = () => {
   };
 
   const getNote = async (chapterId: string): Promise<CourseNote | null> => {
+    if (!user) return null;
     const { data, error } = await supabase
       .from("course_notes")
       .select("*")
       .eq("chapter_id", chapterId)
+      .eq("user_id", user.id)
       .maybeSingle();
-    if (error) return null;
+    if (error) {
+      console.error("getNote error:", error);
+      return null;
+    }
     return data;
   };
 
   const saveNote = async (chapterId: string, content: string, aiEnhancedContent?: string) => {
     if (!user) return;
-    const existing = await getNote(chapterId);
-    const payload: Record<string, unknown> = { content };
-    if (aiEnhancedContent !== undefined) payload.ai_enhanced_content = aiEnhancedContent;
 
-    if (existing) {
-      const { error } = await supabase.from("course_notes").update(payload).eq("id", existing.id);
-      if (error) toast({ title: "Erreur", description: "Impossible de sauvegarder", variant: "destructive" });
-    } else {
-      const { error } = await supabase.from("course_notes").insert({ ...payload, user_id: user.id, chapter_id: chapterId });
-      if (error) toast({ title: "Erreur", description: "Impossible de sauvegarder", variant: "destructive" });
+    const { error } = await supabase
+      .from("course_notes")
+      .upsert(
+        {
+          user_id: user.id,
+          chapter_id: chapterId,
+          content,
+          ...(aiEnhancedContent !== undefined ? { ai_enhanced_content: aiEnhancedContent } : {}),
+        },
+        { onConflict: "chapter_id,user_id" }
+      );
+
+    if (error) {
+      console.error("saveNote error:", error);
+      toast({ title: "Erreur", description: "Impossible de sauvegarder le cours", variant: "destructive" });
     }
   };
 
