@@ -1,8 +1,15 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+const ROLE_LIMITS: Record<string, number> = {
+  free: 5,
+  premium: Infinity,
+  admin: Infinity,
 };
 
 // Input validation
@@ -90,17 +97,66 @@ serve(async (req) => {
   }
 
   try {
-    // Extract user ID for rate limiting
+    // Authenticate user
     const authHeader = req.headers.get('authorization');
-    const userId = authHeader ? authHeader.split(' ')[1] : 'anonymous';
-    
-    // Check rate limit
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Non autorisé" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      { auth: { persistSession: false } }
+    );
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
+    if (userError || !userData.user) {
+      return new Response(JSON.stringify({ error: "Non autorisé" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+    const userId = userData.user.id;
+
+    // In-memory rate limit check
     const rateLimitCheck = checkRateLimit(userId);
     if (!rateLimitCheck.allowed) {
       return new Response(
         JSON.stringify({ error: rateLimitCheck.error }),
         { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    // Get user role server-side
+    const { data: roleData } = await supabaseClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .single();
+
+    const userRole = roleData?.role || 'free';
+    const dailyLimit = ROLE_LIMITS[userRole] ?? ROLE_LIMITS.free;
+
+    // Enforce daily flashcard generation limit for free users
+    if (dailyLimit !== Infinity) {
+      const { data: usageResult, error: usageError } = await supabaseClient.rpc(
+        'check_and_increment_usage',
+        { _user_id: userId, _feature: 'flashcards_per_day', _limit: dailyLimit }
+      );
+
+      if (!usageError && usageResult && !usageResult.allowed) {
+        return new Response(
+          JSON.stringify({
+            error: `Limite journalière atteinte (${dailyLimit} générations/jour). Passez à Premium pour un accès illimité.`,
+            limitExceeded: true,
+            limit: dailyLimit,
+            feature: 'flashcards_per_day'
+          }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     }
 
     const contentType = req.headers.get("content-type") || "";
@@ -471,7 +527,7 @@ Retourne UNIQUEMENT un tableau JSON avec des objets contenant 'question' et 'ans
   } catch (error) {
     console.error("Error in generate-flashcards function:", error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
+      JSON.stringify({ error: "Une erreur est survenue" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
