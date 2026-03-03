@@ -16,7 +16,6 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    // Authenticate user
     const authHeader = req.headers.get("authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Non autorisé" }), {
@@ -39,7 +38,6 @@ serve(async (req) => {
     }
     const userId = userData.user.id;
 
-    // Get user role server-side
     const { data: roleData } = await supabaseClient
       .from('user_roles')
       .select('role')
@@ -49,7 +47,6 @@ serve(async (req) => {
     const userRole = roleData?.role || 'free';
     const dailyLimit = ROLE_LIMITS[userRole] ?? ROLE_LIMITS.free;
 
-    // Enforce daily limit for free users
     if (dailyLimit !== Infinity) {
       const { data: usageResult, error: usageError } = await supabaseClient.rpc(
         'check_and_increment_usage',
@@ -61,8 +58,6 @@ serve(async (req) => {
           JSON.stringify({
             error: `Limite journalière atteinte (${dailyLimit} messages/jour). Passez à Premium pour un accès illimité.`,
             limitExceeded: true,
-            limit: dailyLimit,
-            feature: 'ai_chat_messages'
           }),
           { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
@@ -76,8 +71,7 @@ serve(async (req) => {
 
     if (!transcript || transcript.trim().length === 0) {
       return new Response(JSON.stringify({ error: "Transcription vide" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -114,46 +108,37 @@ Le cours doit être complet, précis, pédagogique et agréable à lire.`;
         model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
-          {
-            role: "user",
-            content: `Voici la transcription brute du cours à retravailler :\n\n${transcript}`,
-          },
+          { role: "user", content: `Voici la transcription brute du cours à retravailler :\n\n${transcript}` },
         ],
-        stream: false,
+        stream: true,
       }),
     });
 
     if (!response.ok) {
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: "Limite de requêtes atteinte, réessaie dans quelques instants." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (response.status === 402) {
         return new Response(JSON.stringify({ error: "Crédits insuffisants pour l'IA." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       console.error("AI gateway error:", response.status);
       return new Response(JSON.stringify({ error: "Erreur du service IA" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const data = await response.json();
-    const enhancedContent = data.choices?.[0]?.message?.content || "";
-
-    return new Response(JSON.stringify({ enhancedContent }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    // Stream the SSE response directly back to the client
+    return new Response(response.body, {
+      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (e) {
     console.error("transcribe-and-enhance error:", e);
     return new Response(JSON.stringify({ error: "Une erreur est survenue" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
