@@ -274,29 +274,96 @@ const CoursNotes = () => {
     }
 
     setIsEnhancing(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("transcribe-and-enhance", {
-        body: {
-          transcript: textToEnhance,
-          subject: selectedSubject?.name || "",
-          chapterName: selectedChapter?.name || "",
-          schoolLevel: "",
-        },
-      });
+    setAiContent("");
+    setShowAiView(true);
 
-      if (error) throw new Error(error.message);
-      if (data?.error) {
-        if (data.error.includes("429") || data.error.includes("limite")) {
-          throw new Error("Limite de requêtes atteinte, réessaie dans quelques instants.");
+    try {
+      const session = (await supabase.auth.getSession()).data.session;
+      const resp = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/transcribe-and-enhance`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({
+            transcript: textToEnhance,
+            subject: selectedSubject?.name || "",
+            chapterName: selectedChapter?.name || "",
+            schoolLevel: "",
+          }),
         }
-        throw new Error(data.error);
+      );
+
+      if (!resp.ok) {
+        const errData = await resp.json().catch(() => ({}));
+        throw new Error(errData.error || "Erreur du service IA");
       }
 
-      const enhanced = data.enhancedContent;
-      setAiContent(enhanced);
-      setShowAiView(true);
-      await saveNote(selectedChapter!.id, noteContent, enhanced);
-      toast({ title: "✨ Cours amélioré !", description: "L'IA a restructuré et corrigé votre cours." });
+      if (!resp.body) throw new Error("Streaming non supporté");
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let fullContent = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        let newlineIndex: number;
+        while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
+          let line = buffer.slice(0, newlineIndex);
+          buffer = buffer.slice(newlineIndex + 1);
+
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (line.startsWith(":") || line.trim() === "") continue;
+          if (!line.startsWith("data: ")) continue;
+
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") break;
+
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (content) {
+              fullContent += content;
+              setAiContent(fullContent);
+            }
+          } catch {
+            buffer = line + "\n" + buffer;
+            break;
+          }
+        }
+      }
+
+      // Flush remaining buffer
+      if (buffer.trim()) {
+        for (let raw of buffer.split("\n")) {
+          if (!raw) continue;
+          if (raw.endsWith("\r")) raw = raw.slice(0, -1);
+          if (!raw.startsWith("data: ")) continue;
+          const jsonStr = raw.slice(6).trim();
+          if (jsonStr === "[DONE]") continue;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (content) {
+              fullContent += content;
+              setAiContent(fullContent);
+            }
+          } catch { /* ignore */ }
+        }
+      }
+
+      // Save the complete AI content
+      if (fullContent) {
+        await saveNote(selectedChapter!.id, noteContent, fullContent);
+        toast({ title: "✨ Cours amélioré !", description: "L'IA a restructuré et corrigé votre cours." });
+      }
     } catch (e: any) {
       toast({ title: "Erreur IA", description: e.message || "Impossible d'améliorer le cours", variant: "destructive" });
     } finally {
