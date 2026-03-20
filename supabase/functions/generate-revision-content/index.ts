@@ -250,6 +250,9 @@ Génère 5-10 légendes pertinentes et précises adaptées au niveau ${schoolLev
 
 RÈGLE ABSOLUE D'ORTHOGRAPHE ET DE GRAMMAIRE:
 - Tu DOIS écrire un français IMPECCABLE, sans AUCUNE faute d'orthographe, de grammaire, de conjugaison ou de syntaxe.
+- RELIS CHAQUE PHRASE avant de la valider. Si tu as un doute sur l'orthographe d'un mot, vérifie-le.
+- Accorde systématiquement les participes passés, les adjectifs, les sujets et les verbes.
+- N'invente JAMAIS de faits, dates, formules ou définitions. Si tu n'es pas sûr à 100%, ne l'inclus pas.
 ${levelInstruction}${subjectInstruction}
 
 OBJECTIF: Créer LA fiche de révision définitive sur le sujet.
@@ -284,12 +287,15 @@ ${schoolLevel ? `🎓 Niveau: ${schoolLevel}` : ''}
 RÈGLES ABSOLUES:
 - Sois EXHAUSTIF: couvre TOUT ce qui est important
 - Sois PRÉCIS et STRUCTURÉ
+- VÉRIFIE chaque information: dates, formules, noms propres doivent être EXACTS
+- Ne génère AUCUNE information dont tu n'es pas certain
 ${content ? '- Si un cours est fourni, RÉSUME-LE et STRUCTURE-LE en priorité' : ''}`;
 
         userPrompt = `Crée une fiche de révision COMPLÈTE et ULTRA-CLAIRE sur: "${topic}"
 ${contextBlock}
 
 IMPORTANT: Sois le plus précis et complet possible. Adapte au niveau scolaire et à la matière.
+VÉRIFIE CHAQUE FAIT, DATE ET FORMULE avant de les inclure. Zéro erreur toléré.
 ${content ? '- BASE-TOI EN PRIORITÉ sur le cours fourni par l\'élève' : ''}`;
         break;
 
