@@ -346,13 +346,13 @@ ${content ? '- BASE-TOI EN PRIORITÉ sur le cours fourni, structure ses concepts
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-3-flash-preview',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
         max_tokens: 4000,
-        temperature: 0.5,
+        temperature: 0.3,
       }),
     });
 
