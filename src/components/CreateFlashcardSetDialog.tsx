@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,8 +7,18 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useFlashcardSets } from "@/hooks/useFlashcardSets";
 import { useFlashcards } from "@/hooks/useFlashcards";
-import { Upload, X, Sparkles, Brain } from "lucide-react";
+import { Upload, X, Sparkles, Brain, FileText, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+
+interface RevisionItem {
+  id: string;
+  title: string;
+  type: string;
+  content: string | null;
+  subject: string | null;
+}
 
 interface CreateFlashcardSetDialogProps {
   open: boolean;
@@ -24,6 +34,7 @@ export const CreateFlashcardSetDialog = ({
   const { addSet } = useFlashcardSets();
   const { addFlashcardBatch } = useFlashcards();
   const { toast } = useToast();
+  const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [setName, setSetName] = useState("");
@@ -37,17 +48,43 @@ export const CreateFlashcardSetDialog = ({
   const [flashcards, setFlashcards] = useState<Array<{ question: string; answer: string }>>([]);
   const [currentCard, setCurrentCard] = useState(0);
 
+  // Revision sheet selection state
+  const [revisionItems, setRevisionItems] = useState<RevisionItem[]>([]);
+  const [loadingRevisions, setLoadingRevisions] = useState(false);
+  const [selectedRevisionId, setSelectedRevisionId] = useState<string | null>(null);
+
+  // Fetch revision sheets when dialog opens with revision_sheet method
+  useEffect(() => {
+    if (open && creationMethod === "revision_sheet" && user) {
+      setLoadingRevisions(true);
+      supabase
+        .from("revision_content")
+        .select("id, title, type, content, subject")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .then(({ data, error }) => {
+          if (!error && data) {
+            setRevisionItems(data.filter((d: any) => d.content && d.content.trim().length > 0) as RevisionItem[]);
+          }
+          setLoadingRevisions(false);
+        });
+    }
+  }, [open, creationMethod, user]);
+
+  const handleSelectRevision = (item: RevisionItem) => {
+    setSelectedRevisionId(item.id);
+    setContent(item.content || "");
+    if (!setName) setSetName(item.title);
+    if (!subject && item.subject) setSubject(item.subject);
+  };
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const maxSize = 20 * 1024 * 1024; // 20MB
+    const maxSize = 20 * 1024 * 1024;
     if (file.size > maxSize) {
-      toast({
-        title: "Fichier trop volumineux",
-        description: "La taille maximale est de 20MB",
-        variant: "destructive",
-      });
+      toast({ title: "Fichier trop volumineux", description: "La taille maximale est de 20MB", variant: "destructive" });
       return;
     }
 
@@ -62,31 +99,19 @@ export const CreateFlashcardSetDialog = ({
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-flashcards`,
         {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
+          headers: { Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` },
           body: formData,
         }
       );
 
-      if (!response.ok) {
-        throw new Error("Erreur lors du traitement du fichier");
-      }
+      if (!response.ok) throw new Error("Erreur lors du traitement du fichier");
 
       const data = await response.json();
       setContent(data.extractedText);
-      
-      toast({
-        title: "Fichier traité",
-        description: "Le texte a été extrait avec succès",
-      });
+      toast({ title: "Fichier traité", description: "Le texte a été extrait avec succès" });
     } catch (error) {
       console.error("Error processing file:", error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de traiter le fichier",
-        variant: "destructive",
-      });
+      toast({ title: "Erreur", description: "Impossible de traiter le fichier", variant: "destructive" });
       setUploadedFile(null);
     } finally {
       setIsProcessingFile(false);
@@ -96,29 +121,18 @@ export const CreateFlashcardSetDialog = ({
   const handleRemoveFile = () => {
     setUploadedFile(null);
     setContent("");
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleGenerate = async () => {
-    // For AI generation, we only need the subject
     if (creationMethod === "ai") {
       if (!subject.trim()) {
-        toast({
-          title: "Sujet requis",
-          description: "Veuillez entrer un sujet pour générer les flashcards",
-          variant: "destructive",
-        });
+        toast({ title: "Sujet requis", description: "Veuillez entrer un sujet pour générer les flashcards", variant: "destructive" });
         return;
       }
     } else {
       if (!content.trim()) {
-        toast({
-          title: "Contenu requis",
-          description: "Veuillez fournir du contenu pour générer les flashcards",
-          variant: "destructive",
-        });
+        toast({ title: "Contenu requis", description: creationMethod === "revision_sheet" ? "Sélectionnez une fiche de révision" : "Veuillez fournir du contenu", variant: "destructive" });
         return;
       }
     }
@@ -126,16 +140,8 @@ export const CreateFlashcardSetDialog = ({
     setIsGenerating(true);
     try {
       const requestBody = creationMethod === "ai" 
-        ? {
-            subject,
-            type: "ai_subject",
-            count,
-          }
-        : {
-            content,
-            type: creationMethod === "import" ? "text" : "revision_sheet",
-            count,
-          };
+        ? { subject, type: "ai_subject", count }
+        : { content, type: creationMethod === "import" ? "text" : "revision_sheet", count };
 
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-flashcards`,
@@ -157,18 +163,10 @@ export const CreateFlashcardSetDialog = ({
       const data = await response.json();
       setFlashcards(data.flashcards);
       setCurrentCard(0);
-      
-      toast({
-        title: "Flashcards générées",
-        description: `${data.flashcards.length} flashcards ont été créées`,
-      });
+      toast({ title: "Flashcards générées", description: `${data.flashcards.length} flashcards ont été créées` });
     } catch (error) {
       console.error("Error generating flashcards:", error);
-      toast({
-        title: "Erreur",
-        description: error instanceof Error ? error.message : "Impossible de générer les flashcards",
-        variant: "destructive",
-      });
+      toast({ title: "Erreur", description: error instanceof Error ? error.message : "Impossible de générer les flashcards", variant: "destructive" });
     } finally {
       setIsGenerating(false);
     }
@@ -200,14 +198,19 @@ export const CreateFlashcardSetDialog = ({
     setFlashcards([]);
     setCurrentCard(0);
     setCount(10);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
+    setSelectedRevisionId(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const canGenerate = creationMethod === "ai" 
     ? subject.trim() && setName.trim() 
     : content.trim() && setName.trim();
+
+  const typeLabels: Record<string, string> = {
+    revision_sheet: "📝",
+    mind_map: "🧠",
+    schema: "🖼️",
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -215,6 +218,7 @@ export const CreateFlashcardSetDialog = ({
         <DialogHeader className="p-6 pb-0">
           <DialogTitle className="flex items-center gap-2">
             {creationMethod === "ai" && <Brain className="w-5 h-5 text-primary" />}
+            {creationMethod === "revision_sheet" && <FileText className="w-5 h-5 text-primary" />}
             {creationMethod === "import" 
               ? "Importer un cours" 
               : creationMethod === "ai" 
@@ -253,7 +257,7 @@ export const CreateFlashcardSetDialog = ({
                 <Input
                   id="subject"
                   placeholder={creationMethod === "ai" 
-                    ? "Ex: La Révolution française, Les équations du second degré, La photosynthèse..."
+                    ? "Ex: La Révolution française, Les équations du second degré..."
                     : "Ex: Mathématiques, Physique..."}
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
@@ -278,15 +282,51 @@ export const CreateFlashcardSetDialog = ({
                 />
               </div>
 
-              {/* File upload only for import and revision_sheet */}
-              {(creationMethod === "import" || creationMethod === "revision_sheet") && (
+              {/* Revision sheet selector */}
+              {creationMethod === "revision_sheet" && (
+                <div className="space-y-2">
+                  <Label>Sélectionner une fiche de révision</Label>
+                  {loadingRevisions ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                    </div>
+                  ) : revisionItems.length === 0 ? (
+                    <div className="text-center py-6 text-muted-foreground text-sm border rounded-lg bg-muted/30">
+                      <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      <p>Aucune fiche de révision trouvée.</p>
+                      <p className="text-xs mt-1">Crée des fiches dans l'onglet "Fiches" d'abord.</p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-1.5 max-h-48 overflow-y-auto border rounded-lg p-2 bg-muted/20">
+                      {revisionItems.map((item) => (
+                        <button
+                          key={item.id}
+                          onClick={() => handleSelectRevision(item)}
+                          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-sm transition-colors ${
+                            selectedRevisionId === item.id 
+                              ? "bg-primary/15 border border-primary/30 text-foreground" 
+                              : "hover:bg-muted border border-transparent text-foreground/80"
+                          }`}
+                        >
+                          <span className="text-base shrink-0">{typeLabels[item.type] || "📄"}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">{item.title}</p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {item.subject || "Sans matière"} • {item.content?.substring(0, 60)}...
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* File upload only for import */}
+              {creationMethod === "import" && (
                 <>
                   <div className="space-y-2">
-                    <Label htmlFor="file">
-                      {creationMethod === "import" 
-                        ? "Fichier du cours (PDF, Word, Image)" 
-                        : "Fichier de révision (PDF, Word, Image)"}
-                    </Label>
+                    <Label htmlFor="file">Fichier du cours (PDF, Word, Image)</Label>
                     <div className="flex gap-2">
                       <Input
                         ref={fileInputRef}
@@ -308,12 +348,7 @@ export const CreateFlashcardSetDialog = ({
                         {isProcessingFile ? "Traitement..." : uploadedFile ? "Fichier chargé" : "Choisir un fichier"}
                       </Button>
                       {uploadedFile && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={handleRemoveFile}
-                        >
+                        <Button type="button" variant="ghost" size="icon" onClick={handleRemoveFile}>
                           <X className="h-4 w-4" />
                         </Button>
                       )}
@@ -326,18 +361,10 @@ export const CreateFlashcardSetDialog = ({
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="content">
-                      {creationMethod === "import" 
-                        ? "Texte du cours" 
-                        : "Fiche de révision"}
-                    </Label>
+                    <Label htmlFor="content">Texte du cours</Label>
                     <Textarea
                       id="content"
-                      placeholder={
-                        creationMethod === "import"
-                          ? "Le texte sera extrait automatiquement du fichier ou collez-le ici..."
-                          : "Le texte sera extrait automatiquement du fichier ou collez-le ici..."
-                      }
+                      placeholder="Le texte sera extrait automatiquement du fichier ou collez-le ici..."
                       value={content}
                       onChange={(e) => setContent(e.target.value)}
                       rows={10}

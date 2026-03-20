@@ -405,14 +405,18 @@ Format: ["mauvaise réponse 1", "mauvaise réponse 2"${wrongAnswersCount === 3 ?
     let userPrompt = "";
 
     if (type === "ai_subject") {
-      systemPrompt = `Tu es un EXPERT PÉDAGOGIQUE spécialisé dans la création de flashcards éducatives de HAUTE QUALITÉ. Tu DOIS écrire un français IMPECCABLE, sans AUCUNE faute d'orthographe, de grammaire ou de conjugaison.
+      systemPrompt = `Tu es un EXPERT PÉDAGOGIQUE spécialisé dans la création de flashcards éducatives de HAUTE QUALITÉ. 
 
-🎯 MISSION: Créer des flashcards PRÉCISES, VARIÉES et PÉDAGOGIQUES sur le sujet demandé.
+RÈGLE ABSOLUE DE QUALITÉ:
+- Tu DOIS écrire un français IMPECCABLE, sans AUCUNE faute d'orthographe, de grammaire ou de conjugaison.
+- RELIS CHAQUE réponse. Vérifie l'orthographe de chaque mot.
+- N'invente JAMAIS de faits, dates, formules ou définitions. Chaque information DOIT être exacte et vérifiable.
+- Si tu n'es pas sûr d'un fait à 100%, NE L'INCLUS PAS.
 
 📋 CRITÈRES DE QUALITÉ:
 1. **QUESTIONS VARIÉES**: Définitions, concepts, applications, dates, formules, exemples
 2. **PROGRESSION**: Du plus simple au plus complexe
-3. **PRÉCISION**: Chaque réponse doit être EXACTE et VÉRIFIABLE
+3. **PRÉCISION ABSOLUE**: Chaque réponse doit être EXACTE et VÉRIFIABLE
 4. **CLARTÉ**: Questions directes, réponses concises mais complètes
 5. **COUVERTURE**: Couvrir TOUS les aspects importants du sujet
 
@@ -423,21 +427,17 @@ Format: ["mauvaise réponse 1", "mauvaise réponse 2"${wrongAnswersCount === 3 ?
 • 📅 Dates/Faits: "Quand/Où/Qui...?"
 • 💡 Applications: "Comment utilise-t-on...?"
 • ⚖️ Comparaisons: "Quelle est la différence entre...?"
-• 🔗 Relations: "Quel est le lien entre...?"
 
 RÈGLES:
 - Réponses entre 1 et 3 phrases maximum
 - Pas de questions trop vagues ou trop spécifiques
 - Inclure les éléments ESSENTIELS du sujet
-- Adapter le niveau au contexte (lycée/études supérieures)`;
+- Adapter le niveau au contexte (lycée/études supérieures)
+- VÉRIFIE CHAQUE FAIT avant de l'écrire`;
       userPrompt = `Génère exactement ${count} flashcards éducatives VARIÉES et COMPLÈTES sur le sujet: "${subject}".
 
-Assure-toi de couvrir:
-- Les définitions clés
-- Les concepts fondamentaux  
-- Les formules/règles importantes (si applicable)
-- Les applications pratiques
-- Les points souvent mal compris
+Assure-toi de couvrir les définitions clés, concepts fondamentaux, formules/règles importantes et applications pratiques.
+VÉRIFIE CHAQUE INFORMATION. Zéro erreur factuelle toléré.
 
 Retourne UNIQUEMENT un tableau JSON avec des objets contenant 'question' et 'answer'. Pas de texte avant ou après.
 Format: [{"question": "...", "answer": "..."}, ...]`;
@@ -476,12 +476,12 @@ Retourne UNIQUEMENT un tableau JSON avec des objets contenant 'question' et 'ans
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt }
         ],
-        temperature: 0.7,
+        temperature: 0.4,
       }),
     });
 

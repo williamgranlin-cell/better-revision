@@ -37,7 +37,7 @@ const Classroom = () => {
   const { addSession } = useStudySessions();
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
     if (isRunning && time > 0) {
       interval = setInterval(() => {
         setTime((prevTime) => prevTime - 1);
