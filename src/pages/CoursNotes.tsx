@@ -76,7 +76,7 @@ const CoursNotes = () => {
   const [newChapterName, setNewChapterName] = useState("");
 
   // Auto-save every 30 seconds
-  const autoSaveRef = useRef<NodeJS.Timeout | null>(null);
+  const autoSaveRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const noteContentRef = useRef(noteContent);
   const aiContentRef = useRef(aiContent);
   noteContentRef.current = noteContent;

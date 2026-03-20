@@ -209,10 +209,10 @@ Génère 5-10 légendes pertinentes et précises adaptées au niveau ${schoolLev
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'google/gemini-2.5-flash',
+          model: 'google/gemini-3-flash-preview',
           messages: [{ role: 'user', content: legendPrompt }],
           max_tokens: 2000,
-          temperature: 0.5,
+          temperature: 0.3,
         }),
       });
 
