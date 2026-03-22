@@ -49,9 +49,7 @@ const QCM = () => {
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState({ correct: 0, total: 0 });
 
-  useEffect(() => {
-    if (selectedSubjectId) fetchChapters(selectedSubjectId);
-  }, [selectedSubjectId]);
+  const filteredChapters = chapters.filter(c => c.subject_id === selectedSubjectId);
 
   const getContentForGeneration = async (): Promise<string | null> => {
     if (sourceType === "text") {
