@@ -1,4 +1,4 @@
-import { Calendar, Target, BookOpen, HelpCircle, User, Clock, FileText, NotebookPen, ClipboardList } from "lucide-react";
+import { Calendar, Target, BookOpen, HelpCircle, User, Clock, FileText, NotebookPen, ClipboardList, CheckSquare } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
