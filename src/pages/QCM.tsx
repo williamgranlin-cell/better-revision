@@ -31,7 +31,7 @@ type SourceType = "text" | "revision" | "course";
 const QCM = () => {
   const { toast } = useToast();
   const { items: revisionItems, loading: revisionLoading } = useRevisionContent();
-  const { subjects, chapters, fetchChapters } = useCourseNotes();
+  const { subjects, chapters } = useCourseNotes();
 
   // Source selection
   const [sourceType, setSourceType] = useState<SourceType>("text");
