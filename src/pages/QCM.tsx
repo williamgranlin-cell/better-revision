@@ -230,7 +230,7 @@ const QCM = () => {
                         <SelectValue placeholder="Chapitre..." />
                       </SelectTrigger>
                       <SelectContent>
-                        {chapters.map(c => (
+                        {filteredChapters.map(c => (
                           <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                         ))}
                       </SelectContent>
