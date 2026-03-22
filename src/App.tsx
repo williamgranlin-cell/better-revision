@@ -17,6 +17,7 @@ import Schedule from "./pages/Schedule";
 import Admin from "./pages/Admin";
 import RevisionGenerator from "./pages/RevisionGenerator";
 import CoursNotes from "./pages/CoursNotes";
+import QCM from "./pages/QCM";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ const App = () => (
               <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
               <Route path="/revision-generator" element={<ProtectedRoute><RevisionGenerator /></ProtectedRoute>} />
               <Route path="/cours" element={<ProtectedRoute><CoursNotes /></ProtectedRoute>} />
+              <Route path="/qcm" element={<ProtectedRoute><QCM /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

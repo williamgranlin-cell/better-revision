@@ -1,4 +1,4 @@
-import { Calendar, Target, BookOpen, HelpCircle, User, Clock, FileText, NotebookPen, ClipboardList } from "lucide-react";
+import { Calendar, Target, BookOpen, HelpCircle, User, Clock, FileText, NotebookPen, ClipboardList, CheckSquare } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -9,6 +9,7 @@ const navItems = [
   { icon: NotebookPen, label: "Cours", path: "/cours", emoji: "📓" },
   { icon: FileText, label: "Fiches", path: "/revision-generator", emoji: "📝" },
   { icon: BookOpen, label: "Flashcards", path: "/flashcards", emoji: "🃏" },
+  { icon: CheckSquare, label: "QCM", path: "/qcm", emoji: "✅" },
   { icon: ClipboardList, label: "Contrôles", path: "/controls", emoji: "📋" },
   { icon: HelpCircle, label: "Aide", path: "/study-chat", emoji: "🤗" },
   { icon: User, label: "Profil", path: "/profile", emoji: "👤" },
