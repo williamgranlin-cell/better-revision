@@ -9,6 +9,7 @@ const navItems = [
   { icon: NotebookPen, label: "Cours", path: "/cours", emoji: "📓" },
   { icon: FileText, label: "Fiches", path: "/revision-generator", emoji: "📝" },
   { icon: BookOpen, label: "Flashcards", path: "/flashcards", emoji: "🃏" },
+  { icon: CheckSquare, label: "QCM", path: "/qcm", emoji: "✅" },
   { icon: ClipboardList, label: "Contrôles", path: "/controls", emoji: "📋" },
   { icon: HelpCircle, label: "Aide", path: "/study-chat", emoji: "🤗" },
   { icon: User, label: "Profil", path: "/profile", emoji: "👤" },

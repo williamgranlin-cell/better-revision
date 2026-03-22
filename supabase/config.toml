@@ -29,3 +29,6 @@ verify_jwt = true
 
 [functions.transcribe-and-enhance]
 verify_jwt = true
+
+[functions.generate-qcm]
+verify_jwt = true
