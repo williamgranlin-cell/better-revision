@@ -17,6 +17,7 @@ import Schedule from "./pages/Schedule";
 import Admin from "./pages/Admin";
 import RevisionGenerator from "./pages/RevisionGenerator";
 import CoursNotes from "./pages/CoursNotes";
+import QCM from "./pages/QCM";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
