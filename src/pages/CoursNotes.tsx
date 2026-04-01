@@ -30,7 +30,7 @@ const SUBJECT_COLORS = [
 
 const SUBJECT_EMOJIS = ["📚", "🔬", "🧮", "📐", "🌍", "📖", "🎨", "⚗️", "🏛️", "💻", "🎵", "🌱", "⚽", "🧬", "📊"];
 
-type View = "list" | "editor";
+type View = "list" | "editor" | "live";
 
 const CoursNotes = () => {
   const { subjects, chapters, loading, addSubject, deleteSubject, addChapter, deleteChapter, getNote, saveNote } = useCourseNotes();
