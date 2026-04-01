@@ -36,7 +36,7 @@ RÈGLE ABSOLUE : Zéro erreur factuelle. Chaque réponse doit être vérifiée e
 Tu dois créer des QCM de type "cases à cocher" où PLUSIEURS réponses peuvent être correctes.
 
 INSTRUCTIONS :
-1. Génère exactement ${numQuestions} questions basées UNIQUEMENT sur le contenu fourni
+1. Génère exactement ${clampedNum} questions basées UNIQUEMENT sur le contenu fourni
 2. Chaque question a 4 propositions (A, B, C, D)
 3. Chaque question peut avoir 1 à 4 bonnes réponses (pas toujours une seule !)
 4. Niveau de difficulté : ${difficultyMap[difficulty] || difficultyMap.medium}
