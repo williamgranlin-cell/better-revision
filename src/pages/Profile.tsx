@@ -266,6 +266,9 @@ const Profile = () => {
         {/* Real Statistics */}
         <StatisticsSection />
 
+        {/* Theme Selector */}
+        <ThemeSelector />
+
         {/* Style Toggle */}
         <Card className="card-hover">
           <CardContent className="p-4">
