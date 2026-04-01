@@ -16,6 +16,7 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
     const { content, numQuestions = 10, difficulty = "medium" } = await req.json();
+    const clampedNum = Math.min(Math.max(numQuestions, 1), 100);
     if (!content || content.trim().length < 20) {
       return new Response(JSON.stringify({ error: "Contenu trop court (min 20 caractères)" }), {
         status: 400,
