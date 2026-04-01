@@ -1190,6 +1190,15 @@ const CoursNotes = () => {
                                 <Button
                                   variant="ghost"
                                   size="icon"
+                                  className="w-7 h-7 text-primary/60 hover:text-primary"
+                                  title="Transcription live"
+                                  onClick={(e) => { e.stopPropagation(); openLiveMode(chapter, subject); }}
+                                >
+                                  <Mic className="w-3.5 h-3.5" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
                                   className="w-7 h-7 text-muted-foreground hover:text-red-500"
                                   onClick={(e) => { e.stopPropagation(); deleteChapter(chapter.id); }}
                                 >
