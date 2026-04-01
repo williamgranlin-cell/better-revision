@@ -54,6 +54,15 @@ const CoursNotes = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [isEnhancing, setIsEnhancing] = useState(false);
+  // Live transcription state
+  const [liveTranscript, setLiveTranscript] = useState("");
+  const [liveAiContent, setLiveAiContent] = useState("");
+  const [isLiveRecording, setIsLiveRecording] = useState(false);
+  const [liveSeconds, setLiveSeconds] = useState(0);
+  const liveRecognitionRef = useRef<any>(null);
+  const liveTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const liveFinalRef = useRef<string>("");
+  const liveEnhanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [micDevices, setMicDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedMicId, setSelectedMicId] = useState<string>("");
   const [showMicSelector, setShowMicSelector] = useState(false);
