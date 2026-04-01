@@ -30,7 +30,7 @@ const SUBJECT_COLORS = [
 
 const SUBJECT_EMOJIS = ["📚", "🔬", "🧮", "📐", "🌍", "📖", "🎨", "⚗️", "🏛️", "💻", "🎵", "🌱", "⚽", "🧬", "📊"];
 
-type View = "list" | "editor";
+type View = "list" | "editor" | "live";
 
 const CoursNotes = () => {
   const { subjects, chapters, loading, addSubject, deleteSubject, addChapter, deleteChapter, getNote, saveNote } = useCourseNotes();
@@ -54,6 +54,15 @@ const CoursNotes = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [isEnhancing, setIsEnhancing] = useState(false);
+  // Live transcription state
+  const [liveTranscript, setLiveTranscript] = useState("");
+  const [liveAiContent, setLiveAiContent] = useState("");
+  const [isLiveRecording, setIsLiveRecording] = useState(false);
+  const [liveSeconds, setLiveSeconds] = useState(0);
+  const liveRecognitionRef = useRef<any>(null);
+  const liveTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const liveFinalRef = useRef<string>("");
+  const liveEnhanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [micDevices, setMicDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedMicId, setSelectedMicId] = useState<string>("");
   const [showMicSelector, setShowMicSelector] = useState(false);
@@ -414,6 +423,262 @@ const CoursNotes = () => {
       .replace(/\n/g, "<br/>");
     return DOMPurify.sanitize(html);
   };
+
+  // ─── LIVE TRANSCRIPTION FUNCTIONS ────────────────────────────────────────────
+  const startLiveRecording = () => {
+    const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognitionAPI) {
+      toast({ title: "Non supporté", description: "Utilisez Chrome ou Edge.", variant: "destructive" });
+      return;
+    }
+
+    liveFinalRef.current = "";
+    setLiveTranscript("");
+    setLiveAiContent("");
+    setLiveSeconds(0);
+
+    const recognition = new SpeechRecognitionAPI();
+    recognition.lang = "fr-FR";
+    recognition.continuous = true;
+    recognition.interimResults = true;
+
+    recognition.onresult = (event: any) => {
+      let interim = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          liveFinalRef.current += event.results[i][0].transcript + " ";
+        } else {
+          interim += event.results[i][0].transcript;
+        }
+      }
+      setLiveTranscript(liveFinalRef.current + interim);
+    };
+
+    recognition.onerror = (e: any) => {
+      if (e.error !== "no-speech") {
+        setIsLiveRecording(false);
+        if (liveTimerRef.current) clearInterval(liveTimerRef.current);
+      }
+    };
+
+    recognition.onend = () => {
+      if (liveRecognitionRef.current === recognition) {
+        try { recognition.start(); } catch { setIsLiveRecording(false); }
+      }
+    };
+
+    liveRecognitionRef.current = recognition;
+    recognition.start();
+    setIsLiveRecording(true);
+    liveTimerRef.current = setInterval(() => setLiveSeconds(s => s + 1), 1000);
+  };
+
+  const stopLiveRecording = () => {
+    liveRecognitionRef.current?.stop();
+    liveRecognitionRef.current = null;
+    setIsLiveRecording(false);
+    if (liveTimerRef.current) { clearInterval(liveTimerRef.current); liveTimerRef.current = null; }
+  };
+
+  const enhanceLiveTranscript = async () => {
+    const text = liveTranscript.trim() || liveFinalRef.current.trim();
+    if (!text || text.length < 10) {
+      toast({ title: "Pas assez de contenu", description: "Parle plus longtemps avant de formater.", variant: "destructive" });
+      return;
+    }
+
+    setIsEnhancing(true);
+    setLiveAiContent("");
+
+    try {
+      const session = (await supabase.auth.getSession()).data.session;
+      const resp = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/transcribe-and-enhance`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({
+            transcript: text,
+            subject: selectedSubject?.name || "",
+            chapterName: selectedChapter?.name || "",
+            schoolLevel: "",
+          }),
+        }
+      );
+
+      if (!resp.ok) throw new Error("Erreur du service IA");
+      if (!resp.body) throw new Error("Streaming non supporté");
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let fullContent = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        let newlineIndex: number;
+        while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
+          let line = buffer.slice(0, newlineIndex);
+          buffer = buffer.slice(newlineIndex + 1);
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (!line.startsWith("data: ")) continue;
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") break;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (content) { fullContent += content; setLiveAiContent(fullContent); }
+          } catch { buffer = line + "\n" + buffer; break; }
+        }
+      }
+
+      if (fullContent && selectedChapter) {
+        const combined = noteContent + (noteContent ? "\n\n" : "") + fullContent;
+        setNoteContent(combined);
+        setAiContent(fullContent);
+        await saveNote(selectedChapter.id, combined, fullContent);
+        toast({ title: "✨ Cours oral retranscrit !", description: "Le texte formaté a été ajouté à vos notes." });
+      }
+    } catch (e: any) {
+      toast({ title: "Erreur IA", description: e.message, variant: "destructive" });
+    } finally {
+      setIsEnhancing(false);
+    }
+  };
+
+  const openLiveMode = (chapter: CourseChapter, subject: CourseSubject) => {
+    setSelectedChapter(chapter);
+    setSelectedSubject(subject);
+    setLiveTranscript("");
+    setLiveAiContent("");
+    setIsLiveRecording(false);
+    setLiveSeconds(0);
+    setView("live");
+  };
+
+  // ─── LIVE TRANSCRIPTION VIEW ─────────────────────────────────────────────────
+  if (view === "live" && selectedChapter && selectedSubject) {
+    return (
+      <div className="min-h-screen pb-24 bg-background flex flex-col">
+        <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-lg border-b border-border/50 shadow-sm">
+          <div className="max-w-screen-xl mx-auto px-4 py-3 flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => { stopLiveRecording(); setView("list"); }} className="shrink-0">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-0.5">
+                <span className={cn("w-2.5 h-2.5 rounded-full", selectedSubject.color)} />
+                <span>{selectedSubject.emoji} {selectedSubject.name}</span>
+                <ChevronRight className="w-3 h-3" />
+              </div>
+              <h1 className="text-lg font-bold font-display text-foreground truncate">
+                🎤 Transcription live — {selectedChapter.name}
+              </h1>
+            </div>
+          </div>
+        </header>
+
+        <div className="flex-1 max-w-screen-xl mx-auto w-full px-4 py-4 flex flex-col gap-4">
+          {/* Recording controls */}
+          <Card className="p-5 border-border/50">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className={cn(
+                  "w-12 h-12 rounded-full flex items-center justify-center transition-all",
+                  isLiveRecording ? "bg-red-500/20 animate-pulse" : "bg-primary/10"
+                )}>
+                  {isLiveRecording ? <Mic className="w-6 h-6 text-red-500" /> : <Mic className="w-6 h-6 text-primary" />}
+                </div>
+                <div>
+                  <p className="font-semibold">
+                    {isLiveRecording ? "🔴 Enregistrement en cours" : "Prêt à enregistrer"}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {isLiveRecording ? `⏱ ${formatRecordingTime(liveSeconds)}` : "Parle, l'IA retranscrira tout à l'écrit"}
+                  </p>
+                </div>
+              </div>
+              {!isLiveRecording ? (
+                <Button onClick={startLiveRecording} className="bg-red-500 hover:bg-red-600 text-white shadow-lg">
+                  <Mic className="w-4 h-4 mr-2" /> Démarrer
+                </Button>
+              ) : (
+                <Button onClick={stopLiveRecording} variant="outline" className="border-red-300 text-red-600">
+                  <MicOff className="w-4 h-4 mr-2" /> Arrêter
+                </Button>
+              )}
+            </div>
+
+            {/* Live transcript display */}
+            <div className={cn(
+              "rounded-xl p-4 min-h-[200px] border transition-all",
+              isLiveRecording ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800" : "bg-muted/30 border-border/50"
+            )}>
+              {isLiveRecording && (
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="inline-block w-2 h-2 bg-red-500 rounded-full animate-ping" />
+                  <span className="text-xs text-red-500 font-semibold tracking-wide">TRANSCRIPTION EN DIRECT</span>
+                </div>
+              )}
+              {liveTranscript ? (
+                <p className="leading-relaxed text-foreground/90 whitespace-pre-wrap">{liveTranscript}</p>
+              ) : (
+                <p className="text-muted-foreground italic text-sm">
+                  {isLiveRecording ? "Parle distinctement, ta voix apparaît ici en temps réel..." : "Clique sur Démarrer puis parle pour commencer la transcription."}
+                </p>
+              )}
+            </div>
+          </Card>
+
+          {/* AI formatted version */}
+          {liveTranscript && (
+            <Button
+              onClick={enhanceLiveTranscript}
+              disabled={isEnhancing}
+              className="gradient-primary shadow-colored w-full py-4 text-base font-semibold"
+            >
+              {isEnhancing ? (
+                <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> L'IA reformule le cours oral...</>
+              ) : (
+                <><Wand2 className="w-5 h-5 mr-2" /> Transformer en cours écrit ✨</>
+              )}
+            </Button>
+          )}
+
+          {/* AI output */}
+          <AnimatePresence>
+            {liveAiContent && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                <Card className="p-5 border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5">
+                  <div className="flex items-center gap-2 mb-4 pb-3 border-b border-border/30">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Brain className="w-4 h-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-primary text-sm">Cours formaté par l'IA</p>
+                      <p className="text-xs text-muted-foreground">Cours oral transformé en cours écrit structuré</p>
+                    </div>
+                  </div>
+                  <div
+                    className="prose prose-sm max-w-none text-foreground leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: `<p class="mb-3">${renderMarkdown(liveAiContent)}</p>` }}
+                  />
+                </Card>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+        <BottomNav />
+      </div>
+    );
+  }
 
   // ─── EDITOR VIEW ─────────────────────────────────────────────────────────────
   if (view === "editor" && selectedChapter && selectedSubject) {
@@ -922,6 +1187,15 @@ const CoursNotes = () => {
                               <FileText className="w-4 h-4 text-primary/50 shrink-0" />
                               <span className="flex-1 text-sm font-medium text-foreground">{chapter.name}</span>
                               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="w-7 h-7 text-primary/60 hover:text-primary"
+                                  title="Transcription live"
+                                  onClick={(e) => { e.stopPropagation(); openLiveMode(chapter, subject); }}
+                                >
+                                  <Mic className="w-3.5 h-3.5" />
+                                </Button>
                                 <Button
                                   variant="ghost"
                                   size="icon"
