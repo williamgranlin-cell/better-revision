@@ -15,6 +15,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { StyleToggle } from "@/components/StyleToggle";
 import { StatisticsSection } from "@/components/StatisticsSection";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
+import { ThemeSelector } from "@/components/ThemeSelector";
 import { useStylePreference } from "@/hooks/useStylePreference";
 import { useSubscription } from "@/hooks/useSubscription";
 
