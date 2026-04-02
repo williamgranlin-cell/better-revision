@@ -443,35 +443,65 @@ const CoursNotes = () => {
                       </Button>
                     )}
                   </div>
+                </Card>
 
-                  {/* Live transcript */}
-                  <div className={cn(
-                    "rounded-xl p-4 min-h-[200px] border transition-all",
-                    isRecording ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800" : "bg-muted/30 border-border/50"
-                  )}>
-                    {isRecording && (
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="inline-block w-2 h-2 bg-red-500 rounded-full animate-ping" />
-                        <span className="text-xs text-red-500 font-semibold tracking-wide">TRANSCRIPTION EN DIRECT</span>
-                      </div>
+                {/* Live transcript area - always visible */}
+                <Card className={cn(
+                  "p-5 border transition-all flex-1",
+                  isRecording ? "border-red-300 dark:border-red-700 shadow-lg shadow-red-500/10" : "border-border/50"
+                )}>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      {isRecording && <span className="inline-block w-2.5 h-2.5 bg-red-500 rounded-full animate-ping" />}
+                      <span className={cn(
+                        "text-sm font-semibold tracking-wide",
+                        isRecording ? "text-red-500" : "text-foreground"
+                      )}>
+                        {isRecording ? "📝 TRANSCRIPTION EN DIRECT" : transcript ? "📝 Transcription" : "📝 Transcription"}
+                      </span>
+                    </div>
+                    {transcript && (
+                      <span className="text-xs text-muted-foreground">{transcript.trim().split(/\s+/).length} mots</span>
                     )}
+                  </div>
+
+                  <div className={cn(
+                    "rounded-xl p-4 min-h-[250px] max-h-[400px] overflow-y-auto border transition-all",
+                    isRecording
+                      ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800"
+                      : transcript
+                        ? "bg-muted/20 border-border/50"
+                        : "bg-muted/10 border-dashed border-border/30"
+                  )}>
                     {transcript ? (
-                      <p className="leading-relaxed text-foreground/90 whitespace-pre-wrap">{transcript}</p>
-                    ) : (
-                      <p className="text-muted-foreground italic text-sm">
-                        {isRecording ? "Parle distinctement, ta voix apparaît ici..." : "Clique sur Démarrer pour commencer."}
+                      <p className="leading-relaxed text-foreground whitespace-pre-wrap text-base">
+                        {transcript}
+                        {isRecording && <span className="inline-block w-0.5 h-5 bg-red-500 animate-pulse ml-0.5 align-text-bottom" />}
                       </p>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-center">
+                        <Volume2 className="w-10 h-10 text-muted-foreground/30 mb-3" />
+                        <p className="text-muted-foreground text-sm">
+                          {isRecording
+                            ? "Parle distinctement, ta voix apparaît ici en temps réel..."
+                            : "Clique sur Démarrer pour lancer l'enregistrement vocal.\nTa voix sera transcrite automatiquement ici."}
+                        </p>
+                      </div>
                     )}
                   </div>
                 </Card>
 
-                {transcript && !isRecording && (
+                {/* Action buttons */}
+                {transcript && (
                   <div className="flex gap-2">
                     <Button onClick={insertTranscript} variant="outline" className="flex-1 text-primary border-primary/30">
                       <Plus className="w-4 h-4 mr-1.5" /> Insérer dans mes notes
                     </Button>
                     <Button onClick={() => enhanceWithAI(transcript)} disabled={isEnhancing} className="flex-1 gradient-primary shadow-colored">
                       <Wand2 className="w-4 h-4 mr-1.5" /> Transformer avec l'IA ✨
+                    </Button>
+                    <Button onClick={() => { setTranscript(""); finalTranscriptRef.current = ""; }} variant="ghost" size="icon" className="text-muted-foreground">
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
                 )}
