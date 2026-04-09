@@ -8,15 +8,17 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Plus, Trash2, BookOpen, ChevronRight, Mic, MicOff, Sparkles,
   Save, ArrowLeft, FileText, Folder, Loader2, Check, X, Edit2,
-  Volume2, Brain, RefreshCw, Wand2, Import
+  Volume2, Brain, RefreshCw, Wand2, Import, FolderOpen
 } from "lucide-react";
-import { useCourseNotes, CourseSubject, CourseChapter } from "@/hooks/useCourseNotes";
+import { useCourseNotes, CourseSubject, CourseChapter, CourseSubcategory } from "@/hooks/useCourseNotes";
 import { useCourses } from "@/hooks/useCourses";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import DOMPurify from "dompurify";
+import katex from "katex";
+import "katex/dist/katex.min.css";
 
 const SUBJECT_COLORS = [
   { name: "Bleu", value: "bg-blue-500" },
@@ -31,8 +33,30 @@ const SUBJECT_COLORS = [
 
 const SUBJECT_EMOJIS = ["📚", "🔬", "🧮", "📐", "🌍", "📖", "🎨", "⚗️", "🏛️", "💻", "🎵", "🌱", "⚽", "🧬", "📊"];
 
+const renderLatex = (text: string): string => {
+  // Block formulas $$...$$
+  let result = text.replace(/\$\$([\s\S]*?)\$\$/g, (_, formula) => {
+    try {
+      return `<div class="my-3 overflow-x-auto text-center">${katex.renderToString(formula.trim(), { displayMode: true, throwOnError: false })}</div>`;
+    } catch { return `<code>${formula}</code>`; }
+  });
+  // Inline formulas $...$
+  result = result.replace(/\$([^\$\n]+?)\$/g, (_, formula) => {
+    try {
+      return katex.renderToString(formula.trim(), { displayMode: false, throwOnError: false });
+    } catch { return `<code>${formula}</code>`; }
+  });
+  return result;
+};
+
 const CoursNotes = () => {
-  const { subjects, chapters, loading, addSubject, deleteSubject, addChapter, deleteChapter, getNote, saveNote } = useCourseNotes();
+  const {
+    subjects, subcategories, chapters, loading,
+    addSubject, deleteSubject,
+    addSubcategory, deleteSubcategory,
+    addChapter, deleteChapter,
+    getNote, saveNote
+  } = useCourseNotes();
   const { courses } = useCourses();
   const { toast } = useToast();
 
@@ -63,13 +87,16 @@ const CoursNotes = () => {
   // Import from courses
   const [showImportCourse, setShowImportCourse] = useState(false);
 
-  // Add subject/chapter dialogs
+  // Add subject/chapter/subcategory dialogs
   const [showAddSubject, setShowAddSubject] = useState(false);
   const [newSubjectName, setNewSubjectName] = useState("");
   const [newSubjectColor, setNewSubjectColor] = useState(SUBJECT_COLORS[0].value);
   const [newSubjectEmoji, setNewSubjectEmoji] = useState(SUBJECT_EMOJIS[0]);
   const [addingChapterForSubject, setAddingChapterForSubject] = useState<string | null>(null);
+  const [addingChapterForSubcategory, setAddingChapterForSubcategory] = useState<string | null>(null);
   const [newChapterName, setNewChapterName] = useState("");
+  const [addingSubcategoryForSubject, setAddingSubcategoryForSubject] = useState<string | null>(null);
+  const [newSubcategoryName, setNewSubcategoryName] = useState("");
 
   // Auto-save
   const autoSaveRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -271,17 +298,21 @@ const CoursNotes = () => {
 
   const renderMarkdown = (text: string) => {
     if (!text) return "";
-    const html = text
+    // First render LaTeX formulas
+    let processed = renderLatex(text);
+    // Then render markdown
+    const html = processed
       .replace(/^### (.+)$/gm, '<h3 class="text-base font-bold mt-4 mb-2 text-foreground">$1</h3>')
       .replace(/^## (.+)$/gm, '<h2 class="text-lg font-bold mt-5 mb-2 text-primary">$1</h2>')
       .replace(/^# (.+)$/gm, '<h1 class="text-xl font-bold mt-6 mb-3 text-primary font-display">$1</h1>')
       .replace(/\*\*(.+?)\*\*/g, '<strong class="font-bold text-foreground">$1</strong>')
       .replace(/\*(.+?)\*/g, '<em class="italic text-muted-foreground">$1</em>')
+      .replace(/^> (.+)$/gm, '<blockquote class="border-l-4 border-primary/40 pl-4 py-2 my-3 bg-primary/5 rounded-r-lg text-sm italic text-foreground/80">$1</blockquote>')
       .replace(/^- (.+)$/gm, '<li class="ml-4 list-disc text-foreground/90 mb-1">$1</li>')
       .replace(/^(\d+)\. (.+)$/gm, '<li class="ml-4 list-decimal text-foreground/90 mb-1">$2</li>')
       .replace(/\n\n/g, '</p><p class="mb-3">')
       .replace(/\n/g, "<br/>");
-    return DOMPurify.sanitize(html);
+    return DOMPurify.sanitize(html, { ADD_TAGS: ['span', 'math', 'semantics', 'mrow', 'mi', 'mo', 'mn', 'msup', 'msub', 'mfrac', 'msqrt', 'mover', 'munder', 'annotation'], ADD_ATTR: ['class', 'style', 'aria-hidden', 'encoding', 'xmlns'] });
   };
 
   const importFromCourse = (courseName: string) => {
@@ -297,12 +328,21 @@ const CoursNotes = () => {
     setShowAddSubject(false);
   };
 
-  const handleAddChapter = async () => {
-    if (!addingChapterForSubject || !newChapterName.trim()) return;
-    await addChapter(addingChapterForSubject, newChapterName.trim());
-    setExpandedSubjects((prev) => new Set([...prev, addingChapterForSubject]));
+  const handleAddChapter = async (subcategoryId?: string | null) => {
+    const subjectId = addingChapterForSubject;
+    if (!subjectId || !newChapterName.trim()) return;
+    await addChapter(subjectId, newChapterName.trim(), subcategoryId);
+    setExpandedSubjects((prev) => new Set([...prev, subjectId]));
     setNewChapterName("");
     setAddingChapterForSubject(null);
+    setAddingChapterForSubcategory(null);
+  };
+
+  const handleAddSubcategory = async () => {
+    if (!addingSubcategoryForSubject || !newSubcategoryName.trim()) return;
+    await addSubcategory(addingSubcategoryForSubject, newSubcategoryName.trim());
+    setNewSubcategoryName("");
+    setAddingSubcategoryForSubject(null);
   };
 
   // ─── CHAPTER VIEW (3 tabs) ──────────────────────────────────────────────────
@@ -401,10 +441,10 @@ const CoursNotes = () => {
                 <Textarea
                   value={noteContent}
                   onChange={(e) => setNoteContent(e.target.value)}
-                  placeholder="Écris ici le contenu de ton cours..."
+                  placeholder="Écris ici le contenu de ton cours... Tu peux utiliser $formule$ pour les maths en ligne et $$formule$$ pour les blocs."
                   className="flex-1 min-h-[300px] resize-none text-sm leading-relaxed bg-card font-mono"
                 />
-                <p className="text-xs text-muted-foreground">💾 Sauvegarde automatique toutes les 30s</p>
+                <p className="text-xs text-muted-foreground">💾 Sauvegarde auto 30s · Utilise <code className="bg-muted px-1 rounded">$...$</code> pour les formules math</p>
 
                 <Button
                   onClick={() => enhanceWithAI()}
@@ -445,7 +485,7 @@ const CoursNotes = () => {
                   </div>
                 </Card>
 
-                {/* Live transcript area - always visible */}
+                {/* Live transcript area - EDITABLE */}
                 <Card className={cn(
                   "p-5 border transition-all flex-1",
                   isRecording ? "border-red-300 dark:border-red-700 shadow-lg shadow-red-500/10" : "border-border/50"
@@ -457,7 +497,7 @@ const CoursNotes = () => {
                         "text-sm font-semibold tracking-wide",
                         isRecording ? "text-red-500" : "text-foreground"
                       )}>
-                        {isRecording ? "📝 TRANSCRIPTION EN DIRECT" : transcript ? "📝 Transcription" : "📝 Transcription"}
+                        {isRecording ? "📝 TRANSCRIPTION EN DIRECT" : "📝 Transcription (modifiable)"}
                       </span>
                     </div>
                     {transcript && (
@@ -465,30 +505,30 @@ const CoursNotes = () => {
                     )}
                   </div>
 
-                  <div className={cn(
-                    "rounded-xl p-4 min-h-[250px] max-h-[400px] overflow-y-auto border transition-all",
-                    isRecording
-                      ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800"
-                      : transcript
-                        ? "bg-muted/20 border-border/50"
-                        : "bg-muted/10 border-dashed border-border/30"
-                  )}>
-                    {transcript ? (
-                      <p className="leading-relaxed text-foreground whitespace-pre-wrap text-base">
-                        {transcript}
-                        {isRecording && <span className="inline-block w-0.5 h-5 bg-red-500 animate-pulse ml-0.5 align-text-bottom" />}
+                  {transcript || isRecording ? (
+                    <Textarea
+                      value={transcript}
+                      onChange={(e) => {
+                        setTranscript(e.target.value);
+                        finalTranscriptRef.current = e.target.value;
+                      }}
+                      placeholder={isRecording ? "Parle distinctement, ta voix apparaît ici en temps réel..." : "Aucune transcription"}
+                      className={cn(
+                        "min-h-[250px] max-h-[400px] resize-none text-base leading-relaxed border transition-all",
+                        isRecording
+                          ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800 focus:ring-red-300"
+                          : "bg-muted/20 border-border/50"
+                      )}
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center min-h-[250px] text-center rounded-xl bg-muted/10 border border-dashed border-border/30 p-4">
+                      <Volume2 className="w-10 h-10 text-muted-foreground/30 mb-3" />
+                      <p className="text-muted-foreground text-sm">
+                        Clique sur Démarrer pour lancer l'enregistrement vocal.<br />
+                        Ta voix sera transcrite automatiquement ici.
                       </p>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-center">
-                        <Volume2 className="w-10 h-10 text-muted-foreground/30 mb-3" />
-                        <p className="text-muted-foreground text-sm">
-                          {isRecording
-                            ? "Parle distinctement, ta voix apparaît ici en temps réel..."
-                            : "Clique sur Démarrer pour lancer l'enregistrement vocal.\nTa voix sera transcrite automatiquement ici."}
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </Card>
 
                 {/* Action buttons */}
@@ -516,7 +556,7 @@ const CoursNotes = () => {
                     </div>
                     <h3 className="text-lg font-semibold mb-2">Pas encore de version IA</h3>
                     <p className="text-muted-foreground text-sm max-w-xs mb-6">
-                      Écris ton cours ou enregistre-le vocalement, puis l'IA le restructurera et le corrigera.
+                      Écris ton cours ou enregistre-le vocalement, puis l'IA le restructurera avec formules, schémas et résumés.
                     </p>
                     <Button
                       onClick={() => enhanceWithAI()}
@@ -535,7 +575,7 @@ const CoursNotes = () => {
                         </div>
                         <div>
                           <p className="font-semibold text-primary text-sm">Cours restructuré par l'IA</p>
-                          <p className="text-xs text-muted-foreground">Orthographe et structure corrigées</p>
+                          <p className="text-xs text-muted-foreground">Avec formules, schémas et résumés</p>
                         </div>
                         <Button size="sm" variant="ghost" onClick={() => enhanceWithAI()} disabled={isEnhancing} className="ml-auto text-xs h-7 px-2">
                           {isEnhancing ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3 mr-1" />}
@@ -650,7 +690,12 @@ const CoursNotes = () => {
         <div className="space-y-3">
           {subjects.map((subject, idx) => {
             const subjectChapters = chapters.filter((c) => c.subject_id === subject.id);
+            const subjectSubcategories = subcategories.filter((s) => s.subject_id === subject.id);
             const isExpanded = expandedSubjects.has(subject.id);
+
+            // Chapters without subcategory
+            const rootChapters = subjectChapters.filter((c) => !c.subcategory_id);
+
             return (
               <motion.div key={subject.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
                 <Card className="overflow-hidden border-border/50 hover:border-primary/30 hover:shadow-md transition-all duration-200">
@@ -658,7 +703,10 @@ const CoursNotes = () => {
                     <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center text-xl shadow-sm shrink-0", subject.color)}>{subject.emoji}</div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-foreground">{subject.name}</h3>
-                      <p className="text-xs text-muted-foreground">{subjectChapters.length} chapitre{subjectChapters.length !== 1 ? "s" : ""}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {subjectSubcategories.length > 0 && `${subjectSubcategories.length} sous-cat. · `}
+                        {subjectChapters.length} chapitre{subjectChapters.length !== 1 ? "s" : ""}
+                      </p>
                     </div>
                     <div className="flex items-center gap-1">
                       <Button variant="ghost" size="icon" className="w-8 h-8 text-muted-foreground hover:text-red-500" onClick={(e) => { e.stopPropagation(); deleteSubject(subject.id); }}>
@@ -674,8 +722,51 @@ const CoursNotes = () => {
                     {isExpanded && (
                       <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
                         <div className="border-t border-border/30 bg-muted/20">
-                          {subjectChapters.length === 0 && <p className="text-xs text-muted-foreground italic px-4 py-3">Aucun chapitre</p>}
-                          {subjectChapters.map((chapter) => (
+
+                          {/* Subcategories */}
+                          {subjectSubcategories.map((subcat) => {
+                            const subcatChapters = subjectChapters.filter((c) => c.subcategory_id === subcat.id);
+                            return (
+                              <div key={subcat.id} className="border-b border-border/15 last:border-0">
+                                <div className="flex items-center gap-2 px-4 py-2.5 bg-muted/30">
+                                  <FolderOpen className="w-4 h-4 text-primary/60 shrink-0" />
+                                  <span className="flex-1 text-sm font-semibold text-foreground/80">{subcat.name}</span>
+                                  <Button variant="ghost" size="icon" className="w-7 h-7 text-muted-foreground hover:text-red-500" onClick={() => deleteSubcategory(subcat.id)}>
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </Button>
+                                </div>
+                                {subcatChapters.length === 0 && <p className="text-xs text-muted-foreground italic px-8 py-2">Aucun chapitre</p>}
+                                {subcatChapters.map((chapter) => (
+                                  <div key={chapter.id} className="flex items-center gap-3 px-8 py-2.5 hover:bg-primary/5 transition-colors group cursor-pointer border-b border-border/10 last:border-0" onClick={() => openChapter(chapter, subject)}>
+                                    <FileText className="w-4 h-4 text-primary/50 shrink-0" />
+                                    <span className="flex-1 text-sm font-medium text-foreground">{chapter.name}</span>
+                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <Button variant="ghost" size="icon" className="w-7 h-7 text-muted-foreground hover:text-red-500" onClick={(e) => { e.stopPropagation(); deleteChapter(chapter.id); }}>
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </Button>
+                                      <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                                    </div>
+                                  </div>
+                                ))}
+                                {/* Add chapter inside subcategory */}
+                                {addingChapterForSubject === subject.id && addingChapterForSubcategory === subcat.id ? (
+                                  <div className="flex items-center gap-2 px-8 py-2.5">
+                                    <Input value={newChapterName} onChange={(e) => setNewChapterName(e.target.value)} placeholder="Nom du chapitre..." className="h-8 text-sm" autoFocus onKeyDown={(e) => { if (e.key === "Enter") handleAddChapter(subcat.id); if (e.key === "Escape") { setAddingChapterForSubject(null); setAddingChapterForSubcategory(null); } }} />
+                                    <Button size="icon" className="h-8 w-8 gradient-primary shrink-0" onClick={() => handleAddChapter(subcat.id)}><Check className="w-3.5 h-3.5" /></Button>
+                                    <Button size="icon" variant="outline" className="h-8 w-8 shrink-0" onClick={() => { setAddingChapterForSubject(null); setAddingChapterForSubcategory(null); }}><X className="w-3.5 h-3.5" /></Button>
+                                  </div>
+                                ) : (
+                                  <button className="flex items-center gap-2 px-8 py-2 w-full text-xs text-primary/60 hover:text-primary hover:bg-primary/5 transition-colors" onClick={() => { setAddingChapterForSubject(subject.id); setAddingChapterForSubcategory(subcat.id); setNewChapterName(""); }}>
+                                    <Plus className="w-3 h-3" /> Ajouter un chapitre
+                                  </button>
+                                )}
+                              </div>
+                            );
+                          })}
+
+                          {/* Root chapters (without subcategory) */}
+                          {rootChapters.length === 0 && subjectSubcategories.length === 0 && <p className="text-xs text-muted-foreground italic px-4 py-3">Aucun chapitre</p>}
+                          {rootChapters.map((chapter) => (
                             <div key={chapter.id} className="flex items-center gap-3 px-4 py-3 hover:bg-primary/5 transition-colors group cursor-pointer border-b border-border/15 last:border-0" onClick={() => openChapter(chapter, subject)}>
                               <FileText className="w-4 h-4 text-primary/50 shrink-0" />
                               <span className="flex-1 text-sm font-medium text-foreground">{chapter.name}</span>
@@ -688,16 +779,32 @@ const CoursNotes = () => {
                             </div>
                           ))}
 
-                          {addingChapterForSubject === subject.id ? (
+                          {/* Add chapter at root level */}
+                          {addingChapterForSubject === subject.id && !addingChapterForSubcategory ? (
                             <div className="flex items-center gap-2 px-4 py-3 border-t border-border/20">
-                              <Input value={newChapterName} onChange={(e) => setNewChapterName(e.target.value)} placeholder="Nom du chapitre..." className="h-8 text-sm" autoFocus onKeyDown={(e) => { if (e.key === "Enter") handleAddChapter(); if (e.key === "Escape") setAddingChapterForSubject(null); }} />
-                              <Button size="icon" className="h-8 w-8 gradient-primary shrink-0" onClick={handleAddChapter}><Check className="w-3.5 h-3.5" /></Button>
+                              <Input value={newChapterName} onChange={(e) => setNewChapterName(e.target.value)} placeholder="Nom du chapitre..." className="h-8 text-sm" autoFocus onKeyDown={(e) => { if (e.key === "Enter") handleAddChapter(null); if (e.key === "Escape") setAddingChapterForSubject(null); }} />
+                              <Button size="icon" className="h-8 w-8 gradient-primary shrink-0" onClick={() => handleAddChapter(null)}><Check className="w-3.5 h-3.5" /></Button>
                               <Button size="icon" variant="outline" className="h-8 w-8 shrink-0" onClick={() => setAddingChapterForSubject(null)}><X className="w-3.5 h-3.5" /></Button>
                             </div>
                           ) : (
-                            <button className="flex items-center gap-2 px-4 py-3 w-full text-sm text-primary/70 hover:text-primary hover:bg-primary/5 transition-colors" onClick={() => { setAddingChapterForSubject(subject.id); setNewChapterName(""); }}>
-                              <Plus className="w-3.5 h-3.5" /> Ajouter un chapitre
-                            </button>
+                            <div className="flex border-t border-border/20">
+                              <button className="flex items-center gap-2 px-4 py-3 flex-1 text-sm text-primary/70 hover:text-primary hover:bg-primary/5 transition-colors" onClick={() => { setAddingChapterForSubject(subject.id); setAddingChapterForSubcategory(null); setNewChapterName(""); }}>
+                                <Plus className="w-3.5 h-3.5" /> Chapitre
+                              </button>
+
+                              {/* Add subcategory */}
+                              {addingSubcategoryForSubject === subject.id ? (
+                                <div className="flex items-center gap-2 px-3 py-2 flex-1 border-l border-border/20">
+                                  <Input value={newSubcategoryName} onChange={(e) => setNewSubcategoryName(e.target.value)} placeholder="Nom..." className="h-8 text-sm" autoFocus onKeyDown={(e) => { if (e.key === "Enter") handleAddSubcategory(); if (e.key === "Escape") setAddingSubcategoryForSubject(null); }} />
+                                  <Button size="icon" className="h-8 w-8 gradient-primary shrink-0" onClick={handleAddSubcategory}><Check className="w-3.5 h-3.5" /></Button>
+                                  <Button size="icon" variant="outline" className="h-8 w-8 shrink-0" onClick={() => setAddingSubcategoryForSubject(null)}><X className="w-3.5 h-3.5" /></Button>
+                                </div>
+                              ) : (
+                                <button className="flex items-center gap-2 px-4 py-3 flex-1 text-sm text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors border-l border-border/20" onClick={() => { setAddingSubcategoryForSubject(subject.id); setNewSubcategoryName(""); }}>
+                                  <FolderOpen className="w-3.5 h-3.5" /> Sous-catégorie
+                                </button>
+                              )}
+                            </div>
                           )}
                         </div>
                       </motion.div>
