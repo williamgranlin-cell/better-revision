@@ -92,11 +92,14 @@ Ton travail :
 4. Mettre en valeur les concepts clés (entre **gras**)
 5. Organiser la progression logique des idées
 6. Adapter le niveau de langage au niveau scolaire indiqué
-7. Si des formules ou équations sont mentionnées, les écrire correctement
+7. Écrire les formules et équations mathématiques en LaTeX entre $$...$$ pour les formules en bloc ou $...$ pour les formules en ligne
 8. Ajouter des transitions fluides entre les parties
+9. Créer des schémas textuels et des tableaux en Markdown quand c'est pertinent pour illustrer les concepts (tableaux comparatifs, organigrammes en ASCII, listes hiérarchiques)
+10. Ajouter des encadrés de résumé avec > (blockquote) pour les points essentiels à retenir
+11. Si le sujet s'y prête, inclure des exemples concrets et des exercices d'application
 
-Format de sortie : Markdown structuré avec titres (##, ###), listes, gras pour les termes importants.
-Le cours doit être complet, précis, pédagogique et agréable à lire.`;
+Format de sortie : Markdown structuré avec titres (##, ###), listes, gras pour les termes importants, tableaux Markdown, blockquotes pour les résumés, et formules LaTeX.
+Le cours doit être complet, précis, pédagogique et agréable à lire, avec des schémas et illustrations textuelles quand c'est utile.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
