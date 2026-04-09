@@ -56,6 +56,7 @@ export type Database = {
           id: string
           name: string
           order_index: number
+          subcategory_id: string | null
           subject_id: string
           updated_at: string
           user_id: string
@@ -65,6 +66,7 @@ export type Database = {
           id?: string
           name: string
           order_index?: number
+          subcategory_id?: string | null
           subject_id: string
           updated_at?: string
           user_id: string
@@ -74,6 +76,7 @@ export type Database = {
           id?: string
           name?: string
           order_index?: number
+          subcategory_id?: string | null
           subject_id?: string
           updated_at?: string
           user_id?: string
@@ -125,6 +128,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      course_subcategories: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          order_index: number
+          subject_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          order_index?: number
+          subject_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          order_index?: number
+          subject_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       course_subjects: {
         Row: {
