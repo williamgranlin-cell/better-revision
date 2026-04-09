@@ -14,6 +14,15 @@ export interface CourseSubject {
 export interface CourseChapter {
   id: string;
   subject_id: string;
+  subcategory_id: string | null;
+  name: string;
+  order_index: number;
+  created_at: string;
+}
+
+export interface CourseSubcategory {
+  id: string;
+  subject_id: string;
   name: string;
   order_index: number;
   created_at: string;
@@ -29,36 +38,71 @@ export interface CourseNote {
 
 export const useCourseNotes = () => {
   const [subjects, setSubjects] = useState<CourseSubject[]>([]);
+  const [subcategories, setSubcategories] = useState<CourseSubcategory[]>([]);
   const [chapters, setChapters] = useState<CourseChapter[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
+  const db = supabase as any;
 
   const fetchSubjects = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setSubjects([]);
+      return;
+    }
     const { data, error } = await supabase
       .from("course_subjects")
       .select("*")
       .eq("user_id", user.id)
       .order("created_at", { ascending: true });
     if (!error && data) setSubjects(data);
-    setLoading(false);
   }, [user]);
 
+  const fetchSubcategories = useCallback(async () => {
+    if (!user) {
+      setSubcategories([]);
+      return;
+    }
+
+    const { data, error } = await db
+      .from("course_subcategories")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("order_index", { ascending: true });
+
+    if (!error && data) setSubcategories(data as CourseSubcategory[]);
+  }, [db, user]);
+
   const fetchChapters = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setChapters([]);
+      return;
+    }
     const { data, error } = await supabase
       .from("course_chapters")
       .select("*")
       .eq("user_id", user.id)
       .order("order_index", { ascending: true });
-    if (!error && data) setChapters(data);
+    if (!error && data) setChapters(data as CourseChapter[]);
   }, [user]);
 
+  const refetch = useCallback(async () => {
+    if (!user) {
+      setSubjects([]);
+      setSubcategories([]);
+      setChapters([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    await Promise.all([fetchSubjects(), fetchSubcategories(), fetchChapters()]);
+    setLoading(false);
+  }, [fetchChapters, fetchSubjects, fetchSubcategories, user]);
+
   useEffect(() => {
-    fetchSubjects();
-    fetchChapters();
-  }, [fetchSubjects, fetchChapters]);
+    void refetch();
+  }, [refetch]);
 
   const addSubject = async (name: string, color: string, emoji: string) => {
     if (!user) return null;
@@ -82,23 +126,69 @@ export const useCourseNotes = () => {
       return;
     }
     setSubjects((prev) => prev.filter((s) => s.id !== id));
+    setSubcategories((prev) => prev.filter((s) => s.subject_id !== id));
     setChapters((prev) => prev.filter((c) => c.subject_id !== id));
   };
 
-  const addChapter = async (subjectId: string, name: string) => {
+  const addSubcategory = async (subjectId: string, name: string) => {
     if (!user) return null;
-    const existingChapters = chapters.filter((c) => c.subject_id === subjectId);
+
+    const existingSubcategories = subcategories.filter((s) => s.subject_id === subjectId);
+    const { data, error } = await db
+      .from("course_subcategories")
+      .insert({ user_id: user.id, subject_id: subjectId, name, order_index: existingSubcategories.length })
+      .select()
+      .single();
+
+    if (error) {
+      toast({ title: "Erreur", description: "Impossible de créer la sous-catégorie", variant: "destructive" });
+      return null;
+    }
+
+    setSubcategories((prev) => [...prev, data as CourseSubcategory]);
+    return data as CourseSubcategory;
+  };
+
+  const deleteSubcategory = async (id: string) => {
+    const { error: detachError } = await db
+      .from("course_chapters")
+      .update({ subcategory_id: null })
+      .eq("subcategory_id", id);
+
+    if (detachError) {
+      toast({ title: "Erreur", description: "Impossible de détacher les cours de la sous-catégorie", variant: "destructive" });
+      return;
+    }
+
+    const { error } = await db.from("course_subcategories").delete().eq("id", id);
+    if (error) {
+      toast({ title: "Erreur", description: "Impossible de supprimer la sous-catégorie", variant: "destructive" });
+      return;
+    }
+
+    setSubcategories((prev) => prev.filter((s) => s.id !== id));
+    setChapters((prev) => prev.map((chapter) => chapter.subcategory_id === id ? { ...chapter, subcategory_id: null } : chapter));
+  };
+
+  const addChapter = async (subjectId: string, name: string, subcategoryId?: string | null) => {
+    if (!user) return null;
+
+    const normalizedSubcategoryId = subcategoryId ?? null;
+    const existingChapters = chapters.filter(
+      (c) => c.subject_id === subjectId && (c.subcategory_id ?? null) === normalizedSubcategoryId
+    );
+
     const { data, error } = await supabase
       .from("course_chapters")
-      .insert({ user_id: user.id, subject_id: subjectId, name, order_index: existingChapters.length })
+      .insert({ user_id: user.id, subject_id: subjectId, subcategory_id: normalizedSubcategoryId, name, order_index: existingChapters.length } as any)
       .select()
       .single();
     if (error) {
       toast({ title: "Erreur", description: "Impossible de créer le chapitre", variant: "destructive" });
       return null;
     }
-    setChapters((prev) => [...prev, data]);
-    return data;
+    setChapters((prev) => [...prev, data as CourseChapter]);
+    return data as CourseChapter;
   };
 
   const deleteChapter = async (id: string) => {
@@ -146,5 +236,19 @@ export const useCourseNotes = () => {
     }
   };
 
-  return { subjects, chapters, loading, addSubject, deleteSubject, addChapter, deleteChapter, getNote, saveNote, refetch: fetchSubjects };
+  return {
+    subjects,
+    subcategories,
+    chapters,
+    loading,
+    addSubject,
+    deleteSubject,
+    addSubcategory,
+    deleteSubcategory,
+    addChapter,
+    deleteChapter,
+    getNote,
+    saveNote,
+    refetch,
+  };
 };
