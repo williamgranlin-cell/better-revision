@@ -33,6 +33,7 @@ const Controls = () => {
   );
 
   return (
+    <PageTransition>
     <div className="min-h-screen pb-24 bg-background">
       <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-lg border-b border-border/50 shadow-sm">
         <div className="max-w-screen-xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
@@ -131,8 +132,16 @@ const Controls = () => {
         onOpenChange={setIsAddDialogOpen}
         onAddControl={addControl}
       />
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title="Supprimer ce contrôle ?"
+        description="Cette action est irréversible."
+        onConfirm={() => { if (deleteTarget) deleteControl(deleteTarget); setDeleteTarget(null); }}
+      />
       <BottomNav />
     </div>
+    </PageTransition>
   );
 };
 
