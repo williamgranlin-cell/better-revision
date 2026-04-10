@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { PageTransition } from "@/components/PageTransition";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { useAuth } from "@/contexts/AuthContext";
@@ -165,6 +167,7 @@ const Profile = () => {
   }
 
   return (
+    <PageTransition>
     <div className="min-h-screen bg-background pb-20">
       <div className="container max-w-4xl md:max-w-5xl lg:max-w-6xl mx-auto p-4 md:p-6 space-y-4 md:space-y-6">
         {/* Header Profile Card */}
@@ -323,8 +326,10 @@ const Profile = () => {
         </Card>
       </div>
       
+      <ScrollToTop />
       <BottomNav />
     </div>
+    </PageTransition>
   );
 };
 
