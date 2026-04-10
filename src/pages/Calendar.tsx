@@ -5,16 +5,21 @@ import { BottomNav } from "@/components/BottomNav";
 import { AddCourseDialog } from "@/components/AddCourseDialog";
 import CalendarView from "@/components/CalendarView";
 import { useCourses } from "@/hooks/useCourses";
+import { PageTransition } from "@/components/PageTransition";
+import { WelcomeHeader } from "@/components/WelcomeHeader";
+import { ScrollToTop } from "@/components/ScrollToTop";
 
 const Calendar = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const { courses, addCourse, updateCourse, deleteCourse, getRevisionEvents } = useCourses();
 
   return (
+    <PageTransition>
     <div className="min-h-screen pb-24 bg-background">
       <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-lg border-b border-border/50 shadow-sm">
         <div className="max-w-screen-xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
           <div>
+            <WelcomeHeader />
             <h1 className="text-xl md:text-2xl lg:text-3xl font-display font-bold bg-gradient-primary bg-clip-text text-transparent">
               Mon Calendrier 📅
             </h1>
@@ -48,8 +53,10 @@ const Calendar = () => {
         onOpenChange={setIsAddDialogOpen}
         onAddCourse={addCourse}
       />
+      <ScrollToTop />
       <BottomNav />
     </div>
+    </PageTransition>
   );
 };
 
