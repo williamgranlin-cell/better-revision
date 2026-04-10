@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { PageTransition } from "@/components/PageTransition";
 import { BottomNav } from "@/components/BottomNav";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
