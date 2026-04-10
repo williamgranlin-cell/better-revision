@@ -324,6 +324,7 @@ const Schedule = () => {
   }
 
   return (
+    <PageTransition>
     <div className="min-h-screen pb-24 bg-background">
       {/* Decorative background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
@@ -558,6 +559,7 @@ const Schedule = () => {
 
       <BottomNav />
     </div>
+    </PageTransition>
   );
 };
 

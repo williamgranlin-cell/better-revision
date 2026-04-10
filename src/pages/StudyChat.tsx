@@ -215,6 +215,7 @@ const StudyChat = () => {
   };
 
   return (
+    <PageTransition>
     <div className="min-h-screen bg-background pb-20">
       <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-lg border-b border-border/50 shadow-sm">
         <div className="container max-w-4xl md:max-w-5xl lg:max-w-6xl mx-auto px-4 md:px-6 py-4">
@@ -525,6 +526,7 @@ const StudyChat = () => {
 
       <BottomNav />
     </div>
+    </PageTransition>
   );
 };
 

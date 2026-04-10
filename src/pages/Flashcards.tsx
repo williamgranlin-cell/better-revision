@@ -139,6 +139,7 @@ const Flashcards = () => {
   const accuracy = totalAnswered > 0 ? Math.round((score / totalAnswered) * 100) : 0;
 
   return (
+    <PageTransition>
     <div className="min-h-screen pb-24 bg-background">
       <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-lg border-b border-border/50 shadow-sm">
         <div className="max-w-screen-xl mx-auto px-4 md:px-6 py-4">
@@ -326,6 +327,7 @@ const Flashcards = () => {
       {reviewSetId && <FlashcardReviewDialog open={!!reviewSetId} onOpenChange={(open) => !open && setReviewSetId(null)} setId={reviewSetId} setName={reviewSetName} />}
       <BottomNav />
     </div>
+    </PageTransition>
   );
 };
 
