@@ -6,10 +6,13 @@ import { Card } from "@/components/ui/card";
 import { AddControlDialog } from "@/components/AddControlDialog";
 import { Badge } from "@/components/ui/badge";
 import { useControls } from "@/hooks/useControls";
+import { PageTransition } from "@/components/PageTransition";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 const Controls = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const { controls, addControl, deleteControl } = useControls();
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const importanceConfig = {
     low: { color: "bg-success", label: "Faible" },
@@ -97,7 +100,7 @@ const Controls = () => {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => deleteControl(control.id)}
+                      onClick={() => setDeleteTarget(control.id)}
                       className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
                     >
                       <Trash2 className="w-4 h-4" />
