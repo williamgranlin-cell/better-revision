@@ -6,10 +6,13 @@ import { Card } from "@/components/ui/card";
 import { AddControlDialog } from "@/components/AddControlDialog";
 import { Badge } from "@/components/ui/badge";
 import { useControls } from "@/hooks/useControls";
+import { PageTransition } from "@/components/PageTransition";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 const Controls = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const { controls, addControl, deleteControl } = useControls();
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const importanceConfig = {
     low: { color: "bg-success", label: "Faible" },
@@ -30,6 +33,7 @@ const Controls = () => {
   );
 
   return (
+    <PageTransition>
     <div className="min-h-screen pb-24 bg-background">
       <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-lg border-b border-border/50 shadow-sm">
         <div className="max-w-screen-xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
@@ -97,7 +101,7 @@ const Controls = () => {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => deleteControl(control.id)}
+                      onClick={() => setDeleteTarget(control.id)}
                       className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -128,8 +132,16 @@ const Controls = () => {
         onOpenChange={setIsAddDialogOpen}
         onAddControl={addControl}
       />
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title="Supprimer ce contrôle ?"
+        description="Cette action est irréversible."
+        onConfirm={() => { if (deleteTarget) deleteControl(deleteTarget); setDeleteTarget(null); }}
+      />
       <BottomNav />
     </div>
+    </PageTransition>
   );
 };
 

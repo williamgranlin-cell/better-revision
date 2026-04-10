@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { BottomNav } from "@/components/BottomNav";
+import { PageTransition } from "@/components/PageTransition";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -606,6 +608,7 @@ const CoursNotes = () => {
 
   // ─── LIST VIEW ────────────────────────────────────────────────────────────────
   return (
+    <PageTransition>
     <div className="min-h-screen pb-24 bg-background">
       <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-lg border-b border-border/50 shadow-sm">
         <div className="max-w-screen-xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
@@ -816,8 +819,10 @@ const CoursNotes = () => {
           })}
         </div>
       </main>
+      <ScrollToTop />
       <BottomNav />
     </div>
+    </PageTransition>
   );
 };
 

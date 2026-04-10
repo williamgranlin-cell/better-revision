@@ -1,4 +1,6 @@
 import { useState, useRef } from "react";
+import { PageTransition } from "@/components/PageTransition";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -445,6 +447,7 @@ const RevisionGenerator = () => {
   };
 
   return (
+    <PageTransition>
     <div className="min-h-screen bg-background pb-20">
       <div className="container max-w-4xl md:max-w-5xl lg:max-w-6xl mx-auto p-4 md:p-6">
         {/* Header */}
@@ -1120,8 +1123,10 @@ const RevisionGenerator = () => {
         )}
       </div>
 
+      <ScrollToTop />
       <BottomNav />
     </div>
+    </PageTransition>
   );
 };
 

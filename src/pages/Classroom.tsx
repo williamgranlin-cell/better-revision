@@ -9,6 +9,8 @@ import { useObjectives } from "@/hooks/useObjectives";
 import { useStudySessions } from "@/hooks/useStudySessions";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { PageTransition } from "@/components/PageTransition";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
   Dialog,
   DialogContent,
@@ -101,7 +103,10 @@ const Classroom = () => {
     weekday: "long", day: "numeric", month: "long",
   });
 
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+
   return (
+    <PageTransition>
     <div className="min-h-screen pb-24 bg-background">
       <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-lg border-b border-border/50 shadow-sm">
         <div className="max-w-screen-xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
@@ -290,7 +295,7 @@ const Classroom = () => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => deleteObjective(objective.id)}
+                        onClick={() => setDeleteTarget(objective.id)}
                         className="opacity-0 group-hover:opacity-100 transition-opacity w-7 h-7 text-muted-foreground hover:text-destructive"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -304,8 +309,17 @@ const Classroom = () => {
         </div>
       </main>
 
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title="Supprimer cet objectif ?"
+        description="Cette action est irréversible."
+        onConfirm={() => { if (deleteTarget) deleteObjective(deleteTarget); setDeleteTarget(null); }}
+      />
+
       <BottomNav />
     </div>
+    </PageTransition>
   );
 };
 
