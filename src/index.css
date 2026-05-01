@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Sidebar layout: reserve space on the left for the collapsible side nav */
+:root { --sidenav-width: 0px; }
+@media (min-width: 768px) {
+  body { padding-left: var(--sidenav-width); transition: padding-left 300ms ease; }
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */
