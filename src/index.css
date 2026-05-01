@@ -265,6 +265,17 @@ All colors MUST be HSL.
     background: var(--gradient-primary);
   }
 
+  /* Tailwind-friendly aliases so `bg-gradient-primary` works for text gradients */
+  .bg-gradient-primary {
+    background-image: var(--gradient-primary);
+  }
+  .bg-gradient-success {
+    background-image: var(--gradient-success);
+  }
+  .bg-gradient-warning {
+    background-image: var(--gradient-warning);
+  }
+
   .gradient-success {
     background: var(--gradient-success);
   }
