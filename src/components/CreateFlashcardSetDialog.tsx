@@ -92,6 +92,9 @@ export const CreateFlashcardSetDialog = ({
     setIsProcessingFile(true);
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Vous devez être connecté");
+
       const formData = new FormData();
       formData.append("file", file);
 
@@ -99,12 +102,18 @@ export const CreateFlashcardSetDialog = ({
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-flashcards`,
         {
           method: "POST",
-          headers: { Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` },
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
           body: formData,
         }
       );
 
-      if (!response.ok) throw new Error("Erreur lors du traitement du fichier");
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || "Erreur lors du traitement du fichier");
+      }
 
       const data = await response.json();
       setContent(data.extractedText);
@@ -143,24 +152,20 @@ export const CreateFlashcardSetDialog = ({
         ? { subject, type: "ai_subject", count }
         : { content, type: creationMethod === "import" ? "text" : "revision_sheet", count };
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-flashcards`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify(requestBody),
-        }
-      );
+      const { data, error } = await supabase.functions.invoke("generate-flashcards", {
+        body: requestBody,
+      });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Erreur lors de la génération");
+      if (error) {
+        throw new Error(error.message || "Erreur lors de la génération");
+      }
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+      if (!data?.flashcards || !Array.isArray(data.flashcards)) {
+        throw new Error("Réponse invalide du serveur");
       }
 
-      const data = await response.json();
       setFlashcards(data.flashcards);
       setCurrentCard(0);
       toast({ title: "Flashcards générées", description: `${data.flashcards.length} flashcards ont été créées` });
