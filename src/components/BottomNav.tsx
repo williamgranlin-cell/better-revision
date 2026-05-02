@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {
+  Home,
   Calendar,
   Target,
   BookOpen,
@@ -21,7 +22,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const navItems = [
-  { icon: Calendar, label: "Calendrier", path: "/", emoji: "📅" },
+  { icon: Home, label: "Accueil", path: "/", emoji: "🏠" },
+  { icon: Calendar, label: "Calendrier", path: "/calendar", emoji: "📅" },
   { icon: Clock, label: "Emploi", path: "/schedule", emoji: "⏰" },
   { icon: Target, label: "Classroom", path: "/classroom", emoji: "🎯" },
   { icon: NotebookPen, label: "Cours", path: "/cours", emoji: "📓" },
@@ -34,7 +36,8 @@ const navItems = [
 ];
 
 const TIPS: Record<string, string> = {
-  "/": "Planifie tes révisions avec le calendrier J+X",
+  "/": "Vue d'ensemble : stats, révisions du jour, raccourcis",
+  "/calendar": "Planifie tes révisions avec le calendrier J+X",
   "/schedule": "Gère ton emploi du temps hebdomadaire",
   "/classroom": "Minuteur Pomodoro & objectifs du jour",
   "/cours": "Rédige, enregistre et améliore tes cours",
