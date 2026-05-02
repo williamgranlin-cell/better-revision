@@ -82,6 +82,7 @@ const CoursNotes = () => {
   const recognitionRef = useRef<any>(null);
   const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const finalTranscriptRef = useRef("");
+  const shouldKeepRecordingRef = useRef(false);
 
   // AI state (tab 3)
   const [isEnhancing, setIsEnhancing] = useState(false);
@@ -173,6 +174,7 @@ const CoursNotes = () => {
       return;
     }
     finalTranscriptRef.current = "";
+    shouldKeepRecordingRef.current = true;
     const recognition = new SpeechAPI();
     recognition.lang = "fr-FR";
     recognition.continuous = true;
@@ -191,20 +193,36 @@ const CoursNotes = () => {
     };
 
     recognition.onerror = (e: any) => {
-      if (e.error !== "no-speech") {
+      if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+        shouldKeepRecordingRef.current = false;
         setIsRecording(false);
         if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+        toast({ title: "Micro refusé", description: "Autorise l'accès au micro.", variant: "destructive" });
       }
+      // 'no-speech', 'aborted', 'network' → on laisse onend décider
     };
 
     recognition.onend = () => {
-      if (recognitionRef.current === recognition) {
-        try { recognition.start(); } catch { setIsRecording(false); }
+      // Redémarrage automatique uniquement si l'utilisateur n'a pas arrêté
+      if (shouldKeepRecordingRef.current && recognitionRef.current === recognition) {
+        try {
+          recognition.start();
+        } catch {
+          shouldKeepRecordingRef.current = false;
+          setIsRecording(false);
+          if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+        }
       }
     };
 
     recognitionRef.current = recognition;
-    recognition.start();
+    try {
+      recognition.start();
+    } catch (e) {
+      shouldKeepRecordingRef.current = false;
+      toast({ title: "Erreur", description: "Impossible de démarrer le micro.", variant: "destructive" });
+      return;
+    }
     setIsRecording(true);
     setTranscript("");
     setRecordingSeconds(0);
@@ -212,7 +230,8 @@ const CoursNotes = () => {
   };
 
   const stopRecording = () => {
-    recognitionRef.current?.stop();
+    shouldKeepRecordingRef.current = false;
+    try { recognitionRef.current?.stop(); } catch {}
     recognitionRef.current = null;
     setIsRecording(false);
     if (recordingTimerRef.current) { clearInterval(recordingTimerRef.current); recordingTimerRef.current = null; }
