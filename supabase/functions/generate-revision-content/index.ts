@@ -130,20 +130,31 @@ Consignes STRICTES:
           ]}
         ];
       } else {
-        const imagePrompt = `Create a clear, detailed, scientifically accurate educational diagram about: "${topic}".
+        const imagePrompt = `Create a STUNNING, professional educational diagram about: "${topic}".
 ${subject ? `Subject: ${subject}` : ''}
 ${schoolLevel ? `Academic level: ${schoolLevel}` : ''}
 
-Requirements:
-- Clean educational diagram like in a reference textbook
-- Include numbered labels (1, 2, 3...) pointing to each important part
-- Use distinct professional colors to differentiate parts
-- White or light background
-- Include brief labels in French for each numbered element
-- Be scientifically precise and accurate
+VISUAL STYLE (very important):
+- Modern textbook illustration style, clean and elegant
+- Bright, harmonious color palette (blues, greens, soft oranges) — NOT washed out
+- Crisp white or very light pastel background
+- Smooth gradients and subtle shadows for depth
+- Premium quality, like a National Geographic / Britannica infographic
+
+CONTENT REQUIREMENTS:
+- Scientifically accurate and pedagogically clear
+- Numbered labels (①②③④⑤...) pointing to each key element
+- Each label has a short FRENCH caption directly on the diagram
+- Include arrows, brackets or connecting lines where helpful
 - Adapt complexity to the academic level
-- Make it comprehensive, covering all key elements of the topic
-- Simple, clear, and easy to understand for students`;
+- Cover ALL key elements of the topic comprehensively
+- The diagram MUST be self-explanatory at a glance
+
+LAYOUT:
+- Centered composition, balanced
+- Title at the top in bold elegant typography
+- Legends placed clearly without overlapping
+- High contrast, very readable text`;
 
         messages = [{ role: 'user', content: imagePrompt }];
       }
@@ -169,38 +180,55 @@ Requirements:
             { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
-        throw new Error(`Image generation failed`);
+        if (imageResponse.status === 402) {
+          return new Response(
+            JSON.stringify({ error: "Crédits IA insuffisants. Ajoute des crédits dans Lovable Cloud." }),
+            { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        return new Response(
+          JSON.stringify({ error: "Le générateur d'image n'a pas répondu. Réessaie." }),
+          { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
 
       const imageData = await imageResponse.json();
       const imageUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-      if (!imageUrl) throw new Error('No image generated');
+      if (!imageUrl) {
+        return new Response(
+          JSON.stringify({ error: "Aucune image générée. Essaie de reformuler ton sujet plus précisément." }),
+          { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
 
-      const legendPrompt = `Tu es un expert pédagogique. Pour un schéma éducatif sur "${topic}", génère des légendes numérotées ultra-précises. Tu DOIS écrire un français IMPECCABLE, sans AUCUNE faute d'orthographe, de grammaire ou de conjugaison.
+      const legendPrompt = `Tu es un professeur expert qui rédige les légendes d'un schéma éducatif sur "${topic}". Français IMPECCABLE, ZÉRO faute, ZÉRO invention.
 ${contextBlock}
 
-FORMAT OBLIGATOIRE:
-🎨 **SCHÉMA: ${topic}**
-${subject ? `📖 Matière: ${subject}` : ''}
-${schoolLevel ? `🎓 Niveau: ${schoolLevel}` : ''}
+Réponds EXACTEMENT dans ce format Markdown (pas de texte avant/après) :
 
-**🏷️ LÉGENDES DÉTAILLÉES:**
-① [Élément] → [Description précise avec fonction/rôle]
-② [Élément] → [Description précise avec fonction/rôle]
-③ [Élément] → [Description précise avec fonction/rôle]
-④ [Élément] → [Description précise avec fonction/rôle]
-⑤ [Élément] → [Description précise avec fonction/rôle]
-⑥ [Élément] → [Description précise avec fonction/rôle]
+# 🎨 ${topic}
+${subject ? `**Matière** : ${subject}  ` : ''}
+${schoolLevel ? `**Niveau** : ${schoolLevel}` : ''}
 
-**📝 EXPLICATIONS CLÉS:**
-[Pour chaque élément important, une explication de 1-2 phrases]
+## 🏷️ Légendes du schéma
 
-**💡 À RETENIR:**
-[Résumé en 2-3 phrases des concepts essentiels]
+**①** **[Élément 1]** — [Description précise : rôle / fonction]
+**②** **[Élément 2]** — [Description précise : rôle / fonction]
+**③** **[Élément 3]** — [Description précise : rôle / fonction]
+**④** **[Élément 4]** — [Description précise : rôle / fonction]
+**⑤** **[Élément 5]** — [Description précise : rôle / fonction]
 
-${content ? `\nIMPORTANT: Base-toi sur le cours fourni par l'élève pour les légendes et explications.` : ''}
+## 📝 Explications clés
 
-Génère 5-10 légendes pertinentes et précises adaptées au niveau ${schoolLevel || 'de l\'élève'}.`;
+- **[Notion 1]** : explication en 1-2 phrases.
+- **[Notion 2]** : explication en 1-2 phrases.
+- **[Notion 3]** : explication en 1-2 phrases.
+
+## 💡 À retenir
+
+> [Synthèse claire en 2-3 phrases des concepts essentiels.]
+
+Génère 5 à 8 légendes pertinentes, adaptées au niveau ${schoolLevel || 'de l\'élève'}. Si tu n'es pas sûr d'un élément, ne l'invente pas.`;
 
       const legendResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
@@ -220,6 +248,9 @@ Génère 5-10 légendes pertinentes et précises adaptées au niveau ${schoolLev
       if (legendResponse.ok) {
         const legendData = await legendResponse.json();
         legends = legendData.choices?.[0]?.message?.content || '';
+      }
+      if (!legends) {
+        legends = `# 🎨 ${topic}\n\nLe schéma a été généré. Les légendes détaillées n'ont pas pu être chargées, mais l'image ci-dessus illustre le sujet.`;
       }
 
       return new Response(
