@@ -1,67 +1,229 @@
 import { useState, useEffect } from "react";
+import sunsetBg from "@/assets/themes/theme-sunset.jpg";
+import mountainBg from "@/assets/themes/theme-mountain.jpg";
+import forestBg from "@/assets/themes/theme-forest.jpg";
+import oceanBg from "@/assets/themes/theme-ocean.jpg";
+import sakuraBg from "@/assets/themes/theme-sakura.jpg";
+import galaxyBg from "@/assets/themes/theme-galaxy.jpg";
+import minimalBg from "@/assets/themes/theme-minimal.jpg";
 
 export interface AppTheme {
   id: string;
   name: string;
   emoji: string;
   category: string;
+  /** Image affichée en fond de toute l'app (légèrement floutée). */
+  background: string;
+  /** Couleurs HSL — restent cohérentes avec l'ambiance de l'image. */
   colors: {
     primary: string;
     secondary: string;
     accent: string;
-    background: string;
+    /** Voile semi-transparent posé par dessus l'image pour la lisibilité. */
+    overlay: string; // ex: "0 0% 100% / 0.78"
+    /** Texte global. */
+    foreground: string;
+    /** Carte / panneaux / sidebar. */
     card: string;
+    cardForeground: string;
     muted: string;
+    mutedForeground: string;
+    border: string;
   };
-  font?: string;
 }
 
 export const APP_THEMES: AppTheme[] = [
-  // Default
-  { id: "default", name: "Par défaut", emoji: "✨", category: "Basique", colors: { primary: "280 85% 60%", secondary: "190 95% 45%", accent: "330 85% 60%", background: "270 30% 98%", card: "0 0% 100%", muted: "270 25% 94%" } },
-  // Profession-based
-  { id: "medecin", name: "Médecine", emoji: "🩺", category: "Métiers", colors: { primary: "200 80% 50%", secondary: "170 70% 45%", accent: "340 75% 55%", background: "200 30% 98%", card: "0 0% 100%", muted: "200 20% 94%" } },
-  { id: "avocat", name: "Droit & Justice", emoji: "⚖️", category: "Métiers", colors: { primary: "25 60% 45%", secondary: "35 50% 50%", accent: "15 70% 50%", background: "30 20% 97%", card: "0 0% 100%", muted: "30 15% 93%" } },
-  { id: "ingenieur", name: "Ingénierie", emoji: "⚙️", category: "Métiers", colors: { primary: "210 75% 50%", secondary: "180 60% 45%", accent: "30 90% 55%", background: "210 20% 97%", card: "0 0% 100%", muted: "210 15% 93%" } },
-  { id: "artiste", name: "Arts & Créativité", emoji: "🎨", category: "Métiers", colors: { primary: "330 80% 55%", secondary: "280 70% 60%", accent: "45 90% 55%", background: "330 20% 98%", card: "0 0% 100%", muted: "330 15% 94%" } },
-  { id: "scientifique", name: "Sciences", emoji: "🔬", category: "Métiers", colors: { primary: "150 70% 40%", secondary: "180 65% 45%", accent: "120 60% 45%", background: "150 20% 97%", card: "0 0% 100%", muted: "150 15% 93%" } },
-  { id: "informatique", name: "Informatique", emoji: "💻", category: "Métiers", colors: { primary: "240 70% 55%", secondary: "200 80% 50%", accent: "160 90% 45%", background: "240 20% 97%", card: "0 0% 100%", muted: "240 15% 94%" } },
-  // Aesthetic-based
-  { id: "ocean", name: "Océan", emoji: "🌊", category: "Ambiance", colors: { primary: "200 85% 50%", secondary: "180 75% 45%", accent: "220 80% 60%", background: "195 35% 97%", card: "0 0% 100%", muted: "195 25% 93%" } },
-  { id: "foret", name: "Forêt", emoji: "🌲", category: "Ambiance", colors: { primary: "140 55% 40%", secondary: "100 45% 45%", accent: "80 50% 50%", background: "120 20% 97%", card: "0 0% 100%", muted: "120 15% 93%" } },
-  { id: "sunset", name: "Coucher de soleil", emoji: "🌅", category: "Ambiance", colors: { primary: "15 85% 55%", secondary: "35 90% 55%", accent: "350 80% 55%", background: "25 30% 97%", card: "0 0% 100%", muted: "25 20% 93%" } },
-  { id: "nuit", name: "Nuit étoilée", emoji: "🌙", category: "Ambiance", colors: { primary: "250 70% 60%", secondary: "220 65% 55%", accent: "280 60% 65%", background: "250 25% 97%", card: "0 0% 100%", muted: "250 18% 93%" } },
-  { id: "cerisier", name: "Cerisier", emoji: "🌸", category: "Ambiance", colors: { primary: "340 75% 65%", secondary: "320 60% 60%", accent: "355 70% 60%", background: "340 30% 98%", card: "0 0% 100%", muted: "340 20% 94%" } },
-  { id: "lavande", name: "Lavande", emoji: "💜", category: "Ambiance", colors: { primary: "270 60% 60%", secondary: "290 50% 55%", accent: "250 55% 65%", background: "270 25% 97%", card: "0 0% 100%", muted: "270 18% 93%" } },
-  { id: "menthe", name: "Menthe fraîche", emoji: "🍃", category: "Ambiance", colors: { primary: "165 70% 45%", secondary: "150 60% 45%", accent: "180 65% 50%", background: "165 25% 97%", card: "0 0% 100%", muted: "165 18% 93%" } },
-  { id: "cafe", name: "Café & Automne", emoji: "☕", category: "Ambiance", colors: { primary: "25 55% 45%", secondary: "15 50% 50%", accent: "35 60% 50%", background: "25 20% 96%", card: "0 0% 100%", muted: "25 15% 92%" } },
-  { id: "galaxy", name: "Galaxie", emoji: "🪐", category: "Ambiance", colors: { primary: "260 80% 60%", secondary: "300 70% 55%", accent: "200 85% 55%", background: "260 25% 97%", card: "0 0% 100%", muted: "260 18% 93%" } },
-  { id: "or", name: "Or & Luxe", emoji: "👑", category: "Ambiance", colors: { primary: "42 80% 50%", secondary: "35 70% 45%", accent: "48 85% 55%", background: "40 25% 97%", card: "0 0% 100%", muted: "40 18% 93%" } },
+  {
+    id: "minimal",
+    name: "Minimal",
+    emoji: "✨",
+    category: "Calmes",
+    background: minimalBg,
+    colors: {
+      primary: "235 70% 55%",
+      secondary: "280 60% 55%",
+      accent: "200 80% 55%",
+      overlay: "0 0% 100% / 0.86",
+      foreground: "240 15% 12%",
+      card: "0 0% 100% / 0.92",
+      cardForeground: "240 15% 12%",
+      muted: "240 10% 94%",
+      mutedForeground: "240 8% 40%",
+      border: "240 10% 88%",
+    },
+  },
+  {
+    id: "sunset",
+    name: "Coucher de soleil",
+    emoji: "🌅",
+    category: "Paysages",
+    background: sunsetBg,
+    colors: {
+      primary: "20 90% 55%",
+      secondary: "330 75% 60%",
+      accent: "45 95% 60%",
+      overlay: "20 30% 96% / 0.82",
+      foreground: "20 25% 15%",
+      card: "0 0% 100% / 0.9",
+      cardForeground: "20 25% 15%",
+      muted: "20 25% 92%",
+      mutedForeground: "20 15% 38%",
+      border: "20 25% 86%",
+    },
+  },
+  {
+    id: "mountain",
+    name: "Montagne",
+    emoji: "🏔️",
+    category: "Paysages",
+    background: mountainBg,
+    colors: {
+      primary: "210 80% 50%",
+      secondary: "200 70% 55%",
+      accent: "190 75% 50%",
+      overlay: "210 30% 97% / 0.85",
+      foreground: "215 30% 15%",
+      card: "0 0% 100% / 0.92",
+      cardForeground: "215 30% 15%",
+      muted: "210 25% 93%",
+      mutedForeground: "215 15% 38%",
+      border: "210 25% 87%",
+    },
+  },
+  {
+    id: "forest",
+    name: "Forêt",
+    emoji: "🌲",
+    category: "Paysages",
+    background: forestBg,
+    colors: {
+      primary: "150 60% 38%",
+      secondary: "100 50% 45%",
+      accent: "80 65% 45%",
+      overlay: "120 25% 96% / 0.85",
+      foreground: "150 30% 12%",
+      card: "0 0% 100% / 0.92",
+      cardForeground: "150 30% 12%",
+      muted: "120 20% 93%",
+      mutedForeground: "140 15% 35%",
+      border: "120 20% 86%",
+    },
+  },
+  {
+    id: "ocean",
+    name: "Océan",
+    emoji: "🌊",
+    category: "Paysages",
+    background: oceanBg,
+    colors: {
+      primary: "190 85% 45%",
+      secondary: "200 90% 50%",
+      accent: "175 75% 45%",
+      overlay: "195 40% 97% / 0.82",
+      foreground: "200 35% 15%",
+      card: "0 0% 100% / 0.92",
+      cardForeground: "200 35% 15%",
+      muted: "195 30% 93%",
+      mutedForeground: "200 20% 38%",
+      border: "195 30% 86%",
+    },
+  },
+  {
+    id: "sakura",
+    name: "Sakura",
+    emoji: "🌸",
+    category: "Paysages",
+    background: sakuraBg,
+    colors: {
+      primary: "335 75% 55%",
+      secondary: "310 65% 60%",
+      accent: "350 70% 60%",
+      overlay: "335 40% 98% / 0.85",
+      foreground: "330 35% 15%",
+      card: "0 0% 100% / 0.93",
+      cardForeground: "330 35% 15%",
+      muted: "335 30% 95%",
+      mutedForeground: "330 20% 40%",
+      border: "335 25% 88%",
+    },
+  },
+  {
+    id: "galaxy",
+    name: "Galaxie",
+    emoji: "🪐",
+    category: "Sombres",
+    background: galaxyBg,
+    colors: {
+      primary: "265 85% 70%",
+      secondary: "200 90% 65%",
+      accent: "320 80% 70%",
+      overlay: "260 40% 8% / 0.78",
+      foreground: "270 25% 95%",
+      card: "260 30% 14% / 0.88",
+      cardForeground: "270 25% 95%",
+      muted: "260 25% 22%",
+      mutedForeground: "270 15% 70%",
+      border: "260 25% 28%",
+    },
+  },
 ];
+
+const STORAGE_KEY = "app-theme";
+
+function applyTheme(theme: AppTheme) {
+  const root = document.documentElement;
+  const c = theme.colors;
+
+  // Bg image consumed by ThemeBackground
+  root.style.setProperty("--bg-image", `url(${theme.background})`);
+  root.style.setProperty("--bg-overlay", c.overlay);
+
+  // Page background = transparent so the image shows through
+  root.style.setProperty("--background", "0 0% 0% / 0");
+
+  root.style.setProperty("--foreground", c.foreground);
+  root.style.setProperty("--card", c.card);
+  root.style.setProperty("--card-foreground", c.cardForeground);
+  root.style.setProperty("--popover", c.card);
+  root.style.setProperty("--popover-foreground", c.cardForeground);
+  root.style.setProperty("--primary", c.primary);
+  root.style.setProperty("--secondary", c.secondary);
+  root.style.setProperty("--accent", c.accent);
+  root.style.setProperty("--muted", c.muted);
+  root.style.setProperty("--muted-foreground", c.mutedForeground);
+  root.style.setProperty("--border", c.border);
+  root.style.setProperty("--input", c.muted);
+  root.style.setProperty("--ring", c.primary);
+
+  root.style.setProperty(
+    "--gradient-primary",
+    `linear-gradient(135deg, hsl(${c.primary}) 0%, hsl(${c.secondary}) 50%, hsl(${c.accent}) 100%)`
+  );
+
+  // Mark dark themes for tweaks
+  if (theme.id === "galaxy") {
+    root.dataset.themeMode = "dark";
+  } else {
+    root.dataset.themeMode = "light";
+  }
+  root.dataset.themeId = theme.id;
+}
 
 export function useThemeCustomization() {
   const [themeId, setThemeId] = useState<string>(() => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem("app-theme") || "default";
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored && APP_THEMES.some((t) => t.id === stored)) return stored;
     }
-    return "default";
+    return "minimal";
   });
 
-  const currentTheme = APP_THEMES.find(t => t.id === themeId) || APP_THEMES[0];
+  const currentTheme = APP_THEMES.find((t) => t.id === themeId) || APP_THEMES[0];
 
   useEffect(() => {
-    localStorage.setItem("app-theme", themeId);
-    const root = document.documentElement;
-    const theme = APP_THEMES.find(t => t.id === themeId) || APP_THEMES[0];
-
-    root.style.setProperty("--primary", theme.colors.primary);
-    root.style.setProperty("--secondary", theme.colors.secondary);
-    root.style.setProperty("--accent", theme.colors.accent);
-    root.style.setProperty("--ring", theme.colors.primary);
-
-    // Update gradients
-    root.style.setProperty("--gradient-primary", `linear-gradient(135deg, hsl(${theme.colors.primary}) 0%, hsl(${theme.colors.secondary}) 50%, hsl(${theme.colors.accent}) 100%)`);
-  }, [themeId]);
+    localStorage.setItem(STORAGE_KEY, themeId);
+    applyTheme(currentTheme);
+  }, [themeId, currentTheme]);
 
   return { themeId, setThemeId, currentTheme, themes: APP_THEMES };
 }

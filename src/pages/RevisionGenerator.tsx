@@ -933,48 +933,61 @@ const RevisionGenerator = () => {
                     </div>
                   ) : (
                     <div className="space-y-6">
-                      {schemaImage && (
-                        <div className="flex flex-col items-center gap-4">
-                          <div className="relative w-full max-w-2xl mx-auto rounded-2xl overflow-hidden shadow-2xl border-4 border-white dark:border-card bg-white">
-                            <div className="absolute top-3 left-3 z-10 px-3 py-1 rounded-full bg-gradient-to-r from-fuchsia-500 to-violet-600 text-white text-xs font-bold shadow-lg">
-                              🎨 Schéma IA
+                      {/* Fiche unifiée : titre + (image au milieu si schéma) + texte de la fiche */}
+                      {(result || schemaImage) && (
+                        <div className="rounded-2xl bg-white dark:bg-card border border-border/50 p-6 md:p-8 shadow-md">
+                          {/* Titre de la fiche */}
+                          {topic && (
+                            <div className="mb-4 pb-4 border-b border-border/40">
+                              <h2 className="text-2xl md:text-3xl font-display font-bold text-foreground">
+                                {typeInfo.emoji} {topic}
+                              </h2>
+                              {subject && (
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  {getSubjectLabel(subject)}
+                                  {schoolLevel && ` · ${schoolLevel}`}
+                                </p>
+                              )}
                             </div>
-                            <img 
-                              src={schemaImage} 
-                              alt={`Schéma: ${topic}`}
-                              className="w-full h-auto block"
-                              loading="lazy"
+                          )}
+
+                          {/* Schéma intégré au sein de la fiche */}
+                          {schemaImage && (
+                            <figure className="my-6">
+                              <img
+                                src={schemaImage}
+                                alt={`Schéma : ${topic}`}
+                                className="w-full max-w-2xl mx-auto rounded-xl shadow-sm border border-border/40 block"
+                                loading="lazy"
+                              />
+                              <figcaption className="text-center text-xs text-muted-foreground mt-2 italic">
+                                Schéma généré par l'IA · {topic}
+                              </figcaption>
+                              <div className="flex justify-center mt-3">
+                                <a
+                                  href={schemaImage}
+                                  download={`schema-${topic.replace(/\s+/g, '-').toLowerCase()}.png`}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors"
+                                >
+                                  ⬇️ Télécharger l'image
+                                </a>
+                              </div>
+                            </figure>
+                          )}
+
+                          {/* Texte de la fiche (légendes + explications + à retenir) */}
+                          {result && (
+                            <div
+                              className="prose prose-sm md:prose-base max-w-none text-foreground leading-relaxed whitespace-pre-wrap"
+                              dangerouslySetInnerHTML={{ __html: formatContent(result) }}
                             />
-                          </div>
-                          <div className="flex flex-wrap gap-2 justify-center">
-                            <a
-                              href={schemaImage}
-                              download={`schema-${topic.replace(/\s+/g, '-').toLowerCase()}.png`}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors"
-                            >
-                              ⬇️ Télécharger l'image
-                            </a>
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted text-muted-foreground text-xs">
-                              💡 Astuce : zoome avec ⌘ + clic
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {result && (
-                        <div className="rounded-2xl bg-gradient-to-br from-card via-card to-primary/5 border border-border/50 p-5 shadow-sm">
-                          <div 
-                            className="prose prose-sm max-w-none text-foreground leading-relaxed whitespace-pre-wrap"
-                            dangerouslySetInnerHTML={{
-                              __html: formatContent(result)
-                            }}
-                          />
+                          )}
                         </div>
                       )}
 
                       {!schemaImage && !result && (
                         <div className="text-center py-12 text-muted-foreground">
-                          <p>Le schéma n'a pas pu être généré. Réessaie avec un sujet plus précis.</p>
+                          <p>Le contenu n'a pas pu être généré. Réessaie avec un sujet plus précis.</p>
                         </div>
                       )}
                     </div>

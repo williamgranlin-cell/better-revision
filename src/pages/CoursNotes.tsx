@@ -168,36 +168,54 @@ const CoursNotes = () => {
 
   // ── Voice Recording ──
   const startRecording = () => {
+    // Empêche tout double-démarrage qui ferait throw `start()` et écran blanc
+    if (isRecording || recognitionRef.current) return;
+
     const SpeechAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechAPI) {
-      toast({ title: "Non supporté", description: "Utilisez Chrome ou Edge.", variant: "destructive" });
+      toast({ title: "Non supporté", description: "Utilise Chrome ou Edge sur ordinateur.", variant: "destructive" });
       return;
     }
+
+    let recognition: any;
+    try {
+      recognition = new SpeechAPI();
+      recognition.lang = "fr-FR";
+      recognition.continuous = true;
+      recognition.interimResults = true;
+    } catch (err) {
+      console.error("SpeechRecognition init error:", err);
+      toast({ title: "Erreur micro", description: "Impossible d'initialiser la reconnaissance vocale.", variant: "destructive" });
+      return;
+    }
+
     finalTranscriptRef.current = "";
     shouldKeepRecordingRef.current = true;
-    const recognition = new SpeechAPI();
-    recognition.lang = "fr-FR";
-    recognition.continuous = true;
-    recognition.interimResults = true;
 
     recognition.onresult = (event: any) => {
-      let interim = "";
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        if (event.results[i].isFinal) {
-          finalTranscriptRef.current += event.results[i][0].transcript + " ";
-        } else {
-          interim += event.results[i][0].transcript;
+      try {
+        let interim = "";
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            finalTranscriptRef.current += event.results[i][0].transcript + " ";
+          } else {
+            interim += event.results[i][0].transcript;
+          }
         }
+        setTranscript(finalTranscriptRef.current + interim);
+      } catch (err) {
+        console.error("onresult error:", err);
       }
-      setTranscript(finalTranscriptRef.current + interim);
     };
 
     recognition.onerror = (e: any) => {
-      if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+      console.warn("SpeechRecognition error:", e?.error);
+      if (e?.error === "not-allowed" || e?.error === "service-not-allowed") {
         shouldKeepRecordingRef.current = false;
         setIsRecording(false);
-        if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
-        toast({ title: "Micro refusé", description: "Autorise l'accès au micro.", variant: "destructive" });
+        if (recordingTimerRef.current) { clearInterval(recordingTimerRef.current); recordingTimerRef.current = null; }
+        recognitionRef.current = null;
+        toast({ title: "Micro refusé", description: "Autorise l'accès au micro dans ton navigateur.", variant: "destructive" });
       }
       // 'no-speech', 'aborted', 'network' → on laisse onend décider
     };
@@ -207,10 +225,12 @@ const CoursNotes = () => {
       if (shouldKeepRecordingRef.current && recognitionRef.current === recognition) {
         try {
           recognition.start();
-        } catch {
+        } catch (err) {
+          console.warn("recognition restart failed:", err);
           shouldKeepRecordingRef.current = false;
           setIsRecording(false);
-          if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+          if (recordingTimerRef.current) { clearInterval(recordingTimerRef.current); recordingTimerRef.current = null; }
+          recognitionRef.current = null;
         }
       }
     };
@@ -219,7 +239,9 @@ const CoursNotes = () => {
     try {
       recognition.start();
     } catch (e) {
+      console.error("recognition.start() failed:", e);
       shouldKeepRecordingRef.current = false;
+      recognitionRef.current = null;
       toast({ title: "Erreur", description: "Impossible de démarrer le micro.", variant: "destructive" });
       return;
     }
@@ -232,10 +254,22 @@ const CoursNotes = () => {
   const stopRecording = () => {
     shouldKeepRecordingRef.current = false;
     try { recognitionRef.current?.stop(); } catch {}
+    try { recognitionRef.current?.abort?.(); } catch {}
     recognitionRef.current = null;
     setIsRecording(false);
     if (recordingTimerRef.current) { clearInterval(recordingTimerRef.current); recordingTimerRef.current = null; }
   };
+
+  // Cleanup on unmount to éviter tout crash si on quitte la page en plein enregistrement
+  useEffect(() => {
+    return () => {
+      shouldKeepRecordingRef.current = false;
+      try { recognitionRef.current?.stop(); } catch {}
+      try { recognitionRef.current?.abort?.(); } catch {}
+      recognitionRef.current = null;
+      if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+    };
+  }, []);
 
   const insertTranscript = () => {
     if (!transcript.trim()) return;

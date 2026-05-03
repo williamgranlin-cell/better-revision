@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./components/ThemeProvider";
+import { ThemeBackground } from "./components/ThemeBackground";
+import { useThemeCustomization } from "./hooks/useThemeCustomization";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Auth from "./pages/Auth";
 import Home from "./pages/Home";
@@ -23,14 +25,26 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+const ThemedApp = ({ children }: { children: React.ReactNode }) => {
+  // Initializes the chosen theme + applies CSS vars (background image, colors).
+  useThemeCustomization();
+  return (
+    <>
+      <ThemeBackground />
+      {children}
+    </>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
       <AuthProvider>
         <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+          <ThemedApp>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
             <Routes>
               <Route path="/auth" element={<Auth />} />
               <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
@@ -48,6 +62,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
+          </ThemedApp>
         </TooltipProvider>
       </AuthProvider>
     </ThemeProvider>

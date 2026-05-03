@@ -234,9 +234,15 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply text-foreground antialiased;
+    /* Le fond image vient de <ThemeBackground />, on garde body transparent */
+    background-color: transparent;
     font-family: var(--font-sans);
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  html {
+    /* Fallback color in case the image hasn't loaded yet */
+    background-color: hsl(220 20% 95%);
   }
 
   /* Custom scrollbar */
