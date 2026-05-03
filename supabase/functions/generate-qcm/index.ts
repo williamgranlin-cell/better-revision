@@ -15,8 +15,9 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    const { content, numQuestions = 10, difficulty = "medium" } = await req.json();
-    const clampedNum = Math.min(Math.max(numQuestions, 1), 100);
+    const { content, numQuestions = 10, difficulty = "medium", batchIndex = 0, avoidQuestions = [] } = await req.json();
+    // Per-call cap kept low (20) so the JSON tool-call output always finishes cleanly.
+    const clampedNum = Math.min(Math.max(numQuestions, 1), 20);
     if (!content || content.trim().length < 20) {
       return new Response(JSON.stringify({ error: "Contenu trop court (min 20 caractères)" }), {
         status: 400,
@@ -30,18 +31,23 @@ serve(async (req) => {
       hard: "difficile (questions pièges, nuances subtiles, souvent plusieurs bonnes réponses)",
     };
 
+    const avoidBlock = Array.isArray(avoidQuestions) && avoidQuestions.length > 0
+      ? `\n\nNe répète AUCUNE de ces questions déjà posées (varie les angles et les notions abordées) :\n${avoidQuestions.slice(0, 10).map((q: string) => `- ${q}`).join("\n")}`
+      : "";
+
     const systemPrompt = `Tu es un professeur expert en création de QCM (Questionnaires à Choix Multiples) pédagogiques.
 
 RÈGLE ABSOLUE : Zéro erreur factuelle. Chaque réponse doit être vérifiée et exacte.
 Tu dois créer des QCM de type "cases à cocher" où PLUSIEURS réponses peuvent être correctes.
 
 INSTRUCTIONS :
-1. Génère exactement ${clampedNum} questions basées UNIQUEMENT sur le contenu fourni
+1. Génère EXACTEMENT ${clampedNum} questions basées UNIQUEMENT sur le contenu fourni
 2. Chaque question a 4 propositions (A, B, C, D)
 3. Chaque question peut avoir 1 à 4 bonnes réponses (pas toujours une seule !)
 4. Niveau de difficulté : ${difficultyMap[difficulty] || difficultyMap.medium}
 5. Les mauvaises réponses doivent être plausibles et éducatives
 6. Ajoute une explication courte pour chaque question
+7. Lot n°${batchIndex + 1} : couvre des aspects DIFFÉRENTS du contenu (varie les notions, exemples et angles)${avoidBlock}
 
 FORMAT DE SORTIE (JSON strict) :`;
 
