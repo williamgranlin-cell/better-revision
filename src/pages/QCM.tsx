@@ -535,7 +535,7 @@ const QCM = () => {
                 <Select value={customNum ? "custom" : numQuestions} onValueChange={v => { if (v === "custom") { setCustomNum("25"); setNumQuestions(""); } else { setNumQuestions(v); setCustomNum(""); } }}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {["5", "10", "15", "20", "30", "50"].map(n => (
+                    {["5", "10", "15", "20", "30", "50", "75", "100"].map(n => (
                       <SelectItem key={n} value={n}>{n} questions</SelectItem>
                     ))}
                     <SelectItem value="custom">Personnalisé...</SelectItem>
@@ -569,7 +569,12 @@ const QCM = () => {
 
           <Button onClick={generateQCM} disabled={generating} className="w-full gradient-primary text-lg py-6">
             {generating ? (
-              <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Génération en cours...</>
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                {batchProgress
+                  ? `Génération... ${batchProgress.done}/${batchProgress.total}`
+                  : "Génération en cours..."}
+              </>
             ) : (
               <><CheckSquare className="w-5 h-5 mr-2" /> Générer le QCM</>
             )}
