@@ -85,6 +85,8 @@ const QCM = () => {
     return null;
   };
 
+  const [batchProgress, setBatchProgress] = useState<{ done: number; total: number } | null>(null);
+
   const generateQCM = async () => {
     const content = await getContentForGeneration();
     if (!content) return;
@@ -95,23 +97,60 @@ const QCM = () => {
     setSelectedAnswers({});
     setAnsweredQuestions(new Set());
     setMode("setup");
+    setBatchProgress({ done: 0, total: num });
+
+    // Generate in batches of 20 to avoid timeouts and broken JSON on large requests
+    const BATCH_SIZE = 20;
+    const collected: QCMQuestion[] = [];
 
     try {
-      const { data, error } = await supabase.functions.invoke("generate-qcm", {
-        body: { content, numQuestions: num, difficulty },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      if (!data?.questions?.length) throw new Error("Aucune question générée");
+      let remaining = num;
+      let batchIndex = 0;
+      while (remaining > 0) {
+        const askFor = Math.min(BATCH_SIZE, remaining);
+        const { data, error } = await supabase.functions.invoke("generate-qcm", {
+          body: {
+            content,
+            numQuestions: askFor,
+            difficulty,
+            // help variety on subsequent batches
+            batchIndex,
+            avoidQuestions: collected.slice(-10).map((q) => q.question),
+          },
+        });
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+        const newQs: QCMQuestion[] = data?.questions || [];
+        if (!newQs.length) {
+          // If the batch returned nothing but we already have some, stop gracefully
+          if (collected.length > 0) break;
+          throw new Error("Aucune question générée");
+        }
+        collected.push(...newQs);
+        setBatchProgress({ done: collected.length, total: num });
+        remaining -= newQs.length;
+        batchIndex += 1;
+        // Safety: avoid infinite loop if model under-delivers
+        if (newQs.length < askFor && remaining > 0 && batchIndex >= 8) break;
+      }
 
-      setQuestions(data.questions);
+      if (!collected.length) throw new Error("Aucune question générée");
+      setQuestions(collected);
       setMode("preview");
-      toast({ title: "QCM généré ! ✅", description: `${data.questions.length} questions créées` });
+      toast({
+        title: "QCM généré ! ✅",
+        description: `${collected.length} questions créées`,
+      });
     } catch (e: any) {
       console.error(e);
-      toast({ title: "Erreur", description: e.message || "Impossible de générer le QCM", variant: "destructive" });
+      toast({
+        title: "Erreur",
+        description: e.message || "Impossible de générer le QCM",
+        variant: "destructive",
+      });
     } finally {
       setGenerating(false);
+      setBatchProgress(null);
     }
   };
 
