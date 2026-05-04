@@ -26,6 +26,8 @@ export interface AppTheme {
     /** Carte / panneaux / sidebar. */
     card: string;
     cardForeground: string;
+    /** Surface OPAQUE pour popups/dialogs (lisibilité maximale). */
+    popoverSolid: string;
     muted: string;
     mutedForeground: string;
     border: string;
@@ -47,6 +49,7 @@ export const APP_THEMES: AppTheme[] = [
       foreground: "240 15% 12%",
       card: "0 0% 100% / 0.92",
       cardForeground: "240 15% 12%",
+      popoverSolid: "0 0% 100%",
       muted: "240 10% 94%",
       mutedForeground: "240 8% 40%",
       border: "240 10% 88%",
@@ -66,6 +69,7 @@ export const APP_THEMES: AppTheme[] = [
       foreground: "20 25% 15%",
       card: "0 0% 100% / 0.9",
       cardForeground: "20 25% 15%",
+      popoverSolid: "20 30% 99%",
       muted: "20 25% 92%",
       mutedForeground: "20 15% 38%",
       border: "20 25% 86%",
@@ -85,6 +89,7 @@ export const APP_THEMES: AppTheme[] = [
       foreground: "215 30% 15%",
       card: "0 0% 100% / 0.92",
       cardForeground: "215 30% 15%",
+      popoverSolid: "210 30% 99%",
       muted: "210 25% 93%",
       mutedForeground: "215 15% 38%",
       border: "210 25% 87%",
@@ -104,6 +109,7 @@ export const APP_THEMES: AppTheme[] = [
       foreground: "150 30% 12%",
       card: "0 0% 100% / 0.92",
       cardForeground: "150 30% 12%",
+      popoverSolid: "120 25% 99%",
       muted: "120 20% 93%",
       mutedForeground: "140 15% 35%",
       border: "120 20% 86%",
@@ -123,6 +129,7 @@ export const APP_THEMES: AppTheme[] = [
       foreground: "200 35% 15%",
       card: "0 0% 100% / 0.92",
       cardForeground: "200 35% 15%",
+      popoverSolid: "195 40% 99%",
       muted: "195 30% 93%",
       mutedForeground: "200 20% 38%",
       border: "195 30% 86%",
@@ -142,6 +149,7 @@ export const APP_THEMES: AppTheme[] = [
       foreground: "330 35% 15%",
       card: "0 0% 100% / 0.93",
       cardForeground: "330 35% 15%",
+      popoverSolid: "335 40% 99%",
       muted: "335 30% 95%",
       mutedForeground: "330 20% 40%",
       border: "335 25% 88%",
@@ -161,6 +169,7 @@ export const APP_THEMES: AppTheme[] = [
       foreground: "270 25% 95%",
       card: "260 30% 14% / 0.88",
       cardForeground: "270 25% 95%",
+      popoverSolid: "260 30% 12%",
       muted: "260 25% 22%",
       mutedForeground: "270 15% 70%",
       border: "260 25% 28%",
@@ -184,8 +193,8 @@ function applyTheme(theme: AppTheme) {
   root.style.setProperty("--foreground", c.foreground);
   root.style.setProperty("--card", c.card);
   root.style.setProperty("--card-foreground", c.cardForeground);
-  root.style.setProperty("--popover", c.card);
-  root.style.setProperty("--popover-foreground", c.cardForeground);
+    root.style.setProperty("--popover", c.popoverSolid);
+    root.style.setProperty("--popover-foreground", c.cardForeground);
   root.style.setProperty("--primary", c.primary);
   root.style.setProperty("--secondary", c.secondary);
   root.style.setProperty("--accent", c.accent);
