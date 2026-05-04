@@ -26,6 +26,8 @@ export interface AppTheme {
     /** Carte / panneaux / sidebar. */
     card: string;
     cardForeground: string;
+    /** Surface OPAQUE pour popups/dialogs (lisibilité maximale). */
+    popoverSolid: string;
     muted: string;
     mutedForeground: string;
     border: string;
