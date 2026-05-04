@@ -512,8 +512,11 @@ const RevisionGenerator = () => {
               </TabsList>
             </Tabs>
 
-            {/* Creation Mode Selection */}
-            <div className="grid grid-cols-3 gap-3 mb-6 animate-fade-in stagger-3">
+            {/* Creation Mode Selection — Manual & Photo only for Fiche & Schéma */}
+            <div className={cn(
+              "grid gap-3 mb-6 animate-fade-in stagger-3",
+              generationType === "schema" ? "grid-cols-3" : generationType === "revision_sheet" ? "grid-cols-2" : "grid-cols-1"
+            )}>
               <Card
                 className={cn(
                   "p-4 cursor-pointer transition-all duration-300 hover-lift border-2",
@@ -531,24 +534,29 @@ const RevisionGenerator = () => {
                   <span className="text-sm font-medium">IA</span>
                 </div>
               </Card>
-              
-              <Card
-                className={cn(
-                  "p-4 cursor-pointer transition-all duration-300 hover-lift border-2",
-                  creationMode === "manual" ? "border-secondary bg-secondary/5" : "border-transparent"
-                )}
-                onClick={() => setCreationMode("manual")}
-              >
-                <div className="flex flex-col items-center text-center gap-2">
-                  <div className={cn(
-                    "w-12 h-12 rounded-xl flex items-center justify-center",
-                    creationMode === "manual" ? "bg-secondary/20" : "bg-muted"
-                  )}>
-                    <Pencil className={cn("w-6 h-6", creationMode === "manual" ? "text-secondary" : "text-muted-foreground")} />
+
+              {/* Manual : disponible pour Fiche et Schéma uniquement */}
+              {(generationType === "revision_sheet" || generationType === "schema") && (
+                <Card
+                  className={cn(
+                    "p-4 cursor-pointer transition-all duration-300 hover-lift border-2",
+                    creationMode === "manual" ? "border-secondary bg-secondary/5" : "border-transparent"
+                  )}
+                  onClick={() => setCreationMode("manual")}
+                >
+                  <div className="flex flex-col items-center text-center gap-2">
+                    <div className={cn(
+                      "w-12 h-12 rounded-xl flex items-center justify-center",
+                      creationMode === "manual" ? "bg-secondary/20" : "bg-muted"
+                    )}>
+                      <Pencil className={cn("w-6 h-6", creationMode === "manual" ? "text-secondary" : "text-muted-foreground")} />
+                    </div>
+                    <span className="text-sm font-medium">
+                      {generationType === "schema" ? "Dessiner" : "Manuel"}
+                    </span>
                   </div>
-                  <span className="text-sm font-medium">Manuel</span>
-                </div>
-              </Card>
+                </Card>
+              )}
 
               {generationType === "schema" && (
                 <Card
@@ -566,17 +574,6 @@ const RevisionGenerator = () => {
                       <Camera className={cn("w-6 h-6", creationMode === "photo" ? "text-accent" : "text-muted-foreground")} />
                     </div>
                     <span className="text-sm font-medium">Photo</span>
-                  </div>
-                </Card>
-              )}
-              
-              {generationType !== "schema" && (
-                <Card className="p-4 opacity-50 cursor-not-allowed border-2 border-transparent">
-                  <div className="flex flex-col items-center text-center gap-2">
-                    <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-muted">
-                      <Camera className="w-6 h-6 text-muted-foreground" />
-                    </div>
-                    <span className="text-sm font-medium text-muted-foreground">Photo</span>
                   </div>
                 </Card>
               )}
