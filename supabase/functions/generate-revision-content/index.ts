@@ -275,60 +275,94 @@ Génère 5 à 8 légendes pertinentes, adaptées au niveau ${schoolLevel || 'de 
       ? `\n\nMATIÈRE: ${subject}\nAdapte ton contenu spécifiquement à cette matière.`
       : '';
 
+    // ===== Cas spécial : revision_sheet utilise OpenAI GPT-5 + image illustrative =====
+    if (type === 'revision_sheet') {
+      const userBasePrompt = `À partir de ce cours, j'aimerai que tu me génères une fiche de révision esthétique avec les éléments essentiels à connaître. Si besoin tu peux schématiser, faire des graphiques ou tableaux.
+
+Sujet / titre : "${topic}"
+${subject ? `Matière : ${subject}` : ''}
+${schoolLevel ? `Niveau scolaire : ${schoolLevel}` : ''}
+
+${content ? `COURS FOURNI PAR L'ÉLÈVE (à utiliser EN PRIORITÉ) :\n${content.substring(0, 8000)}` : '(Aucun cours fourni — base-toi sur tes connaissances en restant rigoureusement exact.)'}
+
+CONSIGNES STRICTES :
+- Français IMPECCABLE, zéro faute, zéro invention.
+- Mets en forme avec du Markdown clair : titres, sous-titres, listes, **gras** sur les mots-clés.
+- Tu peux insérer des tableaux Markdown ou des schémas ASCII si pertinent.
+- Structure : objectifs → définitions essentielles → concepts clés (avec exemples) → méthodes/formules → pièges fréquents → l'essentiel à retenir.
+- Sois exhaustif mais synthétique. Adapte la profondeur au niveau.`;
+
+      const textResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'openai/gpt-5',
+          messages: [
+            {
+              role: 'system',
+              content: 'Tu es un professeur expert qui rédige des fiches de révision esthétiques, structurées et rigoureuses, en français impeccable. Tu n\'inventes jamais de fait.',
+            },
+            { role: 'user', content: userBasePrompt },
+          ],
+        }),
+      });
+
+      if (!textResponse.ok) {
+        console.error('GPT-5 error:', textResponse.status);
+        if (textResponse.status === 429) {
+          return new Response(JSON.stringify({ error: "Trop de requêtes, réessaie dans un instant." }), {
+            status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+        if (textResponse.status === 402) {
+          return new Response(JSON.stringify({ error: "Crédits IA insuffisants." }), {
+            status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+        return new Response(JSON.stringify({ error: "La génération de la fiche a échoué." }), {
+          status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      const textData = await textResponse.json();
+      const sheetText = textData.choices?.[0]?.message?.content || "Erreur lors de la génération.";
+
+      // Image illustrative associée
+      let illustrationUrl: string | undefined;
+      try {
+        const imgResp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'google/gemini-3.1-flash-image-preview',
+            messages: [{
+              role: 'user',
+              content: `Crée une illustration éducative élégante et claire sur "${topic}"${subject ? ` (${subject})` : ''}${schoolLevel ? `, niveau ${schoolLevel}` : ''}. Style infographie de manuel scolaire moderne, fond clair, éléments principaux légendés en français.`
+            }],
+            modalities: ['image', 'text'],
+          }),
+        });
+        if (imgResp.ok) {
+          const imgData = await imgResp.json();
+          illustrationUrl = imgData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+        }
+      } catch (e) {
+        console.warn('Illustration non générée:', e);
+      }
+
+      return new Response(
+        JSON.stringify({ result: sheetText, imageUrl: illustrationUrl, type: 'revision_sheet' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     switch (type) {
-      case 'revision_sheet':
-        systemPrompt = `Tu es un professeur expert et pédagogue exceptionnel, spécialisé dans la création de fiches de révision PARFAITES.
-
-RÈGLE ABSOLUE D'ORTHOGRAPHE ET DE GRAMMAIRE:
-- Tu DOIS écrire un français IMPECCABLE, sans AUCUNE faute d'orthographe, de grammaire, de conjugaison ou de syntaxe.
-- RELIS CHAQUE PHRASE avant de la valider. Si tu as un doute sur l'orthographe d'un mot, vérifie-le.
-- Accorde systématiquement les participes passés, les adjectifs, les sujets et les verbes.
-- N'invente JAMAIS de faits, dates, formules ou définitions. Si tu n'es pas sûr à 100%, ne l'inclus pas.
-${levelInstruction}${subjectInstruction}
-
-OBJECTIF: Créer LA fiche de révision définitive sur le sujet.
-
-FORMAT OBLIGATOIRE:
-📚 **FICHE DE RÉVISION: [TITRE]**
-${subject ? `📖 Matière: ${subject}` : ''}
-${schoolLevel ? `🎓 Niveau: ${schoolLevel}` : ''}
-
-**🎯 CE QUE TU DOIS SAVOIR APRÈS CETTE FICHE:**
-- [Objectif 1]
-- [Objectif 2]
-
-**📝 DÉFINITIONS ESSENTIELLES:**
-• **[Terme 1]**: [Définition précise]
-
-**🔑 LES CONCEPTS FONDAMENTAUX:**
-
-**1. [Premier concept majeur]**
-📌 Explication claire
-💡 Exemple concret
-
-**📐 FORMULES / RÈGLES / MÉTHODES:** (si applicable)
-
-**⚠️ PIÈGES CLASSIQUES ET ERREURS À ÉVITER:**
-❌ [Erreur] → ✅ [Correction]
-
-**✅ L'ESSENTIEL EN 5-7 POINTS:**
-1. [Point clé 1]
-2. [Point clé 2]
-
-RÈGLES ABSOLUES:
-- Sois EXHAUSTIF: couvre TOUT ce qui est important
-- Sois PRÉCIS et STRUCTURÉ
-- VÉRIFIE chaque information: dates, formules, noms propres doivent être EXACTS
-- Ne génère AUCUNE information dont tu n'es pas certain
-${content ? '- Si un cours est fourni, RÉSUME-LE et STRUCTURE-LE en priorité' : ''}`;
-
-        userPrompt = `Crée une fiche de révision COMPLÈTE et ULTRA-CLAIRE sur: "${topic}"
-${contextBlock}
-
-IMPORTANT: Sois le plus précis et complet possible. Adapte au niveau scolaire et à la matière.
-VÉRIFIE CHAQUE FAIT, DATE ET FORMULE avant de les inclure. Zéro erreur toléré.
-${content ? '- BASE-TOI EN PRIORITÉ sur le cours fourni par l\'élève' : ''}`;
-        break;
 
       case 'mind_map':
         systemPrompt = `Tu es un expert en pédagogie et en cartographie mentale. Tu crées des cartes mentales COMPLÈTES.
