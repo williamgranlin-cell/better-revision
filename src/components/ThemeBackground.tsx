@@ -21,8 +21,8 @@ export function ThemeBackground() {
           backgroundImage: "var(--bg-image)",
           backgroundSize: "cover",
           backgroundPosition: "center",
-          filter: "blur(18px) saturate(1.05)",
-          transform: "scale(1.08)", // évite les bords flous visibles
+          filter: "blur(4px) saturate(1.05)",
+          transform: "scale(1.04)", // évite les bords flous visibles
         }}
       />
       <div
