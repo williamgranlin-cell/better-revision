@@ -876,7 +876,8 @@ const RevisionGenerator = () => {
                     />
                   </div>
 
-                  {generationType !== "schema" && (
+                  {/* Cours optionnel — désormais aussi pour les schémas IA */}
+                  {(
                     <div>
                       <label className="text-sm font-medium mb-2 block">Contenu de base (optionnel)</label>
                       <Textarea
