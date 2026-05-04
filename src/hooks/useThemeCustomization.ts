@@ -193,8 +193,8 @@ function applyTheme(theme: AppTheme) {
   root.style.setProperty("--foreground", c.foreground);
   root.style.setProperty("--card", c.card);
   root.style.setProperty("--card-foreground", c.cardForeground);
-  root.style.setProperty("--popover", c.card);
-  root.style.setProperty("--popover-foreground", c.cardForeground);
+    root.style.setProperty("--popover", c.popoverSolid);
+    root.style.setProperty("--popover-foreground", c.cardForeground);
   root.style.setProperty("--primary", c.primary);
   root.style.setProperty("--secondary", c.secondary);
   root.style.setProperty("--accent", c.accent);
