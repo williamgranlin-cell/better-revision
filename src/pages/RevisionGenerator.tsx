@@ -18,6 +18,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import DOMPurify from "dompurify";
 import { cn } from "@/lib/utils";
 import { getSubjectLabel } from "@/lib/subjects";
+import { DrawingCanvas } from "@/components/DrawingCanvas";
 
 type GenerationType = "revision_sheet" | "mind_map" | "schema";
 type ViewMode = "create" | "my_content" | "public";
