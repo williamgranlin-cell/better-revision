@@ -586,8 +586,8 @@ const RevisionGenerator = () => {
               )}
             </div>
 
-            {/* Manual Creation Form */}
-            {creationMode === "manual" && (
+            {/* Manual Creation Form — Fiche de révision (texte) */}
+            {creationMode === "manual" && generationType === "revision_sheet" && (
               <Card className="p-6 mb-6 animate-fade-in hover-lift border-border/50">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-secondary/10 to-accent/10 flex items-center justify-center">
@@ -595,7 +595,7 @@ const RevisionGenerator = () => {
                   </div>
                   <div className="flex-1">
                     <h3 className="font-semibold text-lg">Création manuelle</h3>
-                    <p className="text-sm text-muted-foreground">Rédigez votre propre {typeInfo.title.toLowerCase()}</p>
+                    <p className="text-sm text-muted-foreground">Rédigez votre propre fiche</p>
                   </div>
                   <span className="text-2xl">✍️</span>
                 </div>
@@ -613,19 +613,12 @@ const RevisionGenerator = () => {
 
                   <div>
                     <label className="text-sm font-medium mb-2 block">Matière (optionnel)</label>
-                    <SubjectSelect
-                      value={subject}
-                      onValueChange={setSubject}
-                      allLabel="Aucune"
-                    />
+                    <SubjectSelect value={subject} onValueChange={setSubject} allLabel="Aucune" />
                   </div>
 
                   <div>
                     <label className="text-sm font-medium mb-2 block">Niveau scolaire (optionnel)</label>
-                    <SchoolLevelSelect
-                      value={schoolLevel}
-                      onValueChange={setSchoolLevel}
-                    />
+                    <SchoolLevelSelect value={schoolLevel} onValueChange={setSchoolLevel} />
                   </div>
 
                   <div>
@@ -649,6 +642,96 @@ const RevisionGenerator = () => {
                   >
                     <Save className="w-5 h-5 mr-2" />
                     Sauvegarder ma fiche 💾
+                  </Button>
+                </div>
+              </Card>
+            )}
+
+            {/* Manual Creation Form — Schéma : feuille blanche à dessiner */}
+            {creationMode === "manual" && generationType === "schema" && (
+              <Card className="p-6 mb-6 animate-fade-in hover-lift border-border/50">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-secondary/10 to-accent/10 flex items-center justify-center">
+                    <Pencil className="w-6 h-6 text-secondary" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg">Dessine ton schéma</h3>
+                    <p className="text-sm text-muted-foreground">Feuille blanche libre — à toi la créativité ✏️</p>
+                  </div>
+                  <span className="text-2xl">🎨</span>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Titre du schéma *</label>
+                    <Input
+                      value={manualTitle}
+                      onChange={(e) => setManualTitle(e.target.value)}
+                      placeholder="Ex: La cellule, Le triangle rectangle..."
+                      maxLength={200}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Matière (optionnel)</label>
+                      <SubjectSelect value={subject} onValueChange={setSubject} allLabel="Aucune" />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Niveau (optionnel)</label>
+                      <SchoolLevelSelect value={schoolLevel} onValueChange={setSchoolLevel} />
+                    </div>
+                  </div>
+
+                  <DrawingCanvas
+                    onExport={(dataUrl) => {
+                      // Quand l'utilisateur clique télécharger, on stocke aussi pour la sauvegarde.
+                      setSchemaImage(dataUrl);
+                    }}
+                  />
+
+                  <Button
+                    onClick={async () => {
+                      if (!manualTitle.trim()) {
+                        toast({
+                          title: "Titre requis",
+                          description: "Donne un titre à ton schéma avant de le sauvegarder.",
+                          variant: "destructive",
+                        });
+                        return;
+                      }
+                      // Récupère l'image du canvas si pas encore exportée
+                      let img = schemaImage;
+                      if (!img) {
+                        const canvas = document.querySelector("canvas");
+                        if (canvas) img = (canvas as HTMLCanvasElement).toDataURL("image/png");
+                      }
+                      if (!img) {
+                        toast({
+                          title: "Schéma vide",
+                          description: "Dessine quelque chose avant de sauvegarder.",
+                          variant: "destructive",
+                        });
+                        return;
+                      }
+                      const saved = await saveContent({
+                        title: manualTitle,
+                        type: "schema",
+                        image_url: img,
+                        subject: subject || undefined,
+                      });
+                      if (saved) {
+                        setManualTitle("");
+                        setSchemaImage(null);
+                        setViewMode("my_content");
+                        toast({ title: "Schéma sauvegardé !", description: "Bravo 🎨" });
+                      }
+                    }}
+                    disabled={!manualTitle.trim()}
+                    className="w-full btn-friendly text-base py-6 rounded-xl font-semibold"
+                  >
+                    <Save className="w-5 h-5 mr-2" />
+                    Sauvegarder mon schéma 💾
                   </Button>
                 </div>
               </Card>
