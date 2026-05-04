@@ -492,7 +492,14 @@ const RevisionGenerator = () => {
         {viewMode === "create" && (
           <>
             {/* Type Selection */}
-            <Tabs value={generationType} onValueChange={(v) => { setGenerationType(v as GenerationType); setResult(""); setSchemaImage(null); }} className="mb-4 animate-fade-in stagger-2">
+            <Tabs value={generationType} onValueChange={(v) => {
+              const t = v as GenerationType;
+              setGenerationType(t);
+              setResult("");
+              setSchemaImage(null);
+              // Mind map ne supporte que l'IA. Schema "manual" = dessin libre.
+              if (t === "mind_map") setCreationMode("ai");
+            }} className="mb-4 animate-fade-in stagger-2">
               <TabsList className="grid w-full grid-cols-3 p-1 bg-muted/50 rounded-2xl">
                 <TabsTrigger value="revision_sheet" className="flex items-center gap-2 rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-md transition-all duration-300">
                   <FileText className="h-4 w-4" />
