@@ -22,6 +22,7 @@ import RevisionGenerator from "./pages/RevisionGenerator";
 import CoursNotes from "./pages/CoursNotes";
 import QCM from "./pages/QCM";
 import NotFound from "./pages/NotFound";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
