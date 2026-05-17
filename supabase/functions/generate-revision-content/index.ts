@@ -334,10 +334,10 @@ CONSIGNES STRICTES :
       // Image illustrative associée
       let illustrationUrl: string | undefined;
       try {
-        const imgResp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        const imgResp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${GROQ_API_KEY}`,
+            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
