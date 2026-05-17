@@ -412,7 +412,7 @@ ${content ? '- BASE-TOI EN PRIORITÉ sur le cours fourni, structure ses concepts
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
+        model: 'llama-3.3-70b-versatile',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
