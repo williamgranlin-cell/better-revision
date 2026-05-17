@@ -12,7 +12,7 @@ const ROLE_LIMITS: Record<string, number> = {
   admin: Infinity,
 };
 
-const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY');
 
 function buildContextBlock(subject?: string, schoolLevel?: string, content?: string): string {
   const parts: string[] = [];
@@ -159,10 +159,10 @@ LAYOUT:
         messages = [{ role: 'user', content: imagePrompt }];
       }
 
-      const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      const imageResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Authorization': `Bearer ${GROQ_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -230,10 +230,10 @@ ${schoolLevel ? `**Niveau** : ${schoolLevel}` : ''}
 
 Génère 5 à 8 légendes pertinentes, adaptées au niveau ${schoolLevel || 'de l\'élève'}. Si tu n'es pas sûr d'un élément, ne l'invente pas.`;
 
-      const legendResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      const legendResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Authorization': `Bearer ${GROQ_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -292,10 +292,10 @@ CONSIGNES STRICTES :
 - Structure : objectifs → définitions essentielles → concepts clés (avec exemples) → méthodes/formules → pièges fréquents → l'essentiel à retenir.
 - Sois exhaustif mais synthétique. Adapte la profondeur au niveau.`;
 
-      const textResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      const textResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Authorization': `Bearer ${GROQ_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -333,10 +333,10 @@ CONSIGNES STRICTES :
       // Image illustrative associée
       let illustrationUrl: string | undefined;
       try {
-        const imgResp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        const imgResp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+            'Authorization': `Bearer ${GROQ_API_KEY}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
@@ -404,10 +404,10 @@ ${content ? '- BASE-TOI EN PRIORITÉ sur le cours fourni, structure ses concepts
         break;
     }
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${GROQ_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
