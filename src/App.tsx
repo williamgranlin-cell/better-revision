@@ -38,36 +38,38 @@ const ThemedApp = ({ children }: { children: React.ReactNode }) => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-      <AuthProvider>
-        <TooltipProvider>
-          <ThemedApp>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-              <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
-              <Route path="/classroom" element={<ProtectedRoute><Classroom /></ProtectedRoute>} />
-              <Route path="/flashcards" element={<ProtectedRoute><Flashcards /></ProtectedRoute>} />
-              <Route path="/controls" element={<ProtectedRoute><Controls /></ProtectedRoute>} />
-              <Route path="/study-chat" element={<ProtectedRoute><StudyChat /></ProtectedRoute>} />
-              <Route path="/schedule" element={<ProtectedRoute><Schedule /></ProtectedRoute>} />
-              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-              <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-              <Route path="/revision-generator" element={<ProtectedRoute><RevisionGenerator /></ProtectedRoute>} />
-              <Route path="/cours" element={<ProtectedRoute><CoursNotes /></ProtectedRoute>} />
-              <Route path="/qcm" element={<ProtectedRoute><QCM /></ProtectedRoute>} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-          </ThemedApp>
-        </TooltipProvider>
-      </AuthProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+        <AuthProvider>
+          <TooltipProvider>
+            <ThemedApp>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+              <Routes>
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+                <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
+                <Route path="/classroom" element={<ProtectedRoute><Classroom /></ProtectedRoute>} />
+                <Route path="/flashcards" element={<ProtectedRoute><Flashcards /></ProtectedRoute>} />
+                <Route path="/controls" element={<ProtectedRoute><Controls /></ProtectedRoute>} />
+                <Route path="/study-chat" element={<ProtectedRoute><StudyChat /></ProtectedRoute>} />
+                <Route path="/schedule" element={<ProtectedRoute><Schedule /></ProtectedRoute>} />
+                <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+                <Route path="/revision-generator" element={<ProtectedRoute><RevisionGenerator /></ProtectedRoute>} />
+                <Route path="/cours" element={<ProtectedRoute><CoursNotes /></ProtectedRoute>} />
+                <Route path="/qcm" element={<ProtectedRoute><QCM /></ProtectedRoute>} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+            </ThemedApp>
+          </TooltipProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;
