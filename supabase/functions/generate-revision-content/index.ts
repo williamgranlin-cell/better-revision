@@ -12,6 +12,7 @@ const ROLE_LIMITS: Record<string, number> = {
   admin: Infinity,
 };
 
+const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY');
 const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
 function buildContextBlock(subject?: string, schoolLevel?: string, content?: string): string {
@@ -230,14 +231,14 @@ ${schoolLevel ? `**Niveau** : ${schoolLevel}` : ''}
 
 Génère 5 à 8 légendes pertinentes, adaptées au niveau ${schoolLevel || 'de l\'élève'}. Si tu n'es pas sûr d'un élément, ne l'invente pas.`;
 
-      const legendResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      const legendResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Authorization': `Bearer ${GROQ_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'google/gemini-3-flash-preview',
+          model: 'llama-3.3-70b-versatile',
           messages: [{ role: 'user', content: legendPrompt }],
           max_tokens: 2000,
           temperature: 0.3,
@@ -292,14 +293,14 @@ CONSIGNES STRICTES :
 - Structure : objectifs → définitions essentielles → concepts clés (avec exemples) → méthodes/formules → pièges fréquents → l'essentiel à retenir.
 - Sois exhaustif mais synthétique. Adapte la profondeur au niveau.`;
 
-      const textResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      const textResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Authorization': `Bearer ${GROQ_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'openai/gpt-5',
+          model: 'llama-3.3-70b-versatile',
           messages: [
             {
               role: 'system',
@@ -404,14 +405,14 @@ ${content ? '- BASE-TOI EN PRIORITÉ sur le cours fourni, structure ses concepts
         break;
     }
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${GROQ_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
+        model: 'llama-3.3-70b-versatile',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
