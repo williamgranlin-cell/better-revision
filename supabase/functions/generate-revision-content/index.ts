@@ -238,7 +238,7 @@ Génère 5 à 8 légendes pertinentes, adaptées au niveau ${schoolLevel || 'de 
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'google/gemini-3-flash-preview',
+          model: 'llama-3.3-70b-versatile',
           messages: [{ role: 'user', content: legendPrompt }],
           max_tokens: 2000,
           temperature: 0.3,
