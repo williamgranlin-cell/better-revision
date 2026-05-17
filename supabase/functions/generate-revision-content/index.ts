@@ -13,6 +13,7 @@ const ROLE_LIMITS: Record<string, number> = {
 };
 
 const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY');
+const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
 function buildContextBlock(subject?: string, schoolLevel?: string, content?: string): string {
   const parts: string[] = [];
