@@ -300,7 +300,7 @@ CONSIGNES STRICTES :
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'openai/gpt-5',
+          model: 'llama-3.3-70b-versatile',
           messages: [
             {
               role: 'system',
