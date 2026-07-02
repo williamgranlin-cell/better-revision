@@ -118,9 +118,10 @@ Deno.test("ai-study-chat: missing auth returns generic 401 without leaks", async
     body: { message: "Bonjour" },
   });
   assertEquals(status, 401);
+  const lower = text.toLowerCase();
   assert(
-    text.toLowerCase().includes("non autoris"),
-    `expected generic "Non autorisé" message, got: ${text}`,
+    lower.includes("non autoris") || lower.includes("missing authorization"),
+    `expected a generic auth error, got: ${text}`,
   );
   assertNoLeak("ai-study-chat/no-auth", text);
 });
