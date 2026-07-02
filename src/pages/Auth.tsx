@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,8 +11,14 @@ import { GraduationCap } from 'lucide-react';
 
 const Auth = () => {
   const navigate = useNavigate();
-  const { signUp, signIn } = useAuth();
+  const { signUp, signIn, user, loading: authLoading } = useAuth();
   const { toast } = useToast();
+
+  // Si l'utilisateur est déjà connecté, rediriger vers l'accueil
+  // (évite la sensation de "saut" entre /auth et /)
+  if (!authLoading && user) {
+    return <Navigate to="/" replace />;
+  }
   
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
