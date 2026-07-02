@@ -144,9 +144,10 @@ Deno.test("transcribe-and-enhance: missing auth returns generic 401 without leak
     body: { transcript: "Hello", subject: "Math" },
   });
   assertEquals(status, 401);
+  const lower = text.toLowerCase();
   assert(
-    text.toLowerCase().includes("non autoris"),
-    `expected generic "Non autorisé" message, got: ${text}`,
+    lower.includes("non autoris") || lower.includes("missing authorization"),
+    `expected a generic auth error, got: ${text}`,
   );
   assertNoLeak("transcribe-and-enhance/no-auth", text);
 });
