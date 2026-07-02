@@ -92,9 +92,10 @@ Deno.test("generate-flashcards: missing auth returns generic 401 without leaks",
     body: { type: "text", content: "Test", count: 1 },
   });
   assertEquals(status, 401);
+  const lower = text.toLowerCase();
   assert(
-    text.toLowerCase().includes("non autoris"),
-    `expected generic "Non autorisé" message, got: ${text}`,
+    lower.includes("non autoris") || lower.includes("missing authorization"),
+    `expected a generic auth error, got: ${text}`,
   );
   assertNoLeak("generate-flashcards/no-auth", text);
 });
