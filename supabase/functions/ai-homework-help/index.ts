@@ -168,7 +168,10 @@ RÈGLES STRICTES:
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      throw new Error(`AI API error: ${response.status}`);
+      return new Response(
+        JSON.stringify({ error: "Service temporairement indisponible" }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const data = await response.json();
