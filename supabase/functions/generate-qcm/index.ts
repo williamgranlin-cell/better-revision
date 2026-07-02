@@ -134,7 +134,7 @@ FORMAT DE SORTIE (JSON strict) :`;
     });
   } catch (e) {
     console.error("generate-qcm error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Erreur inconnue" }), {
+    return new Response(JSON.stringify({ error: "Service temporairement indisponible" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
