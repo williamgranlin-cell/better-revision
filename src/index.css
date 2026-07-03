@@ -410,3 +410,29 @@ All colors MUST be HSL.
   }
 }
 
+/* -------------------------------------------------------------
+   Global text-color override
+   The user wants all text to stay black / dark gray regardless
+   of the active theme (light OR dark, classic OR vibrant).
+   We override the semantic foreground tokens after every theme
+   declaration so downstream Tailwind utilities inherit the right
+   value automatically.
+   ------------------------------------------------------------- */
+:root,
+.classic-style,
+.vibrant-style,
+.dark,
+.dark.classic-style,
+.dark.vibrant-style {
+  --foreground: 240 15% 12%;
+  --card-foreground: 240 15% 12%;
+  --popover-foreground: 240 15% 12%;
+  --muted-foreground: 240 8% 32%;
+}
+
+/* Ensure body text picks up the dark color even over dark backgrounds */
+body {
+  color: hsl(var(--foreground));
+}
+
+
