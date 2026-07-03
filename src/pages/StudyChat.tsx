@@ -224,7 +224,7 @@ const StudyChat = () => {
               <HelpCircle className="w-5 h-5 md:w-6 md:h-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-xl md:text-2xl lg:text-3xl font-display font-bold text-foreground">Aide 🤗</h1>
+              <h1 className="text-xl md:text-2xl lg:text-3xl font-display font-bold text-foreground">Aide</h1>
               <p className="text-sm md:text-base text-muted-foreground">
                 Vidéos, exercices et assistance devoirs
               </p>
