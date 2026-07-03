@@ -266,17 +266,17 @@ const Home = () => {
                 <div className="flex flex-wrap gap-3">
                   {streak >= 7 && (
                     <div className="px-3 py-2 rounded-lg bg-card text-sm">
-                      🔥 7 jours d'affilée
+                      7 jours d'affilée
                     </div>
                   )}
                   {totalMinutes >= 3000 && (
                     <div className="px-3 py-2 rounded-lg bg-card text-sm">
-                      ⏰ 50h de révision
+                      50h de révision
                     </div>
                   )}
                   {completedObjectives >= 50 && (
                     <div className="px-3 py-2 rounded-lg bg-card text-sm">
-                      🎯 50 objectifs
+                      50 objectifs atteints
                     </div>
                   )}
                 </div>
