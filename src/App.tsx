@@ -23,6 +23,7 @@ import CoursNotes from "./pages/CoursNotes";
 import QCM from "./pages/QCM";
 import NotFound from "./pages/NotFound";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { AuthSplash } from "./components/AuthSplash";
 
 const queryClient = new QueryClient();
 
