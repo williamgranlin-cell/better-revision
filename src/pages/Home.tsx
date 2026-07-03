@@ -71,7 +71,7 @@ const Home = () => {
           <div className="max-w-screen-xl mx-auto px-4 md:px-6 py-4">
             <WelcomeHeader />
             <h1 className="text-2xl md:text-3xl font-display font-bold bg-gradient-primary bg-clip-text text-transparent">
-              Accueil 🏠
+              Accueil
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
               Voici un récapitulatif de ta progression
