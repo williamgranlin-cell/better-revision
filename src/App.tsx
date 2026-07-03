@@ -23,6 +23,7 @@ import CoursNotes from "./pages/CoursNotes";
 import QCM from "./pages/QCM";
 import NotFound from "./pages/NotFound";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { AuthSplash } from "./components/AuthSplash";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +48,7 @@ const App = () => (
               <Toaster />
               <Sonner />
               <BrowserRouter>
+              <AuthSplash>
               <Routes>
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
@@ -63,6 +65,7 @@ const App = () => (
                 <Route path="/qcm" element={<ProtectedRoute><QCM /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              </AuthSplash>
             </BrowserRouter>
             </ThemedApp>
           </TooltipProvider>

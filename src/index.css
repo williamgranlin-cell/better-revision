@@ -68,9 +68,9 @@ All colors MUST be HSL.
     --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
     /* Font */
-    --font-sans: 'Inter', system-ui, sans-serif;
-    --font-display: 'Playfair Display', Georgia, serif;
-    --font-mono: 'Space Mono', monospace;
+    --font-sans: 'Nunito', system-ui, sans-serif;
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-mono: 'JetBrains Mono', monospace;
   }
 
   /* Vibrant Style (New colorful design) */
@@ -125,9 +125,9 @@ All colors MUST be HSL.
     --shadow-colored: 0 12px 40px -10px hsl(280 85% 60% / 0.35);
 
     /* Font */
-    --font-sans: 'Outfit', system-ui, sans-serif;
-    --font-display: 'Playfair Display', Georgia, serif;
-    --font-mono: 'Space Mono', monospace;
+    --font-sans: 'Nunito', system-ui, sans-serif;
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-mono: 'JetBrains Mono', monospace;
   }
 
   .dark.classic-style, .dark:not(.vibrant-style) {
@@ -409,4 +409,30 @@ All colors MUST be HSL.
     @apply w-16 h-16 mx-auto mb-4 text-primary/40 animate-float;
   }
 }
+
+/* -------------------------------------------------------------
+   Global text-color override
+   The user wants all text to stay black / dark gray regardless
+   of the active theme (light OR dark, classic OR vibrant).
+   We override the semantic foreground tokens after every theme
+   declaration so downstream Tailwind utilities inherit the right
+   value automatically.
+   ------------------------------------------------------------- */
+:root,
+.classic-style,
+.vibrant-style,
+.dark,
+.dark.classic-style,
+.dark.vibrant-style {
+  --foreground: 240 15% 12%;
+  --card-foreground: 240 15% 12%;
+  --popover-foreground: 240 15% 12%;
+  --muted-foreground: 240 8% 32%;
+}
+
+/* Ensure body text picks up the dark color even over dark backgrounds */
+body {
+  color: hsl(var(--foreground));
+}
+
 

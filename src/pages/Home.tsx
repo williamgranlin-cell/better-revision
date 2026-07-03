@@ -71,7 +71,7 @@ const Home = () => {
           <div className="max-w-screen-xl mx-auto px-4 md:px-6 py-4">
             <WelcomeHeader />
             <h1 className="text-2xl md:text-3xl font-display font-bold bg-gradient-primary bg-clip-text text-transparent">
-              Accueil 🏠
+              Accueil
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
               Voici un récapitulatif de ta progression
@@ -131,7 +131,7 @@ const Home = () => {
                 </div>
                 {todayRevisions.length === 0 ? (
                   <p className="text-sm text-muted-foreground">
-                    Aucune révision prévue aujourd'hui 🎉
+                    Aucune révision prévue aujourd'hui.
                   </p>
                 ) : (
                   <ul className="space-y-2">
@@ -167,7 +167,7 @@ const Home = () => {
                 </div>
                 {upcomingControls.length === 0 ? (
                   <p className="text-sm text-muted-foreground">
-                    Aucun contrôle à venir 👍
+                    Aucun contrôle à venir.
                   </p>
                 ) : (
                   <ul className="space-y-2">
@@ -210,7 +210,7 @@ const Home = () => {
               </div>
               {pendingObjectives.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  Tous tes objectifs sont complétés ! 🎯
+                  Tous tes objectifs sont complétés.
                 </p>
               ) : (
                 <ul className="space-y-2">
@@ -266,17 +266,17 @@ const Home = () => {
                 <div className="flex flex-wrap gap-3">
                   {streak >= 7 && (
                     <div className="px-3 py-2 rounded-lg bg-card text-sm">
-                      🔥 7 jours d'affilée
+                      7 jours d'affilée
                     </div>
                   )}
                   {totalMinutes >= 3000 && (
                     <div className="px-3 py-2 rounded-lg bg-card text-sm">
-                      ⏰ 50h de révision
+                      50h de révision
                     </div>
                   )}
                   {completedObjectives >= 50 && (
                     <div className="px-3 py-2 rounded-lg bg-card text-sm">
-                      🎯 50 objectifs
+                      50 objectifs atteints
                     </div>
                   )}
                 </div>
