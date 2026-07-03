@@ -103,18 +103,20 @@ describe("Auth flow — splash stability", () => {
   it("keeps the same splash DOM node across re-renders (no flash)", () => {
     authState.loading = true;
 
-    const { rerender } = renderApp("/");
+    const Tree = () => (
+      <MemoryRouter initialEntries={["/"]}>
+        <AuthSplash>
+          <div>irrelevant</div>
+        </AuthSplash>
+      </MemoryRouter>
+    );
+
+    const { rerender } = render(<Tree />);
     const first = screen.getByRole("status");
 
-    // Force several re-renders while still loading
+    // Force several re-renders while still loading (same element tree)
     for (let i = 0; i < 5; i++) {
-      rerender(
-        <MemoryRouter initialEntries={["/"]}>
-          <AuthSplash>
-            <div>irrelevant</div>
-          </AuthSplash>
-        </MemoryRouter>,
-      );
+      rerender(<Tree />);
     }
 
     const still = screen.getByRole("status");
