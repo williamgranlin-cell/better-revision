@@ -68,9 +68,9 @@ All colors MUST be HSL.
     --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
     /* Font */
-    --font-sans: 'Inter', system-ui, sans-serif;
-    --font-display: 'Playfair Display', Georgia, serif;
-    --font-mono: 'Space Mono', monospace;
+    --font-sans: 'Nunito', system-ui, sans-serif;
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-mono: 'JetBrains Mono', monospace;
   }
 
   /* Vibrant Style (New colorful design) */
