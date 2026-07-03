@@ -131,7 +131,7 @@ const Home = () => {
                 </div>
                 {todayRevisions.length === 0 ? (
                   <p className="text-sm text-muted-foreground">
-                    Aucune révision prévue aujourd'hui 🎉
+                    Aucune révision prévue aujourd'hui.
                   </p>
                 ) : (
                   <ul className="space-y-2">
