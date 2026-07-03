@@ -125,9 +125,9 @@ All colors MUST be HSL.
     --shadow-colored: 0 12px 40px -10px hsl(280 85% 60% / 0.35);
 
     /* Font */
-    --font-sans: 'Outfit', system-ui, sans-serif;
-    --font-display: 'Playfair Display', Georgia, serif;
-    --font-mono: 'Space Mono', monospace;
+    --font-sans: 'Nunito', system-ui, sans-serif;
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-mono: 'JetBrains Mono', monospace;
   }
 
   .dark.classic-style, .dark:not(.vibrant-style) {
