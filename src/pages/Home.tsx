@@ -210,7 +210,7 @@ const Home = () => {
               </div>
               {pendingObjectives.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  Tous tes objectifs sont complétés ! 🎯
+                  Tous tes objectifs sont complétés.
                 </p>
               ) : (
                 <ul className="space-y-2">
