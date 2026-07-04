@@ -13,218 +13,98 @@ All colors MUST be HSL.
 */
 
 @layer base {
-  /* Classic Style - Clean Modern Theme */
-  :root, .classic-style {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 10%;
+  /* ========== Encre & Papier — studious editorial ==========
+     Warm off-white paper (#f5f3ee), soft grain (#e8e4dd),
+     ink black (#0d0d0d), graphite (#2d2d2d). Serif display for
+     titles, humanist sans for body. Discipline + focus.
+  */
+  :root, .classic-style, .vibrant-style {
+    --background: 40 25% 96%;          /* #f5f3ee paper */
+    --foreground: 0 0% 5%;             /* #0d0d0d ink */
 
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 10%;
+    --card: 40 30% 98%;
+    --card-foreground: 0 0% 5%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 10%;
+    --popover: 40 30% 98%;
+    --popover-foreground: 0 0% 5%;
 
-    --primary: 235 65% 55%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 0 0% 10%;               /* ink primary */
+    --primary-foreground: 40 25% 96%;
 
-    --secondary: 280 60% 55%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 35 12% 88%;
+    --secondary-foreground: 0 0% 10%;
 
-    --success: 145 70% 45%;
-    --success-foreground: 0 0% 100%;
+    --success: 145 40% 30%;
+    --success-foreground: 40 25% 96%;
 
-    --warning: 35 95% 55%;
-    --warning-foreground: 0 0% 100%;
+    --warning: 30 60% 40%;
+    --warning-foreground: 40 25% 96%;
 
-    --muted: 240 5% 95%;
-    --muted-foreground: 240 5% 45%;
+    --muted: 36 18% 91%;               /* #e8e4dd grain */
+    --muted-foreground: 0 0% 25%;
 
-    --accent: 280 60% 55%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 25 45% 42%;              /* warm sepia accent */
+    --accent-foreground: 40 25% 96%;
 
-    --destructive: 0 85% 55%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 60% 40%;
+    --destructive-foreground: 40 25% 96%;
 
-    --border: 240 5% 90%;
-    --input: 240 5% 95%;
-    --ring: 235 65% 55%;
+    --border: 36 15% 82%;
+    --input: 36 18% 91%;
+    --ring: 0 0% 15%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(235 65% 55%) 0%, hsl(280 60% 55%) 100%);
-    --gradient-success: linear-gradient(135deg, hsl(145 70% 45%) 0%, hsl(170 65% 45%) 100%);
-    --gradient-warning: linear-gradient(135deg, hsl(35 95% 55%) 0%, hsl(15 90% 55%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(240 5% 98%) 100%);
+    /* Gradients — restrained, ink on paper */
+    --gradient-primary: linear-gradient(135deg, hsl(0 0% 10%) 0%, hsl(0 0% 25%) 100%);
+    --gradient-success: linear-gradient(135deg, hsl(145 40% 30%) 0%, hsl(160 35% 28%) 100%);
+    --gradient-warning: linear-gradient(135deg, hsl(30 60% 40%) 0%, hsl(20 55% 38%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(40 30% 98%) 0%, hsl(36 20% 94%) 100%);
+    --gradient-rainbow: linear-gradient(135deg, hsl(0 0% 10%) 0%, hsl(25 45% 42%) 100%);
 
-    /* Shadows */
-    --shadow-sm: 0 2px 8px -2px hsl(240 10% 30% / 0.1);
-    --shadow-md: 0 4px 16px -4px hsl(240 10% 30% / 0.15);
-    --shadow-lg: 0 8px 24px -6px hsl(240 10% 30% / 0.2);
-    --shadow-colored: 0 8px 32px -8px hsl(235 65% 55% / 0.25);
+    /* Shadows — soft, paper-like */
+    --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.06);
+    --shadow-md: 0 2px 8px -2px hsl(0 0% 0% / 0.1);
+    --shadow-lg: 0 8px 24px -8px hsl(0 0% 0% / 0.15);
+    --shadow-colored: 0 8px 32px -8px hsl(25 45% 42% / 0.2);
 
-    /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
-    /* Font */
-    --font-sans: 'Nunito', system-ui, sans-serif;
-    --font-display: 'Fraunces', Georgia, serif;
+    --font-sans: 'Work Sans', system-ui, sans-serif;
+    --font-display: 'Instrument Serif', Georgia, serif;
     --font-mono: 'JetBrains Mono', monospace;
   }
 
-  /* Vibrant Style (New colorful design) */
-  .vibrant-style {
-    --background: 270 30% 98%;
-    --foreground: 260 30% 12%;
+  /* Dark mode: darker paper, but text stays high-contrast dark on cards */
+  .dark, .dark.classic-style, .dark.vibrant-style {
+    --background: 30 8% 12%;
+    --foreground: 40 25% 92%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 260 30% 12%;
+    --card: 40 25% 96%;                /* cards remain paper */
+    --card-foreground: 0 0% 5%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 260 30% 12%;
+    --popover: 40 25% 96%;
+    --popover-foreground: 0 0% 5%;
 
-    --primary: 280 85% 60%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 40 25% 92%;
+    --primary-foreground: 0 0% 8%;
 
-    --secondary: 190 95% 45%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 30 8% 20%;
+    --secondary-foreground: 40 25% 92%;
 
-    --success: 145 85% 45%;
-    --success-foreground: 0 0% 100%;
+    --muted: 30 8% 18%;
+    --muted-foreground: 40 15% 70%;
 
-    --warning: 35 95% 55%;
-    --warning-foreground: 0 0% 100%;
+    --accent: 25 45% 55%;
+    --accent-foreground: 0 0% 8%;
 
-    --muted: 270 25% 94%;
-    --muted-foreground: 260 20% 40%;
+    --border: 30 8% 22%;
+    --input: 30 8% 22%;
+    --ring: 40 25% 92%;
 
-    --accent: 330 85% 60%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 85% 55%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 270 25% 88%;
-    --input: 270 25% 92%;
-    --ring: 280 85% 60%;
-
-    --radius: 1rem;
-
-    /* Vibrant Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(280 85% 60%) 0%, hsl(330 85% 60%) 50%, hsl(35 95% 55%) 100%);
-    --gradient-success: linear-gradient(135deg, hsl(145 85% 45%) 0%, hsl(170 90% 40%) 100%);
-    --gradient-warning: linear-gradient(135deg, hsl(35 95% 55%) 0%, hsl(15 90% 55%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(270 30% 98%) 100%);
-    --gradient-rainbow: linear-gradient(135deg, hsl(280 85% 60%) 0%, hsl(190 95% 45%) 25%, hsl(145 85% 45%) 50%, hsl(35 95% 55%) 75%, hsl(330 85% 60%) 100%);
-
-    /* Vibrant Shadows */
-    --shadow-sm: 0 2px 10px -2px hsl(280 85% 60% / 0.15);
-    --shadow-md: 0 6px 20px -4px hsl(280 85% 60% / 0.2);
-    --shadow-lg: 0 12px 32px -8px hsl(280 85% 60% / 0.25);
-    --shadow-colored: 0 12px 40px -10px hsl(280 85% 60% / 0.35);
-
-    /* Font */
-    --font-sans: 'Nunito', system-ui, sans-serif;
-    --font-display: 'Fraunces', Georgia, serif;
-    --font-mono: 'JetBrains Mono', monospace;
-  }
-
-  .dark.classic-style, .dark:not(.vibrant-style) {
-    --background: 240 10% 8%;
-    --foreground: 0 0% 95%;
-
-    --card: 240 10% 12%;
-    --card-foreground: 0 0% 95%;
-
-    --popover: 240 10% 12%;
-    --popover-foreground: 0 0% 95%;
-
-    --primary: 235 65% 65%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 280 60% 65%;
-    --secondary-foreground: 0 0% 100%;
-
-    --success: 145 70% 55%;
-    --success-foreground: 0 0% 100%;
-
-    --warning: 35 95% 60%;
-    --warning-foreground: 0 0% 100%;
-
-    --muted: 240 10% 18%;
-    --muted-foreground: 240 5% 60%;
-
-    --accent: 280 60% 65%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 85% 55%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 240 10% 22%;
-    --input: 240 10% 22%;
-    --ring: 235 65% 65%;
-
-    /* Gradients for dark mode */
-    --gradient-primary: linear-gradient(135deg, hsl(235 65% 55%) 0%, hsl(280 60% 55%) 100%);
-    --gradient-success: linear-gradient(135deg, hsl(145 70% 45%) 0%, hsl(170 65% 45%) 100%);
-    --gradient-warning: linear-gradient(135deg, hsl(35 95% 50%) 0%, hsl(15 90% 50%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(240 10% 12%) 0%, hsl(240 10% 15%) 100%);
-
-    /* Shadows for dark mode */
-    --shadow-sm: 0 2px 8px -2px hsl(0 0% 0% / 0.3);
-    --shadow-md: 0 4px 16px -4px hsl(0 0% 0% / 0.4);
-    --shadow-lg: 0 8px 24px -6px hsl(0 0% 0% / 0.5);
-    --shadow-colored: 0 8px 32px -8px hsl(235 65% 40% / 0.4);
-  }
-
-  .dark.vibrant-style {
-    --background: 270 25% 8%;
-    --foreground: 270 20% 95%;
-
-    --card: 270 20% 12%;
-    --card-foreground: 270 20% 95%;
-
-    --popover: 270 20% 12%;
-    --popover-foreground: 270 20% 95%;
-
-    --primary: 280 85% 65%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 190 90% 50%;
-    --secondary-foreground: 0 0% 100%;
-
-    --success: 145 80% 50%;
-    --success-foreground: 0 0% 100%;
-
-    --warning: 35 90% 55%;
-    --warning-foreground: 0 0% 100%;
-
-    --muted: 270 20% 18%;
-    --muted-foreground: 270 15% 60%;
-
-    --accent: 330 80% 65%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 80% 55%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 270 20% 20%;
-    --input: 270 20% 20%;
-    --ring: 280 85% 65%;
-
-    /* Vibrant Dark Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(280 85% 55%) 0%, hsl(330 80% 55%) 50%, hsl(35 90% 50%) 100%);
-    --gradient-success: linear-gradient(135deg, hsl(145 80% 40%) 0%, hsl(170 85% 35%) 100%);
-    --gradient-warning: linear-gradient(135deg, hsl(35 90% 50%) 0%, hsl(15 85% 50%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(270 20% 12%) 0%, hsl(270 22% 15%) 100%);
-    --gradient-rainbow: linear-gradient(135deg, hsl(280 85% 55%) 0%, hsl(190 90% 40%) 25%, hsl(145 80% 40%) 50%, hsl(35 90% 50%) 75%, hsl(330 80% 55%) 100%);
-
-    /* Vibrant Dark Shadows */
-    --shadow-sm: 0 2px 10px -2px hsl(0 0% 0% / 0.4);
-    --shadow-md: 0 6px 20px -4px hsl(0 0% 0% / 0.5);
-    --shadow-lg: 0 12px 32px -8px hsl(0 0% 0% / 0.6);
-    --shadow-colored: 0 12px 40px -10px hsl(280 85% 40% / 0.5);
+    --gradient-primary: linear-gradient(135deg, hsl(40 25% 92%) 0%, hsl(40 15% 75%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(40 25% 96%) 0%, hsl(36 20% 92%) 100%);
   }
 }
 
@@ -411,12 +291,7 @@ All colors MUST be HSL.
 }
 
 /* -------------------------------------------------------------
-   Global text-color override
-   The user wants all text to stay black / dark gray regardless
-   of the active theme (light OR dark, classic OR vibrant).
-   We override the semantic foreground tokens after every theme
-   declaration so downstream Tailwind utilities inherit the right
-   value automatically.
+   Global text override — ink black / graphite on every theme.
    ------------------------------------------------------------- */
 :root,
 .classic-style,
@@ -424,15 +299,22 @@ All colors MUST be HSL.
 .dark,
 .dark.classic-style,
 .dark.vibrant-style {
-  --foreground: 240 15% 12%;
-  --card-foreground: 240 15% 12%;
-  --popover-foreground: 240 15% 12%;
-  --muted-foreground: 240 8% 32%;
+  --foreground: 0 0% 8%;
+  --card-foreground: 0 0% 8%;
+  --popover-foreground: 0 0% 8%;
+  --muted-foreground: 0 0% 28%;
 }
 
-/* Ensure body text picks up the dark color even over dark backgrounds */
 body {
   color: hsl(var(--foreground));
+  font-family: var(--font-sans);
 }
+
+/* Editorial display type for headings */
+h1, h2, h3, h4, .font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
 
 

@@ -18,6 +18,7 @@ import { StyleToggle } from "@/components/StyleToggle";
 import { StatisticsSection } from "@/components/StatisticsSection";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
 import { ThemeSelector } from "@/components/ThemeSelector";
+import { ProfileDashboard } from "@/components/ProfileDashboard";
 import { useStylePreference } from "@/hooks/useStylePreference";
 import { useSubscription } from "@/hooks/useSubscription";
 
@@ -238,6 +239,9 @@ const Profile = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Central hub — quick access to every section */}
+        <ProfileDashboard />
 
         {/* Subscription */}
         <SubscriptionCard />

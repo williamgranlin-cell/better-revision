@@ -3,14 +3,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
 const MOTIVATIONAL = [
-  "Chaque effort te rapproche de ton objectif 💪",
-  "La régularité est la clé du succès 🔑",
-  "Tu es sur la bonne voie, continue ! 🚀",
-  "Un petit pas aujourd'hui, un grand bond demain 🌟",
-  "La discipline bat le talent quand le talent ne travaille pas 🏆",
-  "Crois en toi, tu peux y arriver ! ✨",
-  "L'effort d'aujourd'hui est la réussite de demain 📈",
-  "Reste concentré, tu vas y arriver 🎯",
+  "Chaque effort te rapproche de ton objectif.",
+  "La régularité est la clé du succès.",
+  "Tu es sur la bonne voie, continue.",
+  "Un petit pas aujourd'hui, un grand bond demain.",
+  "La discipline bat le talent quand le talent ne travaille pas.",
+  "Crois en toi, tu peux y arriver.",
+  "L'effort d'aujourd'hui est la réussite de demain.",
+  "Reste concentré, avance à ton rythme.",
 ];
 
 export const WelcomeHeader = () => {
@@ -38,7 +38,7 @@ export const WelcomeHeader = () => {
   return (
     <div className="mb-2">
       <h2 className="text-lg font-semibold text-foreground">
-        {greeting}, {firstName} 👋
+        {greeting}, {firstName}.
       </h2>
       <p className="text-sm text-muted-foreground italic">{quote}</p>
     </div>

@@ -22,18 +22,18 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const navItems = [
-  { icon: Home, label: "Accueil", path: "/", emoji: "🏠" },
-  { icon: Calendar, label: "Calendrier", path: "/calendar", emoji: "📅" },
-  { icon: Clock, label: "Emploi", path: "/schedule", emoji: "⏰" },
-  { icon: Target, label: "Classroom", path: "/classroom", emoji: "🎯" },
-  { icon: NotebookPen, label: "Cours", path: "/cours", emoji: "📓" },
-  { icon: FileText, label: "Fiches", path: "/revision-generator", emoji: "📝" },
-  { icon: BookOpen, label: "Flashcards", path: "/flashcards", emoji: "🃏" },
-  { icon: CheckSquare, label: "QCM", path: "/qcm", emoji: "✅" },
-  { icon: ClipboardList, label: "Contrôles", path: "/controls", emoji: "📋" },
-  { icon: HelpCircle, label: "Aide", path: "/study-chat", emoji: "🤗" },
-  { icon: User, label: "Profil", path: "/profile", emoji: "👤" },
-];
+  { icon: Home, label: "Accueil", path: "/" },
+  { icon: Calendar, label: "Calendrier", path: "/calendar" },
+  { icon: Clock, label: "Emploi", path: "/schedule" },
+  { icon: Target, label: "Classroom", path: "/classroom" },
+  { icon: NotebookPen, label: "Cours", path: "/cours" },
+  { icon: FileText, label: "Fiches", path: "/revision-generator" },
+  { icon: BookOpen, label: "Flashcards", path: "/flashcards" },
+  { icon: CheckSquare, label: "QCM", path: "/qcm" },
+  { icon: ClipboardList, label: "Contrôles", path: "/controls" },
+  { icon: HelpCircle, label: "Aide", path: "/study-chat" },
+  { icon: User, label: "Profil", path: "/profile" },
+] as const;
 
 const TIPS: Record<string, string> = {
   "/": "Vue d'ensemble : stats, révisions du jour, raccourcis",
@@ -120,7 +120,7 @@ export const BottomNav = () => {
                   isActive ? "font-semibold" : "font-medium"
                 )}
               >
-                {item.emoji} {item.label}
+                {item.label}
               </span>
             )}
           </Link>
