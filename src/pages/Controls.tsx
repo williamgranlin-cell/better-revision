@@ -39,7 +39,7 @@ const Controls = () => {
         <div className="max-w-screen-xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-xl md:text-2xl lg:text-3xl font-display font-bold bg-gradient-primary bg-clip-text text-transparent">
-              Mes Contrôles 📋
+              Mes Contrôles
             </h1>
             <p className="text-sm md:text-base text-muted-foreground mt-1">
               Prépare tes examens à venir

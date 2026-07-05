@@ -12,13 +12,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, LogOut, Edit, Sparkles, Palette, Shield } from "lucide-react";
+import { Settings, LogOut, Edit, Sparkles, Palette, Shield, LayoutDashboard } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { StyleToggle } from "@/components/StyleToggle";
 import { StatisticsSection } from "@/components/StatisticsSection";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
 import { ThemeSelector } from "@/components/ThemeSelector";
 import { ProfileDashboard } from "@/components/ProfileDashboard";
+import { useHomePreference } from "@/hooks/useHomePreference";
 import { useStylePreference } from "@/hooks/useStylePreference";
 import { useSubscription } from "@/hooks/useSubscription";
 
@@ -34,6 +36,7 @@ const Profile = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { style } = useStylePreference();
+  const { preference: homePreference, setPreference: setHomePreference } = useHomePreference();
   const { isAdmin } = useSubscription();
   const { toast } = useToast();
   
@@ -236,6 +239,32 @@ const Profile = () => {
                   </div>
                 </DialogContent>
               </Dialog>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Home preference — dashboard as landing page */}
+        <Card className="card-hover">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-full bg-muted">
+                  <LayoutDashboard className="h-5 w-5 text-foreground" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Tableau de bord en page d'accueil</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {homePreference === "dashboard"
+                      ? "L'accueil affiche le tableau de bord (accès rapide à toutes les sections)."
+                      : "L'accueil affiche la vue classique (stats, révisions, raccourcis)."}
+                  </p>
+                </div>
+              </div>
+              <Switch
+                checked={homePreference === "dashboard"}
+                onCheckedChange={(v) => setHomePreference(v ? "dashboard" : "home")}
+                aria-label="Utiliser le tableau de bord comme page d'accueil"
+              />
             </div>
           </CardContent>
         </Card>

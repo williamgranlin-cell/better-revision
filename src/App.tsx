@@ -9,7 +9,7 @@ import { ThemeBackground } from "./components/ThemeBackground";
 import { useThemeCustomization } from "./hooks/useThemeCustomization";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Auth from "./pages/Auth";
-import Home from "./pages/Home";
+import HomeRoute from "./pages/HomeRoute";
 import Calendar from "./pages/Calendar";
 import Classroom from "./pages/Classroom";
 import Flashcards from "./pages/Flashcards";
@@ -51,7 +51,7 @@ const App = () => (
               <AuthSplash>
               <Routes>
                 <Route path="/auth" element={<Auth />} />
-                <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+                <Route path="/" element={<ProtectedRoute><HomeRoute /></ProtectedRoute>} />
                 <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
                 <Route path="/classroom" element={<ProtectedRoute><Classroom /></ProtectedRoute>} />
                 <Route path="/flashcards" element={<ProtectedRoute><Flashcards /></ProtectedRoute>} />

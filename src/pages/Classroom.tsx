@@ -112,7 +112,7 @@ const Classroom = () => {
         <div className="max-w-screen-xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-xl md:text-2xl font-display font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Session de Travail 🎯
+              Session de Travail
             </h1>
             <p className="text-sm text-muted-foreground mt-0.5 capitalize">{currentDate}</p>
           </div>
