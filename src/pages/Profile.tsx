@@ -12,13 +12,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, LogOut, Edit, Sparkles, Palette, Shield } from "lucide-react";
+import { Settings, LogOut, Edit, Sparkles, Palette, Shield, LayoutDashboard } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { StyleToggle } from "@/components/StyleToggle";
 import { StatisticsSection } from "@/components/StatisticsSection";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
 import { ThemeSelector } from "@/components/ThemeSelector";
 import { ProfileDashboard } from "@/components/ProfileDashboard";
+import { useHomePreference } from "@/hooks/useHomePreference";
 import { useStylePreference } from "@/hooks/useStylePreference";
 import { useSubscription } from "@/hooks/useSubscription";
 
@@ -34,6 +36,7 @@ const Profile = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { style } = useStylePreference();
+  const { preference: homePreference, setPreference: setHomePreference } = useHomePreference();
   const { isAdmin } = useSubscription();
   const { toast } = useToast();
   
