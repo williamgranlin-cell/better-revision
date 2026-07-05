@@ -159,9 +159,6 @@ export const BottomNav = () => {
           >
             <Menu className="w-5 h-5" />
           </button>
-          <span className="text-sm font-display font-semibold bg-gradient-primary bg-clip-text text-transparent">
-            Better Revision
-          </span>
           <div className="w-9" />
         </div>
 
