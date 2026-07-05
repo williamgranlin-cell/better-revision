@@ -211,15 +211,10 @@ export const BottomNav = () => {
     >
       <div
         className={cn(
-          "flex items-center gap-2 px-3 py-4 border-b border-border/50",
-          collapsed ? "justify-center" : "justify-between"
+          "flex items-center px-2 py-3",
+          collapsed ? "justify-center" : "justify-end"
         )}
       >
-        {!collapsed && (
-          <span className="font-display font-bold text-sm bg-gradient-primary bg-clip-text text-transparent truncate">
-            Better Revision
-          </span>
-        )}
         <button
           onClick={() => setCollapsed((c) => !c)}
           aria-label={collapsed ? "Déplier le menu" : "Replier le menu"}
@@ -243,7 +238,7 @@ export const BottomNav = () => {
           collapsed ? "text-center" : "text-left"
         )}
       >
-        {collapsed ? "v1" : "Better Revision · v1"}
+        v1
       </div>
     </aside>
   );

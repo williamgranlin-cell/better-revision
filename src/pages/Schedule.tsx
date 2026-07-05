@@ -250,7 +250,7 @@ const Schedule = () => {
           <div className="max-w-screen-xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
             <div>
               <h1 className="text-xl md:text-2xl lg:text-3xl font-display font-bold bg-gradient-to-r from-violet-500 via-cyan-500 to-emerald-500 bg-clip-text text-transparent">
-                {dayLabel} 📋
+                {dayLabel}
               </h1>
               <p className="text-sm text-muted-foreground mt-1">
                 {allDayItems.length} événement{allDayItems.length !== 1 ? "s" : ""} programmé{allDayItems.length !== 1 ? "s" : ""}
@@ -336,7 +336,7 @@ const Schedule = () => {
         <div className="max-w-screen-xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-xl md:text-2xl lg:text-3xl font-display font-bold bg-gradient-to-r from-violet-500 via-cyan-500 to-emerald-500 bg-clip-text text-transparent">
-              Emploi du Temps ⏰
+              Emploi du Temps
             </h1>
             <p className="text-sm md:text-base text-muted-foreground mt-1">
               Organise ta semaine efficacement

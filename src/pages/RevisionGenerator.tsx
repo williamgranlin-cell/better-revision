@@ -459,7 +459,7 @@ const RevisionGenerator = () => {
             </div>
             <div>
               <h1 className="text-xl md:text-2xl lg:text-3xl font-display font-bold text-foreground">
-                Fiches & Schémas ✨
+                Fiches & Schémas
               </h1>
               <p className="text-sm md:text-base text-muted-foreground">
                 Crée, sauvegarde et partage tes révisions !

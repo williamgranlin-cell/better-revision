@@ -363,7 +363,7 @@ const QCM = () => {
           </motion.div>
 
           {/* Review all questions */}
-          <h3 className="text-lg font-semibold font-display">📋 Correction détaillée</h3>
+          <h3 className="text-lg font-semibold font-display">Correction détaillée</h3>
           {questions.map((q, qIndex) => {
             const userAns = selectedAnswers[qIndex] || new Set();
             const correctLabels = new Set(q.options.filter(o => o.correct).map(o => o.label));
@@ -411,7 +411,7 @@ const QCM = () => {
         <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-lg border-b border-border/50 shadow-sm">
           <div className="max-w-screen-xl mx-auto px-4 md:px-6 py-4">
             <h1 className="text-xl md:text-2xl font-display font-bold bg-gradient-primary bg-clip-text text-transparent">
-              QCM prêt ! 🎯
+              QCM prêt
             </h1>
           </div>
         </header>
@@ -458,7 +458,7 @@ const QCM = () => {
       <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-lg border-b border-border/50 shadow-sm">
         <div className="max-w-screen-xl mx-auto px-4 md:px-6 py-4">
           <h1 className="text-xl md:text-2xl lg:text-3xl font-display font-bold bg-gradient-primary bg-clip-text text-transparent">
-            QCM Intelligent ✅
+            QCM Intelligent
           </h1>
           <p className="text-sm md:text-base text-muted-foreground mt-1">
             Génère un QCM à cases à cocher depuis tes cours ou fiches
@@ -470,7 +470,7 @@ const QCM = () => {
         <div className="space-y-4">
           {/* Source type */}
           <Card className="p-6 gradient-card border-0">
-            <h2 className="font-display font-semibold text-lg mb-4">📄 Source du contenu</h2>
+            <h2 className="font-display font-semibold text-lg mb-4">Source du contenu</h2>
             <div className="grid grid-cols-3 gap-3 mb-4">
               {([
                 { value: "text" as SourceType, icon: FileText, label: "Texte libre" },
@@ -528,7 +528,7 @@ const QCM = () => {
 
           {/* Settings */}
           <Card className="p-6 gradient-card border-0">
-            <h2 className="font-display font-semibold text-lg mb-4">⚙️ Paramètres</h2>
+            <h2 className="font-display font-semibold text-lg mb-4">Paramètres</h2>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-muted-foreground mb-1 block">Nombre de questions</label>

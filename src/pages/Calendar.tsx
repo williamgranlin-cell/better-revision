@@ -21,7 +21,7 @@ const Calendar = () => {
           <div>
             <WelcomeHeader />
             <h1 className="text-xl md:text-2xl lg:text-3xl font-display font-bold bg-gradient-primary bg-clip-text text-transparent">
-              Mon Calendrier 📅
+              Mon Calendrier
             </h1>
             <p className="text-sm md:text-base text-muted-foreground mt-1">
               Planifie tes révisions intelligemment
