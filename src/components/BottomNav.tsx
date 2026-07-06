@@ -203,14 +203,14 @@ export const BottomNav = () => {
     >
       <div
         className={cn(
-          "flex items-center px-2 py-3",
+          "flex items-center px-2 pt-1.5 pb-0.5",
           collapsed ? "justify-center" : "justify-end"
         )}
       >
         <button
           onClick={() => setCollapsed((c) => !c)}
           aria-label={collapsed ? "Déplier le menu" : "Replier le menu"}
-          className="rounded-lg p-1.5 hover:bg-primary/10 active:scale-95 transition text-muted-foreground hover:text-foreground"
+          className="rounded-md p-1 hover:bg-primary/10 active:scale-95 transition text-muted-foreground hover:text-foreground"
         >
           {collapsed ? (
             <ChevronRight className="w-4 h-4" />
@@ -220,14 +220,12 @@ export const BottomNav = () => {
         </button>
       </div>
 
-      <nav className="flex-1 overflow-y-auto py-3">
+      <nav className="flex-1 min-h-0 py-1">
         <NavList compact={collapsed} />
       </nav>
-
-      <div
-        className={cn(
-          "px-3 py-3 border-t border-border/50 text-[10px] text-muted-foreground",
-          collapsed ? "text-center" : "text-left"
+    </aside>
+  );
+};
         )}
       >
         v1
