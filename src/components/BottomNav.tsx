@@ -84,7 +84,7 @@ export const BottomNav = () => {
   }, [location.pathname]);
 
   const NavList = ({ compact }: { compact: boolean }) => (
-    <ul className="flex flex-col gap-1 px-2">
+    <ul className="flex flex-col gap-0.5 px-2">
       {navItems.map((item) => {
         const Icon = item.icon;
         const isActive = location.pathname === item.path;
@@ -92,31 +92,26 @@ export const BottomNav = () => {
           <Link
             to={item.path}
             className={cn(
-              "group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200",
+              "group flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-all duration-200",
               "hover:bg-primary/10 active:scale-[0.98]",
               isActive
-                ? "bg-primary/15 text-primary shadow-[0_0_12px_hsl(var(--primary)/0.25)]"
+                ? "bg-primary/15 text-primary"
                 : "text-muted-foreground hover:text-foreground",
               compact && "justify-center px-2"
             )}
           >
             <div
               className={cn(
-                "relative flex h-9 w-9 items-center justify-center rounded-lg shrink-0",
+                "relative flex h-7 w-7 items-center justify-center rounded-md shrink-0",
                 isActive && "bg-primary/10"
               )}
             >
-              <Icon
-                className={cn(
-                  "h-5 w-5 transition-transform duration-300",
-                  isActive && "animate-bounce-soft"
-                )}
-              />
+              <Icon className="h-4 w-4" />
             </div>
             {!compact && (
               <span
                 className={cn(
-                  "text-sm truncate transition-all",
+                  "text-[13px] truncate transition-all",
                   isActive ? "font-semibold" : "font-medium"
                 )}
               >
@@ -208,14 +203,14 @@ export const BottomNav = () => {
     >
       <div
         className={cn(
-          "flex items-center px-2 py-3",
+          "flex items-center px-2 pt-1.5 pb-0.5",
           collapsed ? "justify-center" : "justify-end"
         )}
       >
         <button
           onClick={() => setCollapsed((c) => !c)}
           aria-label={collapsed ? "Déplier le menu" : "Replier le menu"}
-          className="rounded-lg p-1.5 hover:bg-primary/10 active:scale-95 transition text-muted-foreground hover:text-foreground"
+          className="rounded-md p-1 hover:bg-primary/10 active:scale-95 transition text-muted-foreground hover:text-foreground"
         >
           {collapsed ? (
             <ChevronRight className="w-4 h-4" />
@@ -225,18 +220,9 @@ export const BottomNav = () => {
         </button>
       </div>
 
-      <nav className="flex-1 overflow-y-auto py-3">
+      <nav className="flex-1 min-h-0 py-1">
         <NavList compact={collapsed} />
       </nav>
-
-      <div
-        className={cn(
-          "px-3 py-3 border-t border-border/50 text-[10px] text-muted-foreground",
-          collapsed ? "text-center" : "text-left"
-        )}
-      >
-        v1
-      </div>
     </aside>
   );
 };

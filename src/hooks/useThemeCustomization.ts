@@ -1,10 +1,19 @@
 import { useState, useEffect } from "react";
-import libraryBg from "@/assets/themes/theme-library.jpg";
+import paperBg from "@/assets/themes/theme-paper.jpg";
+import morningBg from "@/assets/themes/theme-morning.jpg";
+import chalkBg from "@/assets/themes/theme-chalk.jpg";
 import inkpaperBg from "@/assets/themes/theme-inkpaper.jpg";
-import prepBg from "@/assets/themes/theme-prep.jpg";
+import libraryLightBg from "@/assets/themes/theme-library-light.jpg";
+import libraryBg from "@/assets/themes/theme-library.jpg";
+import papyrusBg from "@/assets/themes/theme-papyrus.jpg";
+import sepiaBg from "@/assets/themes/theme-sepia.jpg";
+import leatherBg from "@/assets/themes/theme-leather.jpg";
+import cafeBg from "@/assets/themes/theme-cafe.jpg";
 import slateBg from "@/assets/themes/theme-slate.jpg";
-import emeraldBg from "@/assets/themes/theme-emerald.jpg";
-import dawnBg from "@/assets/themes/theme-dawn.jpg";
+import blackboardBg from "@/assets/themes/theme-blackboard.jpg";
+import libraryNightBg from "@/assets/themes/theme-library-night.jpg";
+import examnightBg from "@/assets/themes/theme-examnight.jpg";
+import nightdeskBg from "@/assets/themes/theme-nightdesk.jpg";
 
 export interface AppTheme {
   id: string;
@@ -27,134 +36,90 @@ export interface AppTheme {
   };
 }
 
-/**
- * Thèmes orientés "réussite scolaire" : bibliothèque, encre & papier,
- * bleu prépa, ardoise, émeraude prestige, aube studieuse.
- * Discipline, sérieux, travail.
- */
+/** Palette utilitaire pour les thèmes clairs. */
+const lightPalette = (primary: string, accent: string, hue = 30) => ({
+  primary,
+  secondary: primary,
+  accent,
+  overlay: `${hue} 25% 96% / 0.86`,
+  foreground: `${hue} 25% 12%`,
+  card: "0 0% 100% / 0.92",
+  cardForeground: `${hue} 25% 12%`,
+  popoverSolid: `${hue} 25% 99%`,
+  muted: `${hue} 20% 93%`,
+  mutedForeground: `${hue} 15% 35%`,
+  border: `${hue} 20% 86%`,
+});
+
+/** Palette utilitaire pour les thèmes moyens. */
+const midPalette = (primary: string, accent: string, hue = 28) => ({
+  primary,
+  secondary: primary,
+  accent,
+  overlay: `${hue} 25% 94% / 0.8`,
+  foreground: `${hue} 30% 12%`,
+  card: "0 0% 100% / 0.9",
+  cardForeground: `${hue} 30% 12%`,
+  popoverSolid: `${hue} 25% 99%`,
+  muted: `${hue} 20% 92%`,
+  mutedForeground: `${hue} 18% 35%`,
+  border: `${hue} 20% 84%`,
+});
+
+/** Palette utilitaire pour les thèmes sombres. */
+const darkPalette = (primary: string, accent: string, hue = 215) => ({
+  primary,
+  secondary: primary,
+  accent,
+  overlay: `${hue} 25% 10% / 0.78`,
+  foreground: "40 20% 94%",
+  card: `${hue} 25% 15% / 0.88`,
+  cardForeground: "40 20% 94%",
+  popoverSolid: `${hue} 25% 12%`,
+  muted: `${hue} 20% 22%`,
+  mutedForeground: "40 15% 72%",
+  border: `${hue} 20% 28%`,
+});
+
 export const APP_THEMES: AppTheme[] = [
-  {
-    id: "inkpaper",
-    name: "Encre & Papier",
-    emoji: "",
-    category: "Studieux",
-    background: inkpaperBg,
-    colors: {
-      primary: "24 20% 25%",
-      secondary: "30 15% 40%",
-      accent: "35 60% 45%",
-      overlay: "35 20% 96% / 0.85",
-      foreground: "24 20% 12%",
-      card: "0 0% 100% / 0.92",
-      cardForeground: "24 20% 12%",
-      popoverSolid: "35 20% 99%",
-      muted: "30 15% 92%",
-      mutedForeground: "24 12% 35%",
-      border: "30 15% 86%",
-    },
-  },
-  {
-    id: "library",
-    name: "Bibliothèque",
-    emoji: "",
-    category: "Studieux",
-    background: libraryBg,
-    colors: {
-      primary: "28 55% 35%",
-      secondary: "20 40% 30%",
-      accent: "40 70% 50%",
-      overlay: "35 25% 95% / 0.82",
-      foreground: "25 30% 12%",
-      card: "0 0% 100% / 0.9",
-      cardForeground: "25 30% 12%",
-      popoverSolid: "35 25% 99%",
-      muted: "30 20% 92%",
-      mutedForeground: "25 15% 35%",
-      border: "30 20% 86%",
-    },
-  },
-  {
-    id: "dawn",
-    name: "Aube studieuse",
-    emoji: "",
-    category: "Studieux",
-    background: dawnBg,
-    colors: {
-      primary: "25 75% 45%",
-      secondary: "35 65% 50%",
-      accent: "45 80% 55%",
-      overlay: "30 30% 96% / 0.84",
-      foreground: "25 30% 14%",
-      card: "0 0% 100% / 0.92",
-      cardForeground: "25 30% 14%",
-      popoverSolid: "30 30% 99%",
-      muted: "30 25% 92%",
-      mutedForeground: "25 15% 38%",
-      border: "30 25% 86%",
-    },
-  },
-  {
-    id: "prep",
-    name: "Bleu prépa",
-    emoji: "",
-    category: "Discipline",
-    background: prepBg,
-    colors: {
-      primary: "215 80% 40%",
-      secondary: "220 60% 35%",
-      accent: "40 75% 55%",
-      overlay: "215 30% 96% / 0.86",
-      foreground: "220 40% 12%",
-      card: "0 0% 100% / 0.93",
-      cardForeground: "220 40% 12%",
-      popoverSolid: "215 30% 99%",
-      muted: "215 25% 93%",
-      mutedForeground: "220 20% 35%",
-      border: "215 25% 87%",
-    },
-  },
-  {
-    id: "emerald",
-    name: "Émeraude prestige",
-    emoji: "",
-    category: "Discipline",
-    background: emeraldBg,
-    colors: {
-      primary: "158 65% 30%",
-      secondary: "155 55% 35%",
-      accent: "42 75% 50%",
-      overlay: "150 25% 96% / 0.85",
-      foreground: "158 40% 12%",
-      card: "0 0% 100% / 0.92",
-      cardForeground: "158 40% 12%",
-      popoverSolid: "150 25% 99%",
-      muted: "150 20% 93%",
-      mutedForeground: "158 18% 35%",
-      border: "150 20% 86%",
-    },
-  },
-  {
-    id: "slate",
-    name: "Ardoise",
-    emoji: "",
-    category: "Concentration",
-    background: slateBg,
-    colors: {
-      primary: "40 70% 60%",
-      secondary: "200 40% 55%",
-      accent: "35 80% 60%",
-      overlay: "210 25% 10% / 0.78",
-      foreground: "40 20% 94%",
-      card: "215 25% 15% / 0.88",
-      cardForeground: "40 20% 94%",
-      popoverSolid: "215 25% 12%",
-      muted: "215 20% 22%",
-      mutedForeground: "40 15% 72%",
-      border: "215 20% 28%",
-    },
-  },
+  // ————— Lumineux (5) —————
+  { id: "paper", name: "Papier crème", emoji: "", category: "Lumineux", background: paperBg,
+    colors: lightPalette("30 25% 25%", "35 60% 45%", 35) },
+  { id: "morning", name: "Matin studieux", emoji: "", category: "Lumineux", background: morningBg,
+    colors: lightPalette("210 40% 35%", "35 70% 55%", 210) },
+  { id: "chalk", name: "Craie blanche", emoji: "", category: "Lumineux", background: chalkBg,
+    colors: lightPalette("220 15% 25%", "215 60% 45%", 220) },
+  { id: "inkpaper", name: "Encre & Papier", emoji: "", category: "Lumineux", background: inkpaperBg,
+    colors: lightPalette("24 20% 22%", "35 55% 45%", 30) },
+  { id: "library-light", name: "Bibliothèque claire", emoji: "", category: "Lumineux", background: libraryLightBg,
+    colors: lightPalette("210 40% 40%", "40 65% 50%", 210) },
+
+  // ————— Intermédiaires (5) —————
+  { id: "library", name: "Bibliothèque", emoji: "", category: "Intermédiaires", background: libraryBg,
+    colors: midPalette("28 55% 32%", "40 70% 48%", 28) },
+  { id: "papyrus", name: "Papyrus", emoji: "", category: "Intermédiaires", background: papyrusBg,
+    colors: midPalette("30 45% 30%", "38 70% 45%", 38) },
+  { id: "sepia", name: "Manuscrit sépia", emoji: "", category: "Intermédiaires", background: sepiaBg,
+    colors: midPalette("25 55% 28%", "35 65% 45%", 28) },
+  { id: "leather", name: "Cuir & or", emoji: "", category: "Intermédiaires", background: leatherBg,
+    colors: midPalette("0 55% 30%", "42 75% 50%", 15) },
+  { id: "cafe", name: "Café d'étude", emoji: "", category: "Intermédiaires", background: cafeBg,
+    colors: midPalette("22 45% 28%", "35 70% 50%", 25) },
+
+  // ————— Sombres (5) —————
+  { id: "slate", name: "Ardoise", emoji: "", category: "Sombres", background: slateBg,
+    colors: darkPalette("40 70% 60%", "35 80% 60%", 210) },
+  { id: "blackboard", name: "Tableau noir", emoji: "", category: "Sombres", background: blackboardBg,
+    colors: darkPalette("0 0% 88%", "42 75% 60%", 0) },
+  { id: "library-night", name: "Bibliothèque nocturne", emoji: "", category: "Sombres", background: libraryNightBg,
+    colors: darkPalette("35 75% 55%", "40 80% 60%", 25) },
+  { id: "examnight", name: "Nuit d'examen", emoji: "", category: "Sombres", background: examnightBg,
+    colors: darkPalette("40 80% 60%", "215 60% 65%", 220) },
+  { id: "nightdesk", name: "Bureau de nuit", emoji: "", category: "Sombres", background: nightdeskBg,
+    colors: darkPalette("155 50% 55%", "40 75% 60%", 165) },
 ];
 
+const DARK_IDS = new Set(["slate", "blackboard", "library-night", "examnight", "nightdesk"]);
 const STORAGE_KEY = "app-theme";
 
 function applyTheme(theme: AppTheme) {
@@ -184,7 +149,7 @@ function applyTheme(theme: AppTheme) {
     `linear-gradient(135deg, hsl(${c.primary}) 0%, hsl(${c.secondary}) 50%, hsl(${c.accent}) 100%)`
   );
 
-  root.dataset.themeMode = theme.id === "slate" ? "dark" : "light";
+  root.dataset.themeMode = DARK_IDS.has(theme.id) ? "dark" : "light";
   root.dataset.themeId = theme.id;
 }
 
