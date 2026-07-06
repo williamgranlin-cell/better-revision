@@ -226,10 +226,3 @@ export const BottomNav = () => {
     </aside>
   );
 };
-        )}
-      >
-        v1
-      </div>
-    </aside>
-  );
-};
