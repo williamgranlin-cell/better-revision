@@ -84,7 +84,7 @@ export const BottomNav = () => {
   }, [location.pathname]);
 
   const NavList = ({ compact }: { compact: boolean }) => (
-    <ul className="flex flex-col gap-1 px-2">
+    <ul className="flex flex-col gap-0.5 px-2">
       {navItems.map((item) => {
         const Icon = item.icon;
         const isActive = location.pathname === item.path;
@@ -92,31 +92,26 @@ export const BottomNav = () => {
           <Link
             to={item.path}
             className={cn(
-              "group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200",
+              "group flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-all duration-200",
               "hover:bg-primary/10 active:scale-[0.98]",
               isActive
-                ? "bg-primary/15 text-primary shadow-[0_0_12px_hsl(var(--primary)/0.25)]"
+                ? "bg-primary/15 text-primary"
                 : "text-muted-foreground hover:text-foreground",
               compact && "justify-center px-2"
             )}
           >
             <div
               className={cn(
-                "relative flex h-9 w-9 items-center justify-center rounded-lg shrink-0",
+                "relative flex h-7 w-7 items-center justify-center rounded-md shrink-0",
                 isActive && "bg-primary/10"
               )}
             >
-              <Icon
-                className={cn(
-                  "h-5 w-5 transition-transform duration-300",
-                  isActive && "animate-bounce-soft"
-                )}
-              />
+              <Icon className="h-4 w-4" />
             </div>
             {!compact && (
               <span
                 className={cn(
-                  "text-sm truncate transition-all",
+                  "text-[13px] truncate transition-all",
                   isActive ? "font-semibold" : "font-medium"
                 )}
               >
