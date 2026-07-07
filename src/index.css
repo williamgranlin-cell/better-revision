@@ -71,8 +71,8 @@ All colors MUST be HSL.
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
-    --font-sans: 'Work Sans', system-ui, sans-serif;
-    --font-display: 'Instrument Serif', Georgia, serif;
+    --font-sans: 'Instrument Sans', system-ui, sans-serif;
+    --font-display: 'EB Garamond', Georgia, serif;
     --font-mono: 'JetBrains Mono', monospace;
   }
 
@@ -121,8 +121,8 @@ All colors MUST be HSL.
     font-feature-settings: "rlig" 1, "calt" 1;
   }
   html {
-    /* Fallback color in case the image hasn't loaded yet */
-    background-color: hsl(220 20% 95%);
+    /* Paper fallback color to match Encre & Papier */
+    background-color: hsl(40 25% 96%);
   }
 
   /* Custom scrollbar */
@@ -316,10 +316,11 @@ All colors MUST be HSL.
   --ring: 0 0% 15%;
 }
 
-/* Force every heading, paragraph, label, list, link and button label
-   to render in ink/graphite regardless of any inline gradient class. */
+/* Force headings and body copy to render in ink/graphite regardless of any
+   inline gradient class. Buttons and links are excluded so they can carry
+   their own foreground color (e.g. inverted buttons). */
 h1, h2, h3, h4, h5, h6,
-p, span, label, li, a, button, div[role="heading"] {
+p, label, li, div[role="heading"] {
   color: hsl(var(--foreground));
 }
 
