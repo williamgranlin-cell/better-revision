@@ -316,10 +316,11 @@ All colors MUST be HSL.
   --ring: 0 0% 15%;
 }
 
-/* Force every heading, paragraph, label, list, link and button label
-   to render in ink/graphite regardless of any inline gradient class. */
+/* Force headings and body copy to render in ink/graphite regardless of any
+   inline gradient class. Buttons and links are excluded so they can carry
+   their own foreground color (e.g. inverted buttons). */
 h1, h2, h3, h4, h5, h6,
-p, span, label, li, a, button, div[role="heading"] {
+p, label, li, div[role="heading"] {
   color: hsl(var(--foreground));
 }
 
