@@ -145,10 +145,11 @@ export const BottomNav = () => {
               <TooltipTrigger asChild>
                 <Link
                   to={item.path}
+                  style={active ? { color: "#f5f3ee" } : undefined}
                   className={cn(
                     "flex h-10 w-10 mx-auto items-center justify-center rounded-sm transition-colors",
                     active
-                      ? "bg-neutral-900 text-[hsl(var(--background))]"
+                      ? "bg-neutral-900"
                       : "text-neutral-500 hover:text-neutral-900 hover:bg-neutral-200/60"
                   )}
                 >
