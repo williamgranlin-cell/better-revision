@@ -158,7 +158,8 @@ const Home = () => {
               <div className="mt-8 flex items-center gap-4">
                 <Link
                   to="/classroom"
-                  className="inline-block px-8 py-3 bg-neutral-900 text-[hsl(var(--background))] text-sm font-medium hover:bg-neutral-700 transition-colors"
+                  style={{ color: "#f5f3ee" }}
+                  className="inline-block px-8 py-3 bg-neutral-900 text-sm font-medium hover:bg-neutral-700 transition-colors"
                 >
                   Commencer une session
                 </Link>
