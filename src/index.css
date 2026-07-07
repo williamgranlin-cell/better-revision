@@ -71,8 +71,8 @@ All colors MUST be HSL.
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
-    --font-sans: 'Work Sans', system-ui, sans-serif;
-    --font-display: 'Instrument Serif', Georgia, serif;
+    --font-sans: 'Instrument Sans', system-ui, sans-serif;
+    --font-display: 'EB Garamond', Georgia, serif;
     --font-mono: 'JetBrains Mono', monospace;
   }
 
